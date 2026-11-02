@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>RepForge — MVP Plan</title>
+<style>
+  /* Optional webfonts — file still works fully offline via fallbacks below */
+  @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;600;700&display=swap');
+
+  :root{
+    --bg:#0d110d;
+    --panel:#161b16;
+    --panel-2:#1a201a;
+    --line:#252b25;
+    --lime:#b4f43c;
+    --ink:#eef2ea;
+    --muted:#9aa49a;
+    --faint:#6d766c;
+    --orange:#ff8a4a;
+    --r:12px;
+    --font-display:'Oswald','Avenir Next Condensed','Arial Narrow','Roboto Condensed',sans-serif;
+    --font-body:'Inter',-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  }
+
+  *{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  html,body{margin:0}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font:400 14px/1.6 var(--font-body);
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--lime);color:#131807}
+
+  .wrap{max-width:1060px;margin:0 auto;padding:0 32px}
+  section{padding:56px 0}
+
+  h1,h2,h3,h4,h5,.disp{
+    font-family:var(--font-display);
+    font-stretch:condensed;
+    text-transform:uppercase;
+    margin:0;
+  }
+  h2{font-size:clamp(30px,4vw,44px);letter-spacing:.5px;margin-bottom:28px}
+
+  /* ---------- HERO ---------- */
+  .hero{padding:80px 0 24px}
+  .badge{
+    display:inline-block;background:var(--lime);color:#131807;
+    font:700 10px/1 var(--font-display);letter-spacing:1.2px;text-transform:uppercase;
+    padding:6px 14px;border-radius:999px;
+  }
+  .hero h1{font-size:clamp(64px,9vw,104px);line-height:.95;letter-spacing:1px;margin:20px 0 26px}
+  .hero h1 em{font-style:normal;color:var(--lime)}
+  .lede{color:var(--muted);max-width:580px;font-size:15px}
+  .lede b{color:var(--ink)}
+
+  /* ---------- WHO IT'S FOR ---------- */
+  .who{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+  .who .card{
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+    padding:22px;display:flex;flex-direction:column;gap:10px;
+  }
+  .who h3{font-size:16px;letter-spacing:.5px}
+  .who p{margin:0;color:var(--muted);font-size:12.5px;flex:1}
+  .src{color:var(--lime);font-size:11px;font-weight:600}
+
+  /* ---------- SCREEN TREE ---------- */
+  .tree{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:20px}
+  .node{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:22px 24px}
+  .node header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  .node h3{font-size:17px;letter-spacing:.5px}
+  .node ul{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+  .node li{color:var(--muted);font-size:12.5px}
+  .node li::before{content:"└ ";color:var(--faint)}
+  .tag{font:700 9px/1 var(--font-display);letter-spacing:1px;padding:4px 10px;border-radius:999px;text-transform:uppercase}
+  .tag.must{background:var(--lime);color:#131807}
+  .tag.lite{background:var(--orange);color:#1a0d05}
+  .tag.later{background:#262c26;color:#8b948b}
+
+  /* ---------- PHONE MOCKUPS ---------- */
+  .shots{display:flex;flex-wrap:wrap;gap:40px 26px;justify-content:center}
+  .shot{display:flex;flex-direction:column;align-items:center;gap:16px;width:212px;margin:0}
+  .shot h5{font-size:15px;letter-spacing:1px}
+  .shot p{margin:0;color:var(--muted);font-size:12px;text-align:center}
+
+  .phone{
+    position:relative;width:212px;height:474px;flex:none;
+    border:2px solid #262b26;border-radius:34px;
+    background:linear-gradient(#0c0f0c,#0a0d0a);
+    box-shadow:0 22px 44px rgba(0,0,0,.5);
+    padding:12px 10px 10px;
+  }
+  .phone::before{ /* notch */
+    content:"";position:absolute;top:10px;left:50%;transform:translateX(-50%);
+    width:72px;height:12px;border-radius:8px;background:#181c18;
+  }
+  .screen{height:100%;display:flex;flex-direction:column;gap:8px;padding-top:22px;overflow:hidden}
+  .screen h4{font-size:15px;letter-spacing:.5px}
+  .tiny{color:var(--faint);font-size:8.5px;margin:0}
+  .pc{background:var(--panel);border-radius:10px;padding:10px}
+  .btn{border:0;border-radius:999px;padding:9px 10px;font:700 10px var(--font-body);text-align:center;cursor:pointer}
+  .btn.lime{background:var(--lime);color:#131807}
+  .btn.dark{background:#202620;color:#dfe5dd}
+  .grow{flex:1}
+
+  /* tabs */
+  .tabs{margin-top:auto;display:grid;grid-template-columns:repeat(5,1fr);padding-top:8px;border-top:1px solid var(--line)}
+  .tab{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:7.5px;color:var(--faint)}
+  .tab::before{content:"";width:3px;height:3px;border-radius:50%;background:currentColor}
+  .tab.on{color:var(--lime);font-weight:700}
+
+  /* onboarding */
+  .opt{background:var(--panel-2);border:1px solid transparent;border-radius:10px;padding:9px 10px;font-size:9.5px}
+  .opt.sel{border-color:var(--lime)}
+
+  /* today */
+  .phead{display:flex;justify-content:space-between;align-items:center}
+  .phead b{font-size:10px}
+  .timer{color:var(--lime);font:600 10px var(--font-display);letter-spacing:.5px}
+  .duo{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .stat b{display:block;font:600 13px var(--font-body);color:#fff}
+  .stat span{color:var(--faint);font-size:8px}
+
+  /* logger */
+  .lhead,.lrow{display:grid;grid-template-columns:18px 1fr 1fr 14px;gap:8px;align-items:center}
+  .lhead span{color:var(--faint);font-size:7.5px;letter-spacing:.6px;text-transform:uppercase}
+  .lrow{padding:5px 6px;border-radius:8px;font-size:9.5px;margin-top:4px}
+  .lrow.done{background:var(--panel-2)}
+  .lrow .n{background:#242a24;color:var(--muted);border-radius:5px;text-align:center;font-size:8.5px;padding:2px 0}
+  .prev{color:var(--faint);text-decoration:line-through}
+  .cur{color:#fff;font-weight:700}
+  .ck{color:var(--lime);font-size:10px;text-align:center}
+  .rest{text-align:center}
+  .rest span{display:block;color:var(--muted);font-size:8.5px}
+  .rest b{font:600 26px var(--font-display);color:var(--lime);letter-spacing:1px}
+  .next{font-size:8.5px;color:var(--muted)}
+  .next b{color:var(--ink);font-size:9.5px}
+
+  /* PR screen */
+  .pr-title{color:var(--lime);font-size:22px;letter-spacing:1px}
+  .heroCard{text-align:center;padding:12px}
+  .heroCard span{color:var(--muted);font-size:8.5px}
+  .heroCard b{display:block;font:600 30px var(--font-display);color:#fff;letter-spacing:1px;margin:2px 0}
+  .heroCard em{font-style:normal;color:var(--lime);font-size:9px;font-weight:700}
+  .tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+  .tile{background:var(--panel);border-radius:8px;padding:8px 4px;text-align:center}
+  .tile b{display:block;font:600 13px var(--font-display);color:#fff}
+  .tile span{color:var(--faint);font-size:7.5px}
+
+  /* progress */
+  .score b{display:block;font:600 26px var(--font-display);color:var(--lime);letter-spacing:1px}
+  .bars{display:flex;align-items:flex-end;gap:5px;height:62px;margin-top:8px}
+  .bars i{flex:1;border-radius:5px;background:var(--lime)}
+  .prwall{font-size:8.5px;color:var(--muted)}
+
+  /* feed */
+  .post{display:grid;gap:3px}
+  .post b{font-size:9.5px;color:#fff}
+  .post span{font-size:8.5px;color:var(--muted)}
+  .kudos{color:var(--lime);font-size:8.5px;font-weight:700;display:flex;align-items:center;gap:4px}
+  .coin{width:8px;height:8px;border-radius:50%;background:#f2a33c;display:inline-block}
+
+  /* ---------- ROADMAP ---------- */
+  .weeks{display:grid;grid-template-columns:repeat(auto-fit,minmax(400px,1fr));gap:14px 24px}
+  .week{
+    display:flex;align-items:center;gap:18px;
+    background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px;
+  }
+  .week b{color:var(--lime);font:600 13px var(--font-display);letter-spacing:.5px;min-width:118px;text-transform:uppercase}
+  .week span{color:var(--muted);font-size:12px}
+  .tip{color:var(--faint);font-size:12px;margin:18px 0 0}
+
+  /* ---------- MONETIZATION / STACK ---------- */
+  .duo-cols{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+  .bigcard{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:28px 30px}
+  .bigcard h2{font-size:34px;margin-bottom:6px}
+  .sub{color:var(--faint);font-size:11px;margin:0 0 18px}
+  .lines{display:grid;gap:10px;font-size:12.5px;color:var(--muted)}
+  .lines b{color:var(--ink)}
+  .lines p{margin:0}
+
+  footer{padding:40px 0 60px;color:var(--faint);font-size:11px;letter-spacing:1px;text-transform:uppercase}
+
+  @media (max-width:900px){
+    .duo-cols{grid-template-columns:1fr}
+    .weeks{grid-template-columns:1fr}
+  }
+  @media (max-width:560px){
+    .wrap{padding:0 20px}
+    .who{grid-template-columns:1fr}
+  }
+
+  /* ---------- EXPORT / PRINT (PDF keeps dark theme, no split cards) ---------- */
+  @page{size:A4;margin:10mm}
+  @media print{
+    body{background:var(--bg)}
+    .wrap{max-width:100%;padding:0}
+    section{padding:28px 0}
+    .hero{padding:40px 0 12px}
+    .node,.week,.card,.bigcard,.shot,.phone{break-inside:avoid;page-break-inside:avoid}
+    h2{break-after:avoid;page-break-after:avoid}
+    .phone{box-shadow:none}
+  }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <!-- ============ MOCKUPS ============ -->
+  <section>
+    <h2>Mockups</h2>
+    <div class="shots">
+
+      <!-- Onboarding -->
+      <figure class="shot">
+        <div class="phone"><div class="screen">
+          <h4>Who are you?</h4>
+          <p class="tiny">We'll shape the app around you.</p>
+          <div class="opt">🌱 Just starting</div>
+          <div class="opt">🏋️ I go to the gym</div>
+          <div class="opt sel">🔥 Gymrat</div>
+          <div class="opt">🏅 Elite athlete</div>
+          <div class="grow"></div>
+          <button class="btn lime">Continue</button>
+        </div></div>
+        <h5>Pick Your Type</h5>
+        <p>Personalises the whole app from minute one.</p>
+      </figure>
+
+      <!-- Today -->
+      <figure class="shot">
+        <div class="phone"><div class="screen">
+          <p class="tiny">Sunday · Week 3</p>
+          <h4>Push Day</h4>
+          <div class="pc">
+            <b style="font-size:10px">Chest · Shoulders · Triceps</b><br>
+            <span class="tiny">6 exercises · ~55 min</span>
+            <button class="btn lime" style="width:100%;margin-top:8px">Start workout</button>
+          </div>
+          <div class="duo">
+            <div class="pc stat"><b>🔥 12</b><span>day streak</span></div>
+            <div class="pc stat"><b>8,240</b><span>steps</span></div>
+          </div>
+          <div class="pc next">+ Empty workout · Walk · Routine</div>
+          <div class="tabs">
+            <span class="tab on">Today</span><span class="tab">Train</span><span class="tab">Progress</span><span class="tab">Social</span><span class="tab">Me</span>
+          </div>
+        </div></div>
+        <h5>Today</h5>
+        <p>One clear next action, streak, synced steps.</p>
+      </figure>
+
+      <!-- Live logger -->
+      <figure class="shot">
+        <div class="phone"><div class="screen">
+          <div class="phead"><b>Bench Press</b><span class="timer">32:10</span></div>
+          <div class="pc">
+            <div class="lhead"><span>Set</span><span>Prev</span><span>kg×reps</span><span>✓</span></div>
+            <div class="lrow done"><span class="n">1</span><span class="prev">80×8</span><span class="cur">82.5×8</span><span class="ck">✓</span></div>
+            <div class="lrow done"><span class="n">2</span><span class="prev">80×8</span><span class="cur">82.5×7</span><span class="ck">✓</span></div>
+            <div class="lrow"><span class="n">3</span><span class="prev" style="text-decoration:none">80×6</span><span class="cur" style="color:var(--faint);font-weight:400">—</span><span class="ck" style="opacity:.6">○</span></div>
+          </div>
+          <div class="pc rest"><span>Rest</span><b>1:24</b></div>
+          <div class="pc next"><b>Incline DB Press</b> · 3 sets</div>
+          <div class="grow"></div>
+          <button class="btn lime">Finish</button>
+        </div></div>
+        <h5>Live Logger</h5>
+        <p>The gymrat hook: previous values, one tap per set, auto rest timer.</p>
+      </figure>
+
+      <!-- Summary + PR -->
+      <figure class="shot">
+        <div class="phone"><div class="screen">
+          <h4 class="pr-title">New PR!</h4>
+          <div class="pc heroCard">
+            <span>Bench Press · est. 1RM</span>
+            <b>104 KG</b>
+            <em>+3.5 kg</em>
+          </div>
+          <div class="tiles">
+            <div class="tile"><b>55M</b><span>time</span></div>
+            <div class="tile"><b>9.4T</b><span>volume</span></div>
+            <div class="tile"><b>21</b><span>sets</span></div>
+          </div>
+          <div class="grow"></div>
+          <button class="btn lime">Share card</button>
+          <button class="btn dark">Save</button>
+        </div></div>
+        <h5>Summary + PR</h5>
+        <p>Auto PR detection and a share card made for Instagram stories.</p>
+      </figure>
+
+      <!-- Progress -->
+      <figure class="shot">
+        <div class="phone"><div class="screen">
+          <h4>Progress</h4>
+          <div class="pc score">
+            <span class="tiny">Strength Score</span>
+            <b>412</b>
+            <span class="tiny">Top 18% at your gym</span>
+          </div>
+          <div class="pc">
+            <span class="tiny">Weekly volume</span>
+            <div class="bars">
+              <i style="height:40%"></i><i style="height:52%"></i><i style="height:52%"></i>
+              <i style="height:72%"></i><i style="height:66%"></i><i style="height:88%"></i><i style="height:100%"></i>
+            </div>
+          </div>
+          <div class="pc prwall">🏆 PRs: Squat 140 · Dead 180 · Bench 104</div>
+          <div class="tabs">
+            <span class="tab">Today</span><span class="tab">Train</span><span class="tab on">Progress</span><span class="tab">Social</span><span class="tab">Me</span>
+          </div>
+        </div></div>
+        <h5>Progress</h5>
+        <p>Strength Score ranks you vs friends — reason to come back.</p>
+      </figure>
+
+      <!-- Social feed -->
+      <figure class="shot">
+        <div class="phone"><div class="screen">
+          <h4>Feed</h4>
+          <div class="pc post"><b>Andrei</b><span>Leg day · 2 PRs</span><span class="kudos"><i class="coin"></i>14 kudos</span></div>
+          <div class="pc post"><b>Maria</b><span>First 5-min workout 🏆</span><span class="kudos"><i class="coin"></i>32 kudos</span></div>
+          <div class="pc post"><b>Vlad</b><span>Track intervals · RPE 9</span><span class="kudos"><i class="coin"></i>8 kudos</span></div>
+          <div class="tabs">
+            <span class="tab">Today</span><span class="tab">Train</span><span class="tab">Progress</span><span class="tab on">Social</span><span class="tab">Me</span>
+          </div>
+        </div></div>
+        <h5>Social Feed</h5>
+        <p>Strava-style kudos, minus the noise.</p>
+      </figure>
+
+    </div>
+  </section>
+</main>
+</body>
+</html>

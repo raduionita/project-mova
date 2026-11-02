@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mova — MVP Flow · Linear Storyboard</title>
+<style>
+  :root{
+    --bg:#0b0f16; --panel:#101623; --card:#171f2e; --line:#232d40;
+    --text:#e9eef6; --muted:#8d97ab; --lime:#b7f24c; --lime-ink:#131a04;
+    --orange:#ff8a4c; --gold:#ffd166; --blue:#5ea2ff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:radial-gradient(1200px 600px at 20% -10%, #16203a 0%, var(--bg) 55%);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;
+    min-height:100vh; overflow-x:hidden;
+  }
+
+  /* ---------- Header ---------- */
+  header{
+    display:flex; align-items:flex-end; justify-content:space-between; gap:20px;
+    padding:36px 48px 10px; flex-wrap:wrap;
+  }
+  .brand{display:flex; align-items:center; gap:14px}
+  .logo-mark{
+    width:44px;height:44px;border-radius:13px;display:grid;place-items:center;
+    background:linear-gradient(135deg,var(--lime),#7fc93a);
+    color:var(--lime-ink); font-weight:800; font-size:22px;
+    box-shadow:0 8px 24px rgba(183,242,76,.25);
+  }
+  h1{font-size:22px; letter-spacing:.2px}
+  .sub{color:var(--muted); font-size:13px; margin-top:4px}
+  .meta{display:flex; gap:8px; align-items:center}
+  .chip{
+    font-size:11px; padding:5px 10px; border-radius:999px;
+    background:#1b2436; border:1px solid var(--line); color:#a8b3c7;
+  }
+  .chip.accent{background:rgba(183,242,76,.12); border-color:rgba(183,242,76,.4); color:var(--lime)}
+  .controls{display:flex; gap:8px}
+  .controls button{
+    width:36px;height:36px;border-radius:50%;border:1px solid var(--line);
+    background:var(--panel); color:var(--text); font-size:16px; cursor:pointer;
+  }
+  .controls button:hover{border-color:var(--lime); color:var(--lime)}
+
+  /* ---------- Film strip ---------- */
+  .strip{
+    display:flex; align-items:flex-start; gap:0;
+    overflow-x:auto; padding:34px 48px 48px;
+    scroll-snap-type:x mandatory;
+    scrollbar-width:thin; scrollbar-color:#2c374d transparent;
+  }
+  .strip::-webkit-scrollbar{height:8px}
+  .strip::-webkit-scrollbar-thumb{background:#2c374d;border-radius:4px}
+
+  .step{flex:0 0 auto; display:flex; flex-direction:column; align-items:center; gap:16px; scroll-snap-align:center}
+
+  /* ---------- Phone frame ---------- */
+  .phone{
+    width:292px; background:#0a0e17; border:1px solid #2a3448; border-radius:46px;
+    padding:12px; box-shadow:0 30px 60px rgba(0,0,0,.5), inset 0 0 0 2px #05070c;
+  }
+  .screen{
+    height:618px; border-radius:36px; overflow:hidden; position:relative;
+    background:linear-gradient(180deg,#131b2b 0%, #0e1420 100%);
+    display:flex; flex-direction:column;
+  }
+  .statusbar{display:flex; justify-content:space-between; padding:12px 20px 4px; font-size:11px; color:#cfd6e4; font-weight:600}
+  .statusbar .r{letter-spacing:-1px; font-weight:400}
+  .body{flex:1; padding:10px 16px 8px; overflow:hidden; display:flex; flex-direction:column; gap:10px}
+  .homebar{height:4px;width:108px;border-radius:4px;background:#39445c;margin:8px auto 9px}
+
+  /* ---------- Generic UI bits ---------- */
+  .h-title{font-size:19px; font-weight:800; letter-spacing:.2px}
+  .h-sub{font-size:12px; color:var(--muted); margin-top:3px; line-height:1.45}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px}
+  .btn{
+    display:block; text-align:center; padding:11px; border-radius:12px;
+    background:var(--lime); color:var(--lime-ink); font-weight:800; font-size:13px;
+  }
+  .btn.ghost{background:transparent; border:1px solid var(--line); color:var(--text); font-weight:600}
+  .rowline{display:flex; align-items:center; justify-content:space-between; gap:8px}
+  .muted{color:var(--muted)} .small{font-size:11px}
+  .tag{font-size:10px; padding:3px 8px; border-radius:999px; background:#20293c; color:#9fb0ca}
+  .tag.lime{background:rgba(183,242,76,.15); color:var(--lime)}
+  .tag.gold{background:rgba(255,209,102,.15); color:var(--gold)}
+
+  .navbar{display:flex; justify-content:space-around; padding:9px 4px 5px; border-top:1px solid var(--line); background:#0c111d}
+  .tab{display:flex; flex-direction:column; align-items:center; gap:2px; font-size:8.5px; color:#66718a; width:52px}
+  .tab .ic{font-size:15px; filter:grayscale(.6) opacity(.7)}
+  .tab.active{color:var(--lime)}
+  .tab.active .ic{filter:none}
+
+  /* ---------- Connectors ---------- */
+  .connector{flex:0 0 auto; width:96px; height:644px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px}
+  .connector .lbl{
+    font-size:10.5px; color:#9fb0ca; text-align:center; line-height:1.35;
+    background:#141c2c; border:1px solid var(--line); padding:5px 9px; border-radius:999px; white-space:nowrap;
+  }
+  .connector .arrow{position:relative; width:82%; border-top:2px dashed #35425e}
+  .connector .arrow::after{
+    content:""; position:absolute; right:-3px; top:-6px;
+    border-left:9px solid #4e608a; border-top:5.5px solid transparent; border-bottom:5.5px solid transparent;
+  }
+
+  /* ---------- Caption ---------- */
+  .caption{width:292px}
+  .cap-head{display:flex; align-items:center; gap:8px; margin-bottom:6px}
+  .num{
+    width:24px;height:24px;border-radius:8px; display:grid; place-items:center;
+    background:#1c2740; color:#a8b8d8; font-size:11px; font-weight:800;
+  }
+  .cap-title{font-size:13.5px; font-weight:700}
+  .new{
+    font-size:9px; font-weight:800; letter-spacing:.8px; padding:3px 7px; border-radius:6px;
+    background:var(--lime); color:var(--lime-ink);
+  }
+  .cap-desc{font-size:11.5px; color:var(--muted); line-height:1.5}
+
+  /* ---------- Screen-specific ---------- */
+  /* Splash */
+  .splash{align-items:center; justify-content:center; gap:14px; text-align:center}
+  .splash .big-mark{
+    width:86px;height:86px;border-radius:26px; display:grid;place-items:center;
+    background:linear-gradient(135deg,var(--lime),#7fc93a); color:var(--lime-ink);
+    font-size:44px; font-weight:800; box-shadow:0 16px 40px rgba(183,242,76,.3);
+  }
+  .splash .word{font-size:30px; font-weight:800; letter-spacing:1px}
+  .splash .tagline{font-size:12px; color:var(--muted)}
+  .loadbar{width:120px;height:4px;border-radius:4px;background:#232d40;overflow:hidden}
+  .loadbar i{display:block;width:55%;height:100%;background:var(--lime);border-radius:4px}
+  .splash .platforms{position:absolute; bottom:26px; font-size:10px; color:#5d6activate880}
+  .splash .platforms{position:absolute; bottom:26px; font-size:10px; color:#5d6880}
+
+  /* Onboarding */
+  .persona{
+    display:flex; align-items:center; gap:10px; padding:12px 14px;
+    background:var(--card); border:1px solid var(--line); border-radius:13px; font-size:13px; font-weight:600;
+  }
+  .persona .emo{font-size:18px}
+  .persona.sel{border-color:var(--lime); background:rgba(183,242,76,.08)}
+  .persona .check{margin-left:auto; color:var(--lime); font-weight:800}
+  .dots{display:flex; gap:5px; justify-content:center; margin-top:2px}
+  .dots i{width:6px;height:6px;border-radius:50%;background:#2c374d}
+  .dots i.on{background:var(--lime); width:16px; border-radius:4px}
+
+  .goal-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px}
+  .goal{
+    background:var(--card); border:1px solid var(--line); border-radius:13px;
+    padding:14px 10px; text-align:center; font-size:11.5px; font-weight:600; line-height:1.3;
+  }
+  .goal .emo{font-size:20px; display:block; margin-bottom:6px}
+  .goal.sel{border-color:var(--lime); background:rgba(183,242,76,.08); color:var(--lime)}
+  .stepper{display:flex; align-items:center; justify-content:space-between; background:var(--card); border:1px solid var(--line); border-radius:13px; padding:11px 14px}
+  .stepper b{font-size:16px}
+  .stepper .pm{width:26px;height:26px;border-radius:8px;background:#20293c;display:grid;place-items:center;font-weight:800}
+  .dayrow{display:flex; gap:5px}
+  .dayrow span{
+    flex:1; text-align:center; padding:7px 0; border-radius:9px; font-size:10px; font-weight:700;
+    background:#182134; color:#66718a; border:1px solid var(--line);
+  }
+  .dayrow span.on{background:rgba(183,242,76,.14); color:var(--lime); border-color:rgba(183,242,76,.45)}
+
+  /* Today */
+  .workout-card{background:linear-gradient(140deg,#1c2740,#151d30); border:1px solid #2b3a58; border-radius:16px; padding:14px}
+  .stat-duo{display:grid; grid-template-columns:1fr 1fr; gap:8px}
+  .stat{background:var(--card); border:1px solid var(--line); border-radius:13px; padding:10px 12px}
+  .stat .v{font-size:16px; font-weight:800}
+  .stat .k{font-size:10px; color:var(--muted); margin-top:2px}
+  .quick{display:flex; gap:6px}
+  .quick span{flex:1; text-align:center; font-size:10.5px; padding:9px 0; border-radius:11px; border:1px dashed #33405c; color:#93a1bb; background:#121a2a}
+
+  /* Logger */
+  .setrow{
+    display:grid; grid-template-columns:24px 1fr 1fr 26px; gap:6px; align-items:center;
+    background:var(--card); border:1px solid var(--line); border-radius:11px; padding:9px 10px; font-size:12px;
+  }
+  .setrow .prev{color:#67748e; text-decoration:line-through; font-size:11px}
+  .setrow .cur{font-weight:700}
+  .setrow .ck{text-align:center; font-weight:800}
+  .setrow.done .ck{color:var(--lime)}
+  .setrow.open{border-color:#3a4a6e}
+  .setrow.open .ck{color:#5d6880}
+  .rest{
+    background:#13223d; border:1px solid #28406b; border-radius:12px; padding:10px 12px; font-size:12px;
+  }
+  .rest .bar{height:4px; background:#1d3155; border-radius:4px; margin-top:8px; overflow:hidden}
+  .rest .bar i{display:block; height:100%; width:62%; background:var(--blue); border-radius:4px}
+
+  /* Summary */
+  .pr-badge{
+    align-self:center; font-size:11px; font-weight:800; letter-spacing:1px;
+    color:var(--gold); background:rgba(255,209,102,.12); border:1px solid rgba(255,209,102,.4);
+    padding:5px 12px; border-radius:999px;
+  }
+  .pr-card{background:linear-gradient(140deg,#243050,#171f33); border:1px solid #34456e; border-radius:16px; padding:16px; text-align:center}
+  .pr-card .big{font-size:38px; font-weight:800; line-height:1}
+  .trio{display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px}
+  .trio .stat{text-align:center; padding:9px 4px}
+  .story{
+    width:96px; aspect-ratio:9/16; border-radius:12px; margin:0 auto;
+    background:linear-gradient(160deg,var(--lime) 0%, #4d8a2a 100%);
+    color:var(--lime-ink); display:flex; flex-direction:column; justify-content:center; align-items:center;
+    gap:3px; font-weight:800; font-size:11px; text-align:center; padding:8px;
+    box-shadow:0 10px 24px rgba(0,0,0,.35);
+  }
+  .story small{font-size:8px; font-weight:700; opacity:.75; letter-spacing:.5px}
+
+  /* Progress */
+  .ring-wrap{display:flex; align-items:center; gap:14px}
+  .ring{
+    width:104px;height:104px;border-radius:50%; flex:0 0 auto;
+    background:conic-gradient(var(--lime) 0 68%, #223049 68% 100%);
+    display:grid; place-items:center;
+  }
+  .ring-inner{
+    width:80px;height:80px;border-radius:50%; background:#111827;
+    display:grid; place-items:center; text-align:center;
+  }
+  .ring-inner .v{font-size:21px; font-weight:800}
+  .ring-inner .k{font-size:8px; color:var(--muted); text-transform:uppercase; letter-spacing:.8px}
+  .bars{display:flex; gap:6px; align-items:flex-end; height:54px}
+  .bars i{flex:1; border-radius:3px 3px 0 0; background:linear-gradient(180deg,var(--lime),#5d8a2c)}
+  .bars i.dim{background:#263044}
+  .pr-list{display:flex; flex-direction:column; gap:6px}
+  .pr-row{display:flex; justify-content:space-between; background:var(--card); border:1px solid var(--line); border-radius:10px; padding:8px 12px; font-size:12px}
+  .pr-row b{color:var(--gold)}
+
+  /* Train */
+  .search{
+    display:flex; align-items:center; gap:8px; background:var(--card); border:1px solid var(--line);
+    border-radius:11px; padding:9px 12px; font-size:12px; color:var(--muted);
+  }
+  .chiprow{display:flex; gap:6px; overflow:hidden}
+  .chiprow span{font-size:10px; padding:6px 11px; border-radius:999px; background:#182134; border:1px solid var(--line); color:#93a1bb; white-space:nowrap}
+  .chiprow span.on{background:rgba(183,242,76,.14); color:var(--lime); border-color:rgba(183,242,76,.45); font-weight:700}
+  .ex{display:flex; align-items:center; gap:10px; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:10px 12px}
+  .ex .nm{font-size:12.5px; font-weight:700}
+  .ex .sub{font-size:10px; color:var(--muted); margin-top:2px}
+  .add{
+    margin-left:auto; width:26px;height:26px;border-radius:9px; background:rgba(183,242,76,.15);
+    color:var(--lime); display:grid; place-items:center; font-weight:800;
+  }
+
+  /* Feed */
+  .post{display:flex; gap:10px; align-items:flex-start; background:var(--card); border:1px solid var(--line); border-radius:13px; padding:11px}
+  .avatar{width:34px;height:34px;border-radius:50%; display:grid; place-items:center; font-size:13px; font-weight:800; color:#0c1018; flex:0 0 auto}
+  .post .nm{font-size:12.5px; font-weight:700}
+  .post .txt{font-size:11.5px; color:#b6c0d2; margin-top:2px}
+  .kudos{
+    margin-left:auto; flex:0 0 auto; font-size:10.5px; font-weight:700; padding:6px 10px; border-radius:999px;
+    background:#1c2436; border:1px solid var(--line); color:#9fb0ca;
+  }
+  .kudos.given{background:rgba(183,242,76,.14); border-color:rgba(183,242,76,.4); color:var(--lime)}
+
+  /* Me */
+  .me-head{display:flex; align-items:center; gap:12px}
+  .me-head .avatar{width:52px;height:52px;font-size:18px}
+  .me-stats{display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px}
+  .setting{display:flex; align-items:center; gap:10px; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:11px 12px; font-size:12px; font-weight:600}
+  .setting .val{margin-left:auto; color:var(--muted); font-weight:400; font-size:11px}
+  .setting .chev{color:#4e5b73}
+
+  /* ---------- Footer note ---------- */
+  .footnote{
+    margin:0 48px 48px; padding:18px 22px; border:1px dashed #2c374d; border-radius:16px;
+    color:var(--muted); font-size:12.5px; line-height:1.7; background:rgba(16,22,35,.6);
+  }
+  .footnote b{color:var(--text)}
+  .hint{color:#5d6880; font-size:11px; padding:0 48px 6px}
+</style>
+</head>
+<body>
+<div class="strip" id="strip">
+  <!-- 01 · SPLASH (NEW) -->
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G 🔋</span></div>
+      <div class="body splash">
+        <div class="big-mark">M</div>
+        <div class="word">mova</div>
+        <div class="tagline">Move. Log. Progress.</div>
+        <div class="loadbar"><i></i></div>
+        <div class="platforms">iOS · Android</div>
+      </div>
+      <div class="homebar"></div>
+    </div></div>
+    <div class="caption">
+      <div class="cap-head"><span class="num">01</span><span class="cap-title">Splash</span><span class="new">NEW</span></div>
+      <div class="cap-desc">Cold-start moment. Brand mark + tagline while Health sync and the plan engine warm up.</div>
+    </div>
+  </div>
+
+  <div class="connector"><span class="lbl">first launch</span><div class="arrow"></div></div>
+
+  <!-- 02 · WHO ARE YOU -->
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G 🔋</span></div>
+      <div class="body">
+        <div>
+          <div class="h-title">Who are you?</div>
+          <div class="h-sub">We'll shape the app around you.</div>
+        </div>
+        <div class="persona"><span class="emo">🌱</span> Just starting</div>
+        <div class="persona"><span class="emo">🏋️</span> I go to the gym</div>
+        <div class="persona sel"><span class="emo">🔥</span> Gymrat <span class="check">✓</span></div>
+        <div class="persona"><span class="emo">🏅</span> Elite athlete</div>
+        <div style="flex:1"></div>
+        <div class="btn">Continue</div>
+        <div class="dots"><i class="on"></i><i></i></div>
+      </div>
+      <div class="homebar"></div>
+    </div></div>
+    <div class="caption">
+      <div class="cap-head"><span class="num">02</span><span class="cap-title">Who are you?</span></div>
+      <div class="cap-desc">Personalises the whole app from minute one.</div>
+    </div>
+  </div>
+
+  <div class="connector"><span class="lbl">Continue</span><div class="arrow"></div></div>
+
+  <!-- 03 · GOAL SETUP (NEW) -->
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G 🔋</span></div>
+      <div class="body">
+        <div>
+          <div class="h-title">What are you training for?</div>
+          <div class="h-sub">Goal + schedule build your Week 1 plan.</div>
+        </div>
+        <div class="goal-grid">
+          <div class="goal"><span class="emo">💪</span>Build muscle</div>
+          <div class="goal sel"><span class="emo">🏆</span>Get stronger</div>
+          <div class="goal"><span class="emo">🔥</span>Fat loss</div>
+          <div class="goal"><span class="emo">❤️</span>Stay healthy</div>
+        </div>
+        <div class="stepper"><span class="small muted">Days / week</span><span style="display:flex;gap:12px;align-items:center"><span class="pm">−</span><b>4</b><span class="pm">+</span></span></div>
+        <div class="dayrow">
+          <span class="on">M</span><span>T</span><span class="on">W</span><span>T</span><span class="on">F</span><span>S</span><span class="on">S</span>
+        </div>
+        <div style="flex:1"></div>
+        <div class="btn">Build my plan →</div>
+        <div class="dots"><i></i><i class="on"></i></div>
+      </div>
+      <div class="homebar"></div>
+    </div></div>
+    <div class="caption">
+      <div class="cap-head"><span class="num">03</span><span class="cap-title">Goal & schedule</span><span class="new">NEW</span></div>
+      <div class="cap-desc">Turns the persona into a concrete plan: goal, training days, split — so "Today" has something to show.</div>
+    </div>
+  </div>
+
+  <div class="connector"><span class="lbl">plan built</span><div class="arrow"></div></div>
+
+  <!-- 04 · TODAY -->
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G 🔋</span></div>
+      <div class="body">
+        <div class="rowline">
+          <span class="tag lime">Sunday · Week 3</span>
+          <span class="small muted">🔔</span>
+        </div>
+        <div class="workout-card">
+          <div class="rowline"><span class="h-title">Push Day</span><span class="tag">Planned</span></div>
+          <div class="small muted" style="margin-top:4px">Chest · Shoulders · Triceps</div>
+          <div class="small muted" style="margin-top:2px">6 exercises · ~55 min</div>
+          <div class="btn" style="margin-top:12px">Start workout</div>
+        </div>
+        <div class="stat-duo">
+          <div class="stat"><div class="v">🔥 12</div><div class="k">day streak</div></div>
+          <div class="stat"><div class="v">8,240</div><div class="k">steps · synced</div></div>
+        </div>
+        <div class="quick"><span>＋ Empty workout</span><span>🚶 Walk</span><span>📋 Routine</span></div>
+        <div style="flex:1"></div>
+      </div>
+      <div class="navbar">
+        <div class="tab active"><span class="ic">🏠</span>Today</div>
+        <div class="tab"><span class="ic">🏋️</span>Train</div>
+        <div class="tab"><span class="ic">📈</span>Progress</div>
+        <div class="tab"><span class="ic">💬</span>Social</div>
+        <div class="tab"><span class="ic">👤</span>Me</div>
+      </div>
+      <div class="homebar"></div>
+    </div></div>
+    <div class="caption">
+      <div class="cap-head"><span class="num">04</span><span class="cap-title">Today</span></div>
+      <div class="cap-desc">One clear next action, streak, synced steps.</div>
+    </div>
+  </div>
+
+  <div class="connector"><span class="lbl">tap “Start”</span><div class="arrow"></div></div>
+
+  <!-- 05 · LIVE LOGGER -->
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G 🔋</span></div>
+      <div class="body">
+        <div class="rowline">
+          <span class="small muted">✕</span>
+          <span style="font-weight:800; font-size:14px">Bench Press</span>
+          <span class="tag">⏱ 32:10</span>
+        </div>
+        <div class="setrow" style="background:transparent;border:none;padding:0 4px;font-size:9.5px;color:#66718a">
+          <span>SET</span><span>PREV</span><span>KG × REPS</span><span></span>
+        </div>
+        <div class="setrow done"><span>1</span><span class="prev">80 × 8</span><span class="cur">82.5 × 8</span><span class="ck">✓</span></div>
+        <div class="setrow done"><span>2</span><span class="prev">80 × 8</span><span class="cur">82.5 × 7</span><span class="ck">✓</span></div>
+        <div class="setrow open"><span>3</span><span class="prev">80 × 6</span><span class="cur muted">— × —</span><span class="ck">○</span></div>
+        <div class="rest">
+          <div class="rowline"><b>Rest · 1:24</b><span class="small" style="color:var(--blue)">Skip</span></div>
+          <div class="bar"><i></i></div>
+        </div>
+        <div class="card small muted">Up next: <b style="color:var(--text)">Incline DB Press</b> · 3 sets</div>
+        <div style="flex:1"></div>
+        <div class="btn ghost">Finish workout</div>
+      </div>
+      <div class="homebar"></div>
+    </div></div>
+    <div class="caption">
+      <div class="cap-head"><span class="num">05</span><span class="cap-title">Live logger</span></div>
+      <div class="cap-desc">The gymrat hook: previous values, one tap per set, auto rest timer. Immersive — tab bar hidden.</div>
+    </div>
+  </div>
+
+  <div class="connector"><span class="lbl">Finish</span><div class="arrow"></div></div>
+
+  <!-- 06 · SUMMARY + PR -->
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G 🔋</span></div>
+      <div class="body">
+        <div class="pr-badge">🎉 NEW PR!</div>
+        <div class="pr-card">
+          <div class="small muted">Bench Press · est. 1RM</div>
+          <div class="big" style="margin-top:6px">104 <span style="font-size:16px" class="muted">kg</span></div>
+          <span class="tag gold" style="margin-top:8px;display:inline-block">▲ +3.5 kg vs last session</span>
+        </div>
+        <div class="trio">
+          <div class="stat"><div class="v" style="font-size:14px">55m</div><div class="k">time</div></div>
+          <div class="stat"><div class="v" style="font-size:14px">9.4t</div><div class="k">volume</div></div>
+          <div class="stat"><div class="v" style="font-size:14px">21</div><div class="k">sets</div></div>
+        </div>
+        <div class="story"><span style="font-size:16px">🏆</span>104 kg<br>Bench PR<small>share card · 9:16</small></div>
+        <div style="flex:1"></div>
+        <div class="btn">Share card</div>
+        <div class="btn ghost">Save</div>
+      </div>
+      <div class="homebar"></div>
+    </div></div>
+    <div class="caption">
+      <div class="cap-head"><span class="num">06</span><span class="cap-title">Summary + PR</span></div>
+      <div class="cap-desc">Auto PR detection and a share card made for Instagram stories.</div>
+    </div>
+  </div>
+
+  <div class="connector"><span class="lbl">PR auto-synced</span><div class="arrow"></div></div>
+
+  <!-- 07 · PROGRESS -->
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G 🔋</span></div>
+      <div class="body">
+        <div class="h-title">Progress</div>
+        <div class="card">
+          <div class="ring-wrap">
+            <div class="ring"><div class="ring-inner"><div><div class="v">412</div><div class="k">Strength</div></div></div></div>
+            <div>
+              <div style="font-weight:800; font-size:14px">Strength Score</div>
+              <div class="small muted" style="margin-top:4px">Top 18% at your gym</div>
+              <span class="tag lime" style="margin-top:8px;display:inline-block">▲ +14 this week</span>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="rowline" style="margin-bottom:8px"><b class="small">Weekly volume</b><span class="small muted">9.4 t</span></div>
+          <div class="bars"><i style="height:40%"></i><i style="height:65%"></i><i class="dim" style="height:14%"></i><i style="height:80%"></i><i style="height:55%"></i><i class="dim" style="height:10%"></i><i style="height:96%"></i></div>
+          <div class="rowline small muted" style="margin-top:6px;font-size:9px"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+        </div>
+        <div class="pr-list">
+          <div class="pr-row"><span>🏆 Squat</span><b>140 kg</b></div>
+          <div class="pr-row"><span>🏆 Deadlift</span><b>180 kg</b></div>
+          <div class="pr-row"><span>🏆 Bench Press</span><b>104 kg</b></div>
+        </div>
+      </div>
+      <div class="navbar">
+        <div class="tab"><span class="ic">🏠</span>Today</div>
+        <div class="tab"><span class="ic">🏋️</span>Train</div>
+        <div class="tab active"><span class="ic">📈</span>Progress</div>
+        <div class="tab"><span class="ic">💬</span>Social</div>
+        <div class="tab"><span class="ic">👤</span>Me</div>
+      </div>
+      <div class="homebar"></div>
+    </div></div>
+    <div class="caption">
+      <div class="cap-head"><span class="num">07</span><span class="cap-title">Progress</span></div>
+      <div class="cap-desc">Strength Score ranks you vs friends — reason to come back.</div>
+    </div>
+  </div>
+
+  <div class="connector"><span class="lbl">tab · Train</span><div class="arrow"></div></div>
+
+  <!-- 08 · TRAIN (NEW) -->
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G 🔋</span></div>
+      <div class="body">
+        <div class="h-title">Train</div>
+        <div class="search">🔍 Search exercises…</div>
+        <div class="chiprow">
+          <span class="on">All</span><span>Chest</span><span>Back</span><span>Legs</span><span>Shoulders</span><span>Arms</span>
+        </div>
+        <div class="ex"><div><div class="nm">Incline DB Press</div><div class="sub">Chest · Dumbbell</div></div><div class="add">＋</div></div>
+        <div class="ex"><div><div class="nm">Lat Pulldown</div><div class="sub">Back · Machine</div></div><div class="add">＋</div></div>
+        <div class="ex"><div><div class="nm">Romanian Deadlift</div><div class="sub">Legs · Barbell</div></div><div class="add">＋</div></div>
+        <div class="card small">
+          <b style="font-size:11.5px">My routines</b>
+          <div class="muted" style="margin-top:6px; line-height:1.8">📋 Push Day · 📋 Pull Day · 📋 Legs</div>
+        </div>
+      </div>
+      <div class="navbar">
+        <div class="tab"><span class="ic">🏠</span>Today</div>
+        <div class="tab active"><span class="ic">🏋️</span>Train</div>
+        <div class="tab"><span class="ic">📈</span>Progress</div>
+        <div class="tab"><span class="ic">💬</span>Social</div>
+        <div class="tab"><span class="ic">👤</span>Me</div>
+      </div>
+      <div class="homebar"></div>
+    </div></div>
+    <div class="caption">
+      <div class="cap-head"><span class="num">08</span><span class="cap-title">Train / library</span><span class="new">NEW</span></div>
+      <div class="cap-desc">Closes the gap in the nav: searchable exercise library + saved routines, feeding into “＋ Empty workout”.</div>
+    </div>
+  </div>
+
+  <div class="connector"><span class="lbl">tab · Social</span><div class="arrow"></div></div>
+
+  <!-- 09 · SOCIAL FEED -->
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G 🔋</span></div>
+      <div class="body">
+        <div class="h-title">Feed</div>
+        <div class="post">
+          <div class="avatar" style="background:#7dd3fc">A</div>
+          <div><div class="nm">Andrei</div><div class="txt">Leg day · 2 PRs 🏆</div></div>
+          <div class="kudos">👍 14</div>
+        </div>
+        <div class="post">
+          <div class="avatar" style="background:#f9a8d4">M</div>
+          <div><div class="nm">Maria</div><div class="txt">First 5-min workout 🏆</div></div>
+          <div class="kudos given">👍 32</div>
+        </div>
+        <div class="post">
+          <div class="avatar" style="background:#fcd34d">V</div>
+          <div><div class="nm">Vlad</div><div class="txt">Track intervals · RPE 9</div></div>
+          <div class="kudos">👍 8</div>
+        </div>
+        <div class="card small muted">Kudos are the only currency — no comments, no noise.</div>
+        <div style="flex:1"></div>
+      </div>
+      <div class="navbar">
+        <div class="tab"><span class="ic">🏠</span>Today</div>
+        <div class="tab"><span class="ic">🏋️</span>Train</div>
+        <div class="tab"><span class="ic">📈</span>Progress</div>
+        <div class="tab active"><span class="ic">💬</span>Social</div>
+        <div class="tab"><span class="ic">👤</span>Me</div>
+      </div>
+      <div class="homebar"></div>
+    </div></div>
+    <div class="caption">
+      <div class="cap-head"><span class="num">09</span><span class="cap-title">Social feed</span></div>
+      <div class="cap-desc">Strava-style kudos, minus the noise.</div>
+    </div>
+  </div>
+
+  <div class="connector"><span class="lbl">tab · Me</span><div class="arrow"></div></div>
+
+  <!-- 10 · ME (NEW) -->
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G 🔋</span></div>
+      <div class="body">
+        <div class="me-head">
+          <div class="avatar" style="background:#b7f24c">A</div>
+          <div>
+            <div style="font-weight:800; font-size:15px">Andrei M.</div>
+            <span class="tag" style="margin-top:5px;display:inline-block">🔥 Gymrat · since Sep</span>
+          </div>
+        </div>
+        <div class="me-stats">
+          <div class="stat" style="text-align:center"><div class="v" style="font-size:15px">128</div><div class="k">workouts</div></div>
+          <div class="stat" style="text-align:center"><div class="v" style="font-size:15px">🔥 12</div><div class="k">streak</div></div>
+          <div class="stat" style="text-align:center"><div class="v" style="font-size:15px">6</div><div class="k">PRs</div></div>
+        </div>
+        <div class="setting">📏 Units <span class="val">kg</span><span class="chev">›</span></div>
+        <div class="setting">⌚ Sync <span class="val">Apple Health ✓</span><span class="chev">›</span></div>
+        <div class="setting">🔔 Workout reminders <span class="val">On</span><span class="chev">›</span></div>
+        <div class="setting">🔒 Privacy & social <span class="val">Friends</span><span class="chev">›</span></div>
+        <div style="flex:1"></div>
+      </div>
+      <div class="navbar">
+        <div class="tab"><span class="ic">🏠</span>Today</div>
+        <div class="tab"><span class="ic">🏋️</span>Train</div>
+        <div class="tab"><span class="ic">📈</span>Progress</div>
+        <div class="tab"><span class="ic">💬</span>Social</div>
+        <div class="tab active"><span class="ic">👤</span>Me</div>
+      </div>
+      <div class="homebar"></div>
+    </div></div>
+    <div class="caption">
+      <div class="cap-head"><span class="num">10</span><span class="cap-title">Me / profile</span><span class="new">NEW</span></div>
+      <div class="cap-desc">Identity, lifetime totals and settings — completes the 5-tab navigation.</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
