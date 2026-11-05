@@ -30,7 +30,7 @@ The product bet is simple: the workout logger is the feature people touch every 
 
 ![Mova screen tree](resources/screen-tree.jpg)
 
-The canonical interactive storyboard is [`MOCK.html`](MOCK.html). Open it in a browser to view all ten screens in one horizontal flow.
+The canonical interactive storyboard is [`MOCK.html`](MOCK.html). Open it in a browser to view all 19 screens in one horizontal flow: Splash, the 11-screen onboarding, and the five-tab core loop.
 
 ---
 
@@ -45,14 +45,14 @@ The canonical interactive storyboard is [`MOCK.html`](MOCK.html). Open it in a b
 | Train | Exercise library, search, muscle and equipment filters, exercise details, routine list, routine builder |
 | Logger | Previous values, set logging, weight and reps, rest timer, add or remove sets, up next, pause, resume, discard protection |
 | Summary | Duration, volume, sets, PR detection, estimated 1RM, share card, save |
-| Progress | Strength score (beta), weekly volume, personal records, workout history, workout detail, body weight entry |
+| Progress | Lifetime totals (workouts, volume, streak), strength score (beta), weekly volume, personal records, workout history, workout detail, body weight entry |
 | Social | Local feed, own workout posts, kudos, PR card preview |
 | Me | Profile, lifetime stats, units, reminders, integrations, privacy, local data controls, legal and licenses |
 
 ### Next after 1.0
 
 - 1:1 share card variant
-- Exercise notes and per-exercise history charts
+- Editable exercise notes and per-exercise history charts
 - CSV export
 - Deeper health insights beyond step counts
 
@@ -189,7 +189,7 @@ Release work adds a fourth gate:
 
 4. `flutter build web --release` succeeds and QA scenario P passes in Chrome on macOS.
 
-Documentation-only changes are exempt from the build gate, but must still respect the writing rules in `AGENTS.md`.
+Docs-only changes still run `flutter analyze` and `flutter test` before they are called complete.
 
 ---
 
@@ -200,7 +200,7 @@ Documentation-only changes are exempt from the build gate, but must still respec
 | Phase 0 Docs and definitions | `DESIGN.md`, `README.md`, scope, decisions, definitions |
 | Phase 1 Foundation | Theme tokens, models, storage, seed exercises, app shell, onboarding, plan generation, Today |
 | Phase 2 Core training | Train library, exercise details, routines, builder, live logger, rest timer, resume and discard, summary, PR detection |
-| Phase 3 Progress | Dashboard, PR wall, weekly volume, streak, strength score, workout history, body weight |
+| Phase 3 Progress | Dashboard, lifetime totals, PR wall, weekly volume, streak, strength score, workout history, body weight |
 | Phase 4 Social | Local feed, own workout posts, kudos, PR share cards |
 | Phase 5 Completion | Me and settings, units, reminders, health fallback and plugin, empty states, accessibility, legal |
 | Phase 6 Hardening and QA | Device tests, accessibility audit, performance, recovery, release builds, store assets |

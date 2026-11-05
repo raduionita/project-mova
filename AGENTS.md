@@ -71,7 +71,7 @@ Applies to this plan and every future plan in `plans/`.
 ## File Structure Conventions
 
 ### Naming Conventions
-- **Files**: `snake_case.dart` (e.g., `fitness_tracker.dart`)
+- **Files**: `snake_case.dart` (e.g., `workout_session.dart`)
 - **Classes**: `PascalCase` (e.g., `FitnessTracker`)
 - **Functions/Variables**: `camelCase` (e.g., `calculateSomething()`)
 - **Constants**: `kPascalCase` (e.g., `kDefaultValue`)
@@ -90,8 +90,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 // Relative imports
-import '../models/nutrition_tracker.dart';
-import '../services/custom_service.dart';
+import '../models/user_profile.dart';
+import '../services/storage_service.dart';
 ```
 
 ---
@@ -116,7 +116,7 @@ flutter run -d chrome
 - `CHANGELOG.md` is the changelog: one compact line per completed item, `YYYY.MM.DD TASK-ID Description`, appended at the bottom.
 - Record completed work only. Do not add planning, unstarted, or partial work.
 - Shipped entries are append-only; fix typos only, never rewrite history.
-- Open work lives in `plans/`, never in `CHANGES.md`.
+- Open work lives in `plans/`, never in `CHANGELOG.md`.
 - `plans/` holds one file per plan, named `YYYY.MM.DD.<slug>.md`.
 - `plans/YYYY.MM.DD.<slug>.md` is the only plan source. Do not keep a secondary plan copy.
 - A plan is done when its completed work is recorded in `CHANGELOG.md`.

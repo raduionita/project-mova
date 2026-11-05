@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mova — MVP Flow · Linear Storyboard</title>
+<title>Mova - MVP Flow - Linear Storyboard</title>
 <style>
   :root{
     --bg:#0b0f16; --panel:#101623; --card:#171f2e; --line:#232d40;
@@ -32,18 +32,12 @@
   }
   h1{font-size:22px; letter-spacing:.2px}
   .sub{color:var(--muted); font-size:13px; margin-top:4px}
-  .meta{display:flex; gap:8px; align-items:center}
+  .meta{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
   .chip{
     font-size:11px; padding:5px 10px; border-radius:999px;
     background:#1b2436; border:1px solid var(--line); color:#a8b3c7;
   }
   .chip.accent{background:rgba(183,242,76,.12); border-color:rgba(183,242,76,.4); color:var(--lime)}
-  .controls{display:flex; gap:8px}
-  .controls button{
-    width:36px;height:36px;border-radius:50%;border:1px solid var(--line);
-    background:var(--panel); color:var(--text); font-size:16px; cursor:pointer;
-  }
-  .controls button:hover{border-color:var(--lime); color:var(--lime)}
 
   /* ---------- Film strip ---------- */
   .strip{
@@ -89,9 +83,9 @@
 
   .navbar{display:flex; justify-content:space-around; padding:9px 4px 5px; border-top:1px solid var(--line); background:#0c111d}
   .tab{display:flex; flex-direction:column; align-items:center; gap:2px; font-size:8.5px; color:#66718a; width:52px}
-  .tab .ic{font-size:15px; filter:grayscale(.6) opacity(.7)}
+  .tab .ic{width:16px;height:16px; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; opacity:.7}
   .tab.active{color:var(--lime)}
-  .tab.active .ic{filter:none}
+  .tab.active .ic{opacity:1}
 
   /* ---------- Connectors ---------- */
   .connector{flex:0 0 auto; width:96px; height:644px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px}
@@ -131,28 +125,88 @@
   .splash .tagline{font-size:12px; color:var(--muted)}
   .loadbar{width:120px;height:4px;border-radius:4px;background:#232d40;overflow:hidden}
   .loadbar i{display:block;width:55%;height:100%;background:var(--lime);border-radius:4px}
-  .splash .platforms{position:absolute; bottom:26px; font-size:10px; color:#5d6activate880}
   .splash .platforms{position:absolute; bottom:26px; font-size:10px; color:#5d6880}
 
-  /* Onboarding */
-  .persona{
-    display:flex; align-items:center; gap:10px; padding:12px 14px;
+  /* Welcome */
+  .welcome{align-items:center; justify-content:center; gap:13px; text-align:center}
+  .welcome .w-mark{
+    width:62px;height:62px;border-radius:20px; display:grid;place-items:center;
+    background:linear-gradient(135deg,var(--lime),#7fc93a); color:var(--lime-ink);
+    font-size:32px; font-weight:800; box-shadow:0 12px 30px rgba(183,242,76,.28);
+  }
+  .welcome .w-title{font-size:26px; font-weight:800; line-height:1.12; letter-spacing:.1px}
+  .welcome .w-sub{font-size:12px; color:var(--muted); line-height:1.5; padding:0 6px}
+  .value-list{display:flex; flex-direction:column; gap:8px; width:100%; text-align:left; margin-top:2px}
+  .value{display:flex; align-items:center; gap:10px; font-size:11.5px; color:#c3cddd; line-height:1.35}
+  .value .vi{
+    width:28px;height:28px;border-radius:9px; flex:0 0 auto;
+    background:rgba(183,242,76,.1); color:var(--lime); display:grid; place-items:center;
+    font-size:13px; font-weight:700;
+  }
+
+  /* Onboarding scaffold */
+  .onb-top{display:flex; align-items:center; justify-content:space-between; font-size:11px; color:#6f7d97}
+  .onb-top .back{font-size:14px; color:#93a1bb}
+  .stepcount{font-size:9.5px; letter-spacing:.7px; font-weight:700; color:#6f7d97}
+  .dots{display:flex; gap:4px; justify-content:center; margin-top:2px; flex-wrap:nowrap}
+  .dots i{width:5px;height:5px;border-radius:50%;background:#2c374d; flex:0 0 auto}
+  .dots i.on{background:var(--lime); width:14px; border-radius:4px}
+
+  .seg{display:flex; gap:4px; background:#101826; border:1px solid var(--line); border-radius:11px; padding:3px}
+  .seg span{flex:1; text-align:center; padding:8px 0; border-radius:8px; font-size:11.5px; font-weight:600; color:#8190aa}
+  .seg span.on{background:rgba(183,242,76,.15); color:var(--lime)}
+  .unit .ulbl{display:block; font-size:10.5px; color:var(--muted); margin-bottom:5px; font-weight:600}
+  .unit{margin-bottom:1px}
+
+  .choice{
+    display:flex; align-items:center; gap:11px; padding:12px 14px;
     background:var(--card); border:1px solid var(--line); border-radius:13px; font-size:13px; font-weight:600;
   }
-  .persona .emo{font-size:18px}
-  .persona.sel{border-color:var(--lime); background:rgba(183,242,76,.08)}
-  .persona .check{margin-left:auto; color:var(--lime); font-weight:800}
-  .dots{display:flex; gap:5px; justify-content:center; margin-top:2px}
-  .dots i{width:6px;height:6px;border-radius:50%;background:#2c374d}
-  .dots i.on{background:var(--lime); width:16px; border-radius:4px}
+  .choice .ico{
+    width:32px;height:32px;border-radius:10px; flex:0 0 auto;
+    background:#1c2740; color:#9fb0ca; display:grid; place-items:center;
+  }
+  .choice .ico svg{width:17px;height:17px; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round}
+  .choice .nm{font-size:12.5px; font-weight:700}
+  .choice .desc{font-size:10px; color:var(--muted); margin-top:2px; line-height:1.35; font-weight:500}
+  .choice.sel{border-color:var(--lime); background:rgba(183,242,76,.08)}
+  .choice.sel .ico{background:rgba(183,242,76,.16); color:var(--lime)}
+  .choice .check{margin-left:auto; color:var(--lime); font-weight:800; font-size:13px}
+
+  .wheel-wrap{position:relative; display:flex; gap:8px; height:168px; padding:0 2px}
+  .wheel-band{
+    position:absolute; left:0; right:0; top:50%; height:36px; transform:translateY(-50%);
+    border-top:1px solid rgba(183,242,76,.45); border-bottom:1px solid rgba(183,242,76,.45);
+    background:rgba(183,242,76,.05); border-radius:8px; pointer-events:none;
+  }
+  .wheel-col{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:9px; font-size:12.5px; color:#6f7d97}
+  .wheel-col .mid{color:var(--text); font-weight:800; font-size:15px}
+
+  .ruler-val{font-size:36px; font-weight:800; text-align:center; line-height:1}
+  .ruler-val small{font-size:13px; color:var(--muted); font-weight:600; margin-left:4px}
+  .ruler-scale{position:relative; height:40px; border-radius:10px; background:linear-gradient(90deg,#151d30,#1c2740,#151d30); overflow:hidden; border:1px solid var(--line)}
+  .ruler-scale::after{content:""; position:absolute; left:50%; top:0; bottom:0; width:2px; background:var(--lime)}
+  .ruler-marks{position:absolute; inset:0; display:flex; align-items:center; justify-content:space-between; padding:0 9px}
+  .ruler-marks i{width:1px; height:11px; background:#33405c}
+  .ruler-marks i:nth-child(5n){height:19px; background:#4a5a7c}
+
+  .vruler{display:flex; align-items:center; justify-content:center; gap:20px; height:180px}
+  .vruler .track{position:relative; width:54px; height:176px; border-radius:27px; background:#131c2e; border:1px solid var(--line); overflow:hidden}
+  .vruler .track .fill{position:absolute; left:0; right:0; bottom:0; height:62%; background:linear-gradient(180deg,rgba(183,242,76,.04),rgba(183,242,76,.24))}
+  .vruler .track::after{content:""; position:absolute; left:0; right:0; top:50%; height:2px; background:var(--lime)}
+  .vruler .num b{font-size:38px; line-height:1}
+  .vruler .num small{font-size:13px; color:var(--muted); font-weight:600; margin-left:3px}
+  .vruler .num .hint{display:block; font-size:10px; color:var(--muted); margin-top:8px; font-weight:500}
 
   .goal-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px}
   .goal{
     background:var(--card); border:1px solid var(--line); border-radius:13px;
-    padding:14px 10px; text-align:center; font-size:11.5px; font-weight:600; line-height:1.3;
+    padding:13px 10px; text-align:center; font-size:11.5px; font-weight:600; line-height:1.3;
   }
   .goal .emo{font-size:20px; display:block; margin-bottom:6px}
   .goal.sel{border-color:var(--lime); background:rgba(183,242,76,.08); color:var(--lime)}
+  .goal .ptag{display:block; font-size:7.5px; letter-spacing:.7px; font-weight:800; margin-top:5px; color:var(--lime)}
+
   .stepper{display:flex; align-items:center; justify-content:space-between; background:var(--card); border:1px solid var(--line); border-radius:13px; padding:11px 14px}
   .stepper b{font-size:16px}
   .stepper .pm{width:26px;height:26px;border-radius:8px;background:#20293c;display:grid;place-items:center;font-weight:800}
@@ -162,6 +216,24 @@
     background:#182134; color:#66718a; border:1px solid var(--line);
   }
   .dayrow span.on{background:rgba(183,242,76,.14); color:var(--lime); border-color:rgba(183,242,76,.45)}
+
+  .bell{
+    width:74px;height:74px;border-radius:22px; margin:6px auto 0;
+    background:rgba(183,242,76,.1); border:1px solid rgba(183,242,76,.3);
+    display:grid; place-items:center; color:var(--lime);
+  }
+  .bell svg{width:34px;height:34px; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round}
+  .notif-row{display:flex; align-items:center; justify-content:space-between; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:10px 12px; font-size:11.5px}
+  .toggle{width:34px; height:20px; border-radius:999px; background:rgba(183,242,76,.3); position:relative}
+  .toggle::after{content:""; position:absolute; right:2px; top:2px; width:16px; height:16px; border-radius:50%; background:var(--lime)}
+
+  .plan-list{display:flex; flex-direction:column; gap:7px}
+  .day-card{display:flex; align-items:center; gap:10px; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:9px 11px}
+  .day-card .d{width:34px;height:34px;border-radius:10px;background:#1c2740;display:grid;place-items:center;font-size:9px;font-weight:800;color:var(--lime); letter-spacing:.4px; flex:0 0 auto}
+  .day-card .nm{font-size:12px; font-weight:700}
+  .day-card .sub{font-size:9.5px; color:var(--muted); margin-top:2px}
+  .day-card.rest{opacity:.62}
+  .day-card.rest .d{color:#7c8aa3}
 
   /* Today */
   .workout-card{background:linear-gradient(140deg,#1c2740,#151d30); border:1px solid #2b3a58; border-radius:16px; padding:14px}
@@ -225,7 +297,7 @@
   .bars i{flex:1; border-radius:3px 3px 0 0; background:linear-gradient(180deg,var(--lime),#5d8a2c)}
   .bars i.dim{background:#263044}
   .pr-list{display:flex; flex-direction:column; gap:6px}
-  .pr-row{display:flex; justify-content:space-between; background:var(--card); border:1px solid var(--line); border-radius:10px; padding:8px 12px; font-size:12px}
+  .pr-row{display:flex; align-items:center; justify-content:space-between; background:var(--card); border:1px solid var(--line); border-radius:10px; padding:8px 12px; font-size:12px}
   .pr-row b{color:var(--gold)}
 
   /* Train */
@@ -250,7 +322,7 @@
   .post .nm{font-size:12.5px; font-weight:700}
   .post .txt{font-size:11.5px; color:#b6c0d2; margin-top:2px}
   .kudos{
-    margin-left:auto; flex:0 0 auto; font-size:10.5px; font-weight:700; padding:6px 10px; border-radius:999px;
+    margin-left:auto; flex:0 0 auto; font-size:9.5px; font-weight:700; padding:6px 9px; border-radius:999px;
     background:#1c2436; border:1px solid var(--line); color:#9fb0ca;
   }
   .kudos.given{background:rgba(183,242,76,.14); border-color:rgba(183,242,76,.4); color:var(--lime)}
@@ -259,8 +331,8 @@
   .me-head{display:flex; align-items:center; gap:12px}
   .me-head .avatar{width:52px;height:52px;font-size:18px}
   .me-stats{display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px}
-  .setting{display:flex; align-items:center; gap:10px; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:11px 12px; font-size:12px; font-weight:600}
-  .setting .val{margin-left:auto; color:var(--muted); font-weight:400; font-size:11px}
+  .setting{display:flex; align-items:center; gap:9px; background:var(--card); border:1px solid var(--line); border-radius:11px; padding:9px 11px; font-size:11.5px; font-weight:600}
+  .setting .val{margin-left:auto; color:var(--muted); font-weight:400; font-size:10.5px}
   .setting .chev{color:#4e5b73}
 
   /* ---------- Footer note ---------- */
@@ -269,15 +341,45 @@
     color:var(--muted); font-size:12.5px; line-height:1.7; background:rgba(16,22,35,.6);
   }
   .footnote b{color:var(--text)}
-  .hint{color:#5d6880; font-size:11px; padding:0 48px 6px}
+  .footnote code{font-family:ui-monospace,Menlo,monospace; font-size:11.5px; color:#b6c0d2}
 </style>
 </head>
 <body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="ic-home" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V21h13V9.5"/><path d="M10 21v-6h4v6"/></symbol>
+  <symbol id="ic-train" viewBox="0 0 24 24"><path d="M6.5 6.5v11M3.5 9v6M17.5 6.5v11M20.5 9v6M6.5 12h11"/></symbol>
+  <symbol id="ic-progress" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></symbol>
+  <symbol id="ic-social" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-8 8H4l2.2-3.3A8 8 0 1 1 21 12Z"/></symbol>
+  <symbol id="ic-me" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.6"/><path d="M5 21a7 7 0 0 1 14 0"/></symbol>
+  <symbol id="ic-bell" viewBox="0 0 24 24"><path d="M18 9a6 6 0 1 0-12 0c0 6-2 7-2 7h16s-2-1-2-7"/><path d="M10.5 20a1.8 1.8 0 0 0 3 0"/></symbol>
+  <symbol id="ic-male" viewBox="0 0 24 24"><circle cx="10" cy="14" r="5"/><path d="M14 10 20 4M15 4h5v5"/></symbol>
+  <symbol id="ic-female" viewBox="0 0 24 24"><circle cx="12" cy="9" r="5"/><path d="M12 14v7M9 18h6"/></symbol>
+  <symbol id="ic-other" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v8M8 12h8"/></symbol>
+</svg>
+
+<header>
+  <div class="brand">
+    <div class="logo-mark">M</div>
+    <div>
+      <h1>Mova - MVP flow</h1>
+      <div class="sub">Splash, full 11-screen onboarding, and the five-tab core loop.</div>
+    </div>
+  </div>
+  <div class="meta">
+    <span class="chip accent">19 screens</span>
+    <span class="chip">11 onboarding screens</span>
+    <span class="chip">5 tabs</span>
+    <span class="chip">dark only</span>
+  </div>
+</header>
+
 <div class="strip" id="strip">
-  <!-- 01 · SPLASH (NEW) -->
+
+  <!-- 01 - SPLASH -->
   <div class="step">
     <div class="phone"><div class="screen">
-      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G 🔋</span></div>
+      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G</span></div>
       <div class="body splash">
         <div class="big-mark">M</div>
         <div class="word">mova</div>
@@ -289,80 +391,373 @@
     </div></div>
     <div class="caption">
       <div class="cap-head"><span class="num">01</span><span class="cap-title">Splash</span><span class="new">NEW</span></div>
-      <div class="cap-desc">Cold-start moment. Brand mark + tagline while Health sync and the plan engine warm up.</div>
+      <div class="cap-desc">Cold start. Brand mark and tagline while the local profile and any active session are checked.</div>
     </div>
   </div>
 
   <div class="connector"><span class="lbl">first launch</span><div class="arrow"></div></div>
 
-  <!-- 02 · WHO ARE YOU -->
+  <!-- 02 - WELCOME -->
   <div class="step">
     <div class="phone"><div class="screen">
-      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G 🔋</span></div>
-      <div class="body">
-        <div>
-          <div class="h-title">Who are you?</div>
-          <div class="h-sub">We'll shape the app around you.</div>
+      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G</span></div>
+      <div class="body welcome">
+        <div class="w-mark">M</div>
+        <div class="w-title">Train with a plan</div>
+        <div class="w-sub">Mova turns your week into clear sessions, then remembers every set.</div>
+        <div class="value-list">
+          <div class="value"><span class="vi">▦</span><span>A weekly plan built around your goal and schedule</span></div>
+          <div class="value"><span class="vi">◷</span><span>A fast logger that shows your last set</span></div>
+          <div class="value"><span class="vi">↗</span><span>Honest progress from data on this device</span></div>
         </div>
-        <div class="persona"><span class="emo">🌱</span> Just starting</div>
-        <div class="persona"><span class="emo">🏋️</span> I go to the gym</div>
-        <div class="persona sel"><span class="emo">🔥</span> Gymrat <span class="check">✓</span></div>
-        <div class="persona"><span class="emo">🏅</span> Elite athlete</div>
         <div style="flex:1"></div>
-        <div class="btn">Continue</div>
-        <div class="dots"><i class="on"></i><i></i></div>
+        <div class="btn" style="width:100%">Get started</div>
       </div>
       <div class="homebar"></div>
     </div></div>
     <div class="caption">
-      <div class="cap-head"><span class="num">02</span><span class="cap-title">Who are you?</span></div>
-      <div class="cap-desc">Personalises the whole app from minute one.</div>
+      <div class="cap-head"><span class="num">02</span><span class="cap-title">Welcome</span></div>
+      <div class="cap-desc">One promise, three value bullets, one action. No account and no sign-in in v1.</div>
+    </div>
+  </div>
+
+  <div class="connector"><span class="lbl">Get started</span><div class="arrow"></div></div>
+
+  <!-- 03 - UNITS -->
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G</span></div>
+      <div class="body">
+        <div class="onb-top"><span class="back">‹</span><span class="stepcount">STEP 1 OF 10</span></div>
+        <div>
+          <div class="h-title">Units</div>
+          <div class="h-sub">Choose how Mova shows your numbers. You can change this later.</div>
+        </div>
+        <div class="unit">
+          <span class="ulbl">Weight</span>
+          <div class="seg"><span class="on">kg</span><span>lb</span></div>
+        </div>
+        <div class="unit">
+          <span class="ulbl">Distance</span>
+          <div class="seg"><span class="on">km</span><span>mi</span></div>
+        </div>
+        <div class="unit">
+          <span class="ulbl">Body size</span>
+          <div class="seg"><span class="on">cm</span><span>in</span></div>
+        </div>
+        <div class="card small muted">Distance is saved for later cardio tracking. No distance entry ships in v1.</div>
+        <div style="flex:1"></div>
+        <div class="btn">Continue</div>
+        <div class="dots"><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      </div>
+      <div class="homebar"></div>
+    </div></div>
+    <div class="caption">
+      <div class="cap-head"><span class="num">03</span><span class="cap-title">Onboarding · Units</span><span class="new">NEW</span></div>
+      <div class="cap-desc">Weight, distance, and body units. Defaults are kg, km, and cm. All three persist before Continue.</div>
     </div>
   </div>
 
   <div class="connector"><span class="lbl">Continue</span><div class="arrow"></div></div>
 
-  <!-- 03 · GOAL SETUP (NEW) -->
+  <!-- 04 - GENDER -->
   <div class="step">
     <div class="phone"><div class="screen">
-      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G 🔋</span></div>
+      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G</span></div>
       <div class="body">
+        <div class="onb-top"><span class="back">‹</span><span class="stepcount">STEP 2 OF 10</span></div>
         <div>
-          <div class="h-title">What are you training for?</div>
-          <div class="h-sub">Goal + schedule build your Week 1 plan.</div>
+          <div class="h-title">How do you identify?</div>
+          <div class="h-sub">Used for profile copy and optional body metrics.</div>
         </div>
-        <div class="goal-grid">
-          <div class="goal"><span class="emo">💪</span>Build muscle</div>
-          <div class="goal sel"><span class="emo">🏆</span>Get stronger</div>
-          <div class="goal"><span class="emo">🔥</span>Fat loss</div>
-          <div class="goal"><span class="emo">❤️</span>Stay healthy</div>
+        <div class="choice sel">
+          <span class="ico"><svg><use href="#ic-male"/></svg></span>
+          <div><div class="nm">Male</div><div class="desc">He / him</div></div>
+          <span class="check">✓</span>
         </div>
-        <div class="stepper"><span class="small muted">Days / week</span><span style="display:flex;gap:12px;align-items:center"><span class="pm">−</span><b>4</b><span class="pm">+</span></span></div>
-        <div class="dayrow">
-          <span class="on">M</span><span>T</span><span class="on">W</span><span>T</span><span class="on">F</span><span>S</span><span class="on">S</span>
+        <div class="choice">
+          <span class="ico"><svg><use href="#ic-female"/></svg></span>
+          <div><div class="nm">Female</div><div class="desc">She / her</div></div>
+        </div>
+        <div class="choice">
+          <span class="ico"><svg><use href="#ic-other"/></svg></span>
+          <div><div class="nm">Other</div><div class="desc">Prefer not to say or self-describe</div></div>
         </div>
         <div style="flex:1"></div>
-        <div class="btn">Build my plan →</div>
-        <div class="dots"><i></i><i class="on"></i></div>
+        <div class="btn">Continue</div>
+        <div class="dots"><i></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
       </div>
       <div class="homebar"></div>
     </div></div>
     <div class="caption">
-      <div class="cap-head"><span class="num">03</span><span class="cap-title">Goal and schedule</span><span class="new">NEW</span></div>
-      <div class="cap-desc">Turns the persona into a concrete plan: goal, training days, split — so "Today" has something to show.</div>
+      <div class="cap-head"><span class="num">04</span><span class="cap-title">Onboarding · Gender</span><span class="new">NEW</span></div>
+      <div class="cap-desc">Three full-width choice cards with icon and text. Selection is required.</div>
+    </div>
+  </div>
+
+  <div class="connector"><span class="lbl">Continue</span><div class="arrow"></div></div>
+
+  <!-- 05 - BIRTH DATE -->
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G</span></div>
+      <div class="body">
+        <div class="onb-top"><span class="back">‹</span><span class="stepcount">STEP 3 OF 10</span></div>
+        <div>
+          <div class="h-title">When were you born?</div>
+          <div class="h-sub">Mova uses age to keep training guidance appropriate.</div>
+        </div>
+        <div class="wheel-wrap">
+          <div class="wheel-band"></div>
+          <div class="wheel-col"><span>Sep</span><span>Oct</span><span class="mid">Nov</span><span>Dec</span><span>Jan</span></div>
+          <div class="wheel-col"><span>3</span><span>4</span><span class="mid">5</span><span>6</span><span>7</span></div>
+          <div class="wheel-col"><span>1999</span><span>2000</span><span class="mid">2001</span><span>2002</span><span>2003</span></div>
+        </div>
+        <div class="card small muted">Must be at least 13 and no more than 120 years old. Leap years are handled.</div>
+        <div style="flex:1"></div>
+        <div class="btn">Continue</div>
+        <div class="dots"><i></i><i></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      </div>
+      <div class="homebar"></div>
+    </div></div>
+    <div class="caption">
+      <div class="cap-head"><span class="num">05</span><span class="cap-title">Onboarding · Birth date</span><span class="new">NEW</span></div>
+      <div class="cap-desc">Three vertical wheels for month, day, and year. Default is 25 years before today.</div>
+    </div>
+  </div>
+
+  <div class="connector"><span class="lbl">Continue</span><div class="arrow"></div></div>
+
+  <!-- 06 - WEIGHT -->
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G</span></div>
+      <div class="body">
+        <div class="onb-top"><span class="back">‹</span><span class="stepcount">STEP 4 OF 10</span></div>
+        <div>
+          <div class="h-title">Your weight</div>
+          <div class="h-sub">Used for strength score and body-weight exercises.</div>
+        </div>
+        <div class="ruler-val">78<small>kg</small></div>
+        <div class="ruler-scale">
+          <div class="ruler-marks">
+            <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+            <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+            <i></i><i></i>
+          </div>
+        </div>
+        <div class="rowline small muted"><span>30 kg</span><span>250 kg</span></div>
+        <div style="flex:1"></div>
+        <div class="btn">Continue</div>
+        <div class="btn ghost">Skip for now</div>
+        <div class="dots"><i></i><i></i><i></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      </div>
+      <div class="homebar"></div>
+    </div></div>
+    <div class="caption">
+      <div class="cap-head"><span class="num">06</span><span class="cap-title">Onboarding · Weight</span><span class="new">NEW</span></div>
+      <div class="cap-desc">Horizontal ruler slider, 30 to 250 kg in 0.5 kg steps. Skip stores 0.</div>
+    </div>
+  </div>
+
+  <div class="connector"><span class="lbl">Continue</span><div class="arrow"></div></div>
+
+  <!-- 07 - HEIGHT -->
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G</span></div>
+      <div class="body">
+        <div class="onb-top"><span class="back">‹</span><span class="stepcount">STEP 5 OF 10</span></div>
+        <div>
+          <div class="h-title">Your height</div>
+          <div class="h-sub">Used for body metrics and exercise setup.</div>
+        </div>
+        <div class="vruler">
+          <div class="track"><div class="fill"></div></div>
+          <div class="num"><b>178</b><small>cm</small><span class="hint">120 to 230 cm</span></div>
+        </div>
+        <div style="flex:1"></div>
+        <div class="btn">Continue</div>
+        <div class="btn ghost">Skip for now</div>
+        <div class="dots"><i></i><i></i><i></i><i></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i></div>
+      </div>
+      <div class="homebar"></div>
+    </div></div>
+    <div class="caption">
+      <div class="cap-head"><span class="num">07</span><span class="cap-title">Onboarding · Height</span><span class="new">NEW</span></div>
+      <div class="cap-desc">Vertical roller, 120 to 230 cm in 1 cm steps. Skip stores 0.</div>
+    </div>
+  </div>
+
+  <div class="connector"><span class="lbl">Continue</span><div class="arrow"></div></div>
+
+  <!-- 08 - GOALS -->
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G</span></div>
+      <div class="body">
+        <div class="onb-top"><span class="back">‹</span><span class="stepcount">STEP 6 OF 10</span></div>
+        <div>
+          <div class="h-title">What are you training for?</div>
+          <div class="h-sub">Pick all that apply. The first is your primary goal.</div>
+        </div>
+        <div class="goal-grid">
+          <div class="goal sel"><span class="emo">💪</span>Build muscle<span class="ptag">PRIMARY</span></div>
+          <div class="goal sel"><span class="emo">🏆</span>Get stronger</div>
+          <div class="goal"><span class="emo">🔥</span>Lose weight</div>
+          <div class="goal"><span class="emo">❤️</span>Stay healthy</div>
+        </div>
+        <div style="flex:1"></div>
+        <div class="btn">Continue</div>
+        <div class="dots"><i></i><i></i><i></i><i></i><i></i><i class="on"></i><i></i><i></i><i></i><i></i></div>
+      </div>
+      <div class="homebar"></div>
+    </div></div>
+    <div class="caption">
+      <div class="cap-head"><span class="num">08</span><span class="cap-title">Onboarding · Goals</span><span class="new">NEW</span></div>
+      <div class="cap-desc">Multi-select cards. At least one is required. The first selected goal is labelled primary.</div>
+    </div>
+  </div>
+
+  <div class="connector"><span class="lbl">Continue</span><div class="arrow"></div></div>
+
+  <!-- 09 - EXPERIENCE -->
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G</span></div>
+      <div class="body">
+        <div class="onb-top"><span class="back">‹</span><span class="stepcount">STEP 7 OF 10</span></div>
+        <div>
+          <div class="h-title">How much experience?</div>
+          <div class="h-sub">Sets starting volume and exercise selection.</div>
+        </div>
+        <div class="choice">
+          <span class="ico">🌱</span>
+          <div><div class="nm">Beginner</div><div class="desc">New to training or returning after a break</div></div>
+        </div>
+        <div class="choice">
+          <span class="ico">🏋️</span>
+          <div><div class="nm">Regular</div><div class="desc">Training consistently for under a year</div></div>
+        </div>
+        <div class="choice sel">
+          <span class="ico">🔥</span>
+          <div><div class="nm">Gym rat</div><div class="desc">Years of structured training</div></div>
+          <span class="check">✓</span>
+        </div>
+        <div class="choice">
+          <span class="ico">🏅</span>
+          <div><div class="nm">Veteran</div><div class="desc">Advanced, competition-minded</div></div>
+        </div>
+        <div style="flex:1"></div>
+        <div class="btn">Continue</div>
+        <div class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i class="on"></i><i></i><i></i><i></i></div>
+      </div>
+      <div class="homebar"></div>
+    </div></div>
+    <div class="caption">
+      <div class="cap-head"><span class="num">09</span><span class="cap-title">Onboarding · Experience</span><span class="new">NEW</span></div>
+      <div class="cap-desc">Single-select cards with a one-line description. Selection is required.</div>
+    </div>
+  </div>
+
+  <div class="connector"><span class="lbl">Continue</span><div class="arrow"></div></div>
+
+  <!-- 10 - SCHEDULE -->
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G</span></div>
+      <div class="body">
+        <div class="onb-top"><span class="back">‹</span><span class="stepcount">STEP 8 OF 10</span></div>
+        <div>
+          <div class="h-title">How often do you train?</div>
+          <div class="h-sub">Your plan is built around this week.</div>
+        </div>
+        <div class="stepper"><span class="small muted">Days / week</span><span style="display:flex;gap:12px;align-items:center"><span class="pm">−</span><b>3</b><span class="pm">+</span></span></div>
+        <div class="dayrow">
+          <span class="on">M</span><span>T</span><span class="on">W</span><span>T</span><span class="on">F</span><span>S</span><span>S</span>
+        </div>
+        <div class="card small muted">Default is 3 days on Monday, Wednesday, and Friday. The day count must match the selected weekdays.</div>
+        <div style="flex:1"></div>
+        <div class="btn">Continue</div>
+        <div class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="on"></i><i></i><i></i></div>
+      </div>
+      <div class="homebar"></div>
+    </div></div>
+    <div class="caption">
+      <div class="cap-head"><span class="num">10</span><span class="cap-title">Onboarding · Schedule</span><span class="new">NEW</span></div>
+      <div class="cap-desc">Days per week from 1 to 7 plus training weekdays. At least one weekday is required.</div>
+    </div>
+  </div>
+
+  <div class="connector"><span class="lbl">Continue</span><div class="arrow"></div></div>
+
+  <!-- 11 - NOTIFICATIONS -->
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G</span></div>
+      <div class="body">
+        <div class="onb-top"><span class="back">‹</span><span class="stepcount">STEP 9 OF 10</span></div>
+        <div>
+          <div class="h-title">Stay on schedule</div>
+          <div class="h-sub">A short reminder before your workout. One nudge, no spam.</div>
+        </div>
+        <div class="bell"><svg><use href="#ic-bell"/></svg></div>
+        <div class="notif-row"><span>Workout reminders</span><span class="toggle"></span></div>
+        <div class="notif-row"><span>Reminder time</span><span class="muted">18:00</span></div>
+        <div style="flex:1"></div>
+        <div class="btn">Enable reminders</div>
+        <div class="btn ghost">Not now</div>
+        <div class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="on"></i><i></i></div>
+      </div>
+      <div class="homebar"></div>
+    </div></div>
+    <div class="caption">
+      <div class="cap-head"><span class="num">11</span><span class="cap-title">Onboarding · Notifications</span><span class="new">NEW</span></div>
+      <div class="cap-desc">Enable asks for system permission. Deny, Not now, or unavailable continues with reminders off.</div>
+    </div>
+  </div>
+
+  <div class="connector"><span class="lbl">Continue</span><div class="arrow"></div></div>
+
+  <!-- 12 - PLAN PREVIEW -->
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G</span></div>
+      <div class="body">
+        <div class="onb-top"><span class="back">‹</span><span class="stepcount">STEP 10 OF 10</span></div>
+        <div>
+          <div class="h-title">Your Week 1</div>
+          <div class="h-sub">Build muscle · 3 days · Gym rat</div>
+        </div>
+        <div class="plan-list">
+          <div class="day-card"><span class="d">MON</span><div><div class="nm">Push Day</div><div class="sub">Chest · Shoulders · Triceps · 6 exercises · ~55 min</div></div></div>
+          <div class="day-card"><span class="d">WED</span><div><div class="nm">Pull Day</div><div class="sub">Back · Biceps · 5 exercises · ~50 min</div></div></div>
+          <div class="day-card"><span class="d">FRI</span><div><div class="nm">Leg Day</div><div class="sub">Quads · Hamstrings · Glutes · 6 exercises · ~60 min</div></div></div>
+          <div class="day-card rest"><span class="d">SAT</span><div><div class="nm">Rest day</div><div class="sub">Walk or recover</div></div></div>
+        </div>
+        <div style="flex:1"></div>
+        <div class="btn">Start using Mova</div>
+        <div class="btn ghost">Edit schedule</div>
+        <div class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="on"></i></div>
+      </div>
+      <div class="homebar"></div>
+    </div></div>
+    <div class="caption">
+      <div class="cap-head"><span class="num">12</span><span class="cap-title">Plan preview</span><span class="new">NEW</span></div>
+      <div class="cap-desc">Confirm persists profile, settings, and plan, then opens Today. Edit returns to Schedule with values preserved.</div>
     </div>
   </div>
 
   <div class="connector"><span class="lbl">plan built</span><div class="arrow"></div></div>
 
-  <!-- 04 · TODAY -->
+  <!-- 13 - TODAY -->
   <div class="step">
     <div class="phone"><div class="screen">
-      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G 🔋</span></div>
+      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G</span></div>
       <div class="body">
         <div class="rowline">
-          <span class="tag lime">Sunday · Week 3</span>
-          <span class="small muted">🔔</span>
+          <span class="tag lime">Monday · Week 3</span>
+          <span class="small muted" style="display:grid;place-items:center"><svg style="width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><use href="#ic-bell"/></svg></span>
         </div>
         <div class="workout-card">
           <div class="rowline"><span class="h-title">Push Day</span><span class="tag">Planned</span></div>
@@ -371,45 +766,45 @@
           <div class="btn" style="margin-top:12px">Start workout</div>
         </div>
         <div class="stat-duo">
-          <div class="stat"><div class="v">🔥 12</div><div class="k">day streak</div></div>
+          <div class="stat"><div class="v">12</div><div class="k">day streak</div></div>
           <div class="stat"><div class="v">8,240</div><div class="k">steps · synced</div></div>
         </div>
-        <div class="quick"><span>＋ Empty workout</span><span>🚶 Walk</span><span>📋 Routine</span></div>
+        <div class="quick"><span>＋ Empty workout</span><span>Walk</span><span>Routine</span></div>
         <div style="flex:1"></div>
       </div>
       <div class="navbar">
-        <div class="tab active"><span class="ic">🏠</span>Today</div>
-        <div class="tab"><span class="ic">🏋️</span>Train</div>
-        <div class="tab"><span class="ic">📈</span>Progress</div>
-        <div class="tab"><span class="ic">💬</span>Social</div>
-        <div class="tab"><span class="ic">👤</span>Me</div>
+        <div class="tab active"><svg class="ic"><use href="#ic-home"/></svg>Today</div>
+        <div class="tab"><svg class="ic"><use href="#ic-train"/></svg>Train</div>
+        <div class="tab"><svg class="ic"><use href="#ic-progress"/></svg>Progress</div>
+        <div class="tab"><svg class="ic"><use href="#ic-social"/></svg>Social</div>
+        <div class="tab"><svg class="ic"><use href="#ic-me"/></svg>Me</div>
       </div>
       <div class="homebar"></div>
     </div></div>
     <div class="caption">
-      <div class="cap-head"><span class="num">04</span><span class="cap-title">Today</span></div>
-      <div class="cap-desc">One clear next action, streak, synced steps.</div>
+      <div class="cap-head"><span class="num">13</span><span class="cap-title">Today</span></div>
+      <div class="cap-desc">One clear next action, streak, synced steps. A paused session shows Resume here instead.</div>
     </div>
   </div>
 
-  <div class="connector"><span class="lbl">tap “Start”</span><div class="arrow"></div></div>
+  <div class="connector"><span class="lbl">tap Start</span><div class="arrow"></div></div>
 
-  <!-- 05 · LIVE LOGGER -->
+  <!-- 14 - LIVE LOGGER -->
   <div class="step">
     <div class="phone"><div class="screen">
-      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G 🔋</span></div>
+      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G</span></div>
       <div class="body">
         <div class="rowline">
           <span class="small muted">✕</span>
           <span style="font-weight:800; font-size:14px">Bench Press</span>
-          <span class="tag">⏱ 32:10</span>
+          <span class="tag">◷ 32:10</span>
         </div>
         <div class="setrow" style="background:transparent;border:none;padding:0 4px;font-size:9.5px;color:#66718a">
           <span>SET</span><span>PREV</span><span>KG × REPS</span><span></span>
         </div>
         <div class="setrow done"><span>1</span><span class="prev">80 × 8</span><span class="cur">82.5 × 8</span><span class="ck">✓</span></div>
         <div class="setrow done"><span>2</span><span class="prev">80 × 8</span><span class="cur">82.5 × 7</span><span class="ck">✓</span></div>
-        <div class="setrow open"><span>3</span><span class="prev">80 × 6</span><span class="cur muted">— × —</span><span class="ck">○</span></div>
+        <div class="setrow open"><span>3</span><span class="prev">80 × 6</span><span class="cur muted">- × -</span><span class="ck">○</span></div>
         <div class="rest">
           <div class="rowline"><b>Rest · 1:24</b><span class="small" style="color:var(--blue)">Skip</span></div>
           <div class="bar"><i></i></div>
@@ -421,30 +816,30 @@
       <div class="homebar"></div>
     </div></div>
     <div class="caption">
-      <div class="cap-head"><span class="num">05</span><span class="cap-title">Live logger</span></div>
-      <div class="cap-desc">The gymrat hook: previous values, one tap per set, auto rest timer. Immersive — tab bar hidden.</div>
+      <div class="cap-head"><span class="num">14</span><span class="cap-title">Live logger</span></div>
+      <div class="cap-desc">Previous values, one tap per set, auto rest timer. Immersive: the tab bar is hidden.</div>
     </div>
   </div>
 
   <div class="connector"><span class="lbl">Finish</span><div class="arrow"></div></div>
 
-  <!-- 06 · SUMMARY + PR -->
+  <!-- 15 - SUMMARY + PR -->
   <div class="step">
     <div class="phone"><div class="screen">
-      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G 🔋</span></div>
+      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G</span></div>
       <div class="body">
-        <div class="pr-badge">🎉 NEW PR!</div>
+        <div class="pr-badge">NEW PR</div>
         <div class="pr-card">
           <div class="small muted">Bench Press · est. 1RM</div>
           <div class="big" style="margin-top:6px">104 <span style="font-size:16px" class="muted">kg</span></div>
           <span class="tag gold" style="margin-top:8px;display:inline-block">▲ +3.5 kg vs last session</span>
         </div>
         <div class="trio">
-          <div class="stat"><div class="v" style="font-size:14px">55m</div><div class="k">time</div></div>
-          <div class="stat"><div class="v" style="font-size:14px">9.4t</div><div class="k">volume</div></div>
+          <div class="stat"><div class="v" style="font-size:14px">55:00</div><div class="k">time</div></div>
+          <div class="stat"><div class="v" style="font-size:14px">9.4 t</div><div class="k">volume</div></div>
           <div class="stat"><div class="v" style="font-size:14px">21</div><div class="k">sets</div></div>
         </div>
-        <div class="story"><span style="font-size:16px">🏆</span>104 kg<br>Bench PR<small>share card · 9:16</small></div>
+        <div class="story"><span style="font-size:16px">★</span>104 kg<br>Bench PR<small>share card · 9:16</small></div>
         <div style="flex:1"></div>
         <div class="btn">Share card</div>
         <div class="btn ghost">Save</div>
@@ -452,25 +847,30 @@
       <div class="homebar"></div>
     </div></div>
     <div class="caption">
-      <div class="cap-head"><span class="num">06</span><span class="cap-title">Summary + PR</span></div>
-      <div class="cap-desc">Auto PR detection and a share card made for Instagram stories.</div>
+      <div class="cap-head"><span class="num">15</span><span class="cap-title">Summary + PR</span></div>
+      <div class="cap-desc">Auto PR detection and a share card made for stories. Save commits the session and its PRs.</div>
     </div>
   </div>
 
-  <div class="connector"><span class="lbl">PR auto-synced</span><div class="arrow"></div></div>
+  <div class="connector"><span class="lbl">saved to history</span><div class="arrow"></div></div>
 
-  <!-- 07 · PROGRESS -->
+  <!-- 16 - PROGRESS -->
   <div class="step">
     <div class="phone"><div class="screen">
-      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G 🔋</span></div>
-      <div class="body">
+      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G</span></div>
+      <div class="body" style="gap:8px">
         <div class="h-title">Progress</div>
+        <div class="trio">
+          <div class="stat"><div class="v">128</div><div class="k">workouts</div></div>
+          <div class="stat"><div class="v">984.0 t</div><div class="k">volume</div></div>
+          <div class="stat"><div class="v">12</div><div class="k">day streak</div></div>
+        </div>
         <div class="card">
           <div class="ring-wrap">
             <div class="ring"><div class="ring-inner"><div><div class="v">412</div><div class="k">Strength</div></div></div></div>
             <div>
-              <div style="font-weight:800; font-size:14px">Strength Score</div>
-              <div class="small muted" style="margin-top:4px">Top 18% at your gym</div>
+              <div style="font-weight:800; font-size:14px">Strength Score <span class="tag lime">BETA</span></div>
+              <div class="small muted" style="margin-top:4px">Local only · no ranking</div>
               <span class="tag lime" style="margin-top:8px;display:inline-block">▲ +14 this week</span>
             </div>
           </div>
@@ -481,35 +881,36 @@
           <div class="rowline small muted" style="margin-top:6px;font-size:9px"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
         </div>
         <div class="pr-list">
-          <div class="pr-row"><span>🏆 Squat</span><b>140 kg</b></div>
-          <div class="pr-row"><span>🏆 Deadlift</span><b>180 kg</b></div>
-          <div class="pr-row"><span>🏆 Bench Press</span><b>104 kg</b></div>
+          <div class="pr-row"><span><span class="tag gold">PR</span> Squat</span><b>140 kg</b></div>
+          <div class="pr-row"><span><span class="tag gold">PR</span> Deadlift</span><b>180 kg</b></div>
+          <div class="pr-row"><span><span class="tag gold">PR</span> Bench Press</span><b>104 kg</b></div>
         </div>
+        <div class="setting">Workout history<span class="chev" style="margin-left:auto">›</span></div>
       </div>
       <div class="navbar">
-        <div class="tab"><span class="ic">🏠</span>Today</div>
-        <div class="tab"><span class="ic">🏋️</span>Train</div>
-        <div class="tab active"><span class="ic">📈</span>Progress</div>
-        <div class="tab"><span class="ic">💬</span>Social</div>
-        <div class="tab"><span class="ic">👤</span>Me</div>
+        <div class="tab"><svg class="ic"><use href="#ic-home"/></svg>Today</div>
+        <div class="tab"><svg class="ic"><use href="#ic-train"/></svg>Train</div>
+        <div class="tab active"><svg class="ic"><use href="#ic-progress"/></svg>Progress</div>
+        <div class="tab"><svg class="ic"><use href="#ic-social"/></svg>Social</div>
+        <div class="tab"><svg class="ic"><use href="#ic-me"/></svg>Me</div>
       </div>
       <div class="homebar"></div>
     </div></div>
     <div class="caption">
-      <div class="cap-head"><span class="num">07</span><span class="cap-title">Progress</span></div>
-      <div class="cap-desc">Strength Score ranks you vs friends — reason to come back.</div>
+      <div class="cap-head"><span class="num">16</span><span class="cap-title">Progress</span></div>
+      <div class="cap-desc">Strength score with a beta label and an honest local explanation, plus weekly volume and PRs. No gym ranking.</div>
     </div>
   </div>
 
   <div class="connector"><span class="lbl">tab · Train</span><div class="arrow"></div></div>
 
-  <!-- 08 · TRAIN (NEW) -->
+  <!-- 17 - TRAIN -->
   <div class="step">
     <div class="phone"><div class="screen">
-      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G 🔋</span></div>
+      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G</span></div>
       <div class="body">
         <div class="h-title">Train</div>
-        <div class="search">🔍 Search exercises…</div>
+        <div class="search">Search exercises</div>
         <div class="chiprow">
           <span class="on">All</span><span>Chest</span><span>Back</span><span>Legs</span><span>Shoulders</span><span>Arms</span>
         </div>
@@ -518,104 +919,118 @@
         <div class="ex"><div><div class="nm">Romanian Deadlift</div><div class="sub">Legs · Barbell</div></div><div class="add">＋</div></div>
         <div class="card small">
           <b style="font-size:11.5px">My routines</b>
-          <div class="muted" style="margin-top:6px; line-height:1.8">📋 Push Day · 📋 Pull Day · 📋 Legs</div>
+          <div class="setting" style="margin-top:7px">Push Day<span class="val">7 exercises</span><span class="chev">›</span></div>
+          <div class="setting" style="margin-top:6px">Pull Day<span class="val">6 exercises</span><span class="chev">›</span></div>
+          <div class="setting" style="margin-top:6px">Legs<span class="val">5 exercises</span><span class="chev">›</span></div>
+          <div class="setting" style="margin-top:6px; justify-content:center; border-style:dashed; color:var(--lime)">＋ New routine</div>
         </div>
       </div>
       <div class="navbar">
-        <div class="tab"><span class="ic">🏠</span>Today</div>
-        <div class="tab active"><span class="ic">🏋️</span>Train</div>
-        <div class="tab"><span class="ic">📈</span>Progress</div>
-        <div class="tab"><span class="ic">💬</span>Social</div>
-        <div class="tab"><span class="ic">👤</span>Me</div>
+        <div class="tab"><svg class="ic"><use href="#ic-home"/></svg>Today</div>
+        <div class="tab active"><svg class="ic"><use href="#ic-train"/></svg>Train</div>
+        <div class="tab"><svg class="ic"><use href="#ic-progress"/></svg>Progress</div>
+        <div class="tab"><svg class="ic"><use href="#ic-social"/></svg>Social</div>
+        <div class="tab"><svg class="ic"><use href="#ic-me"/></svg>Me</div>
       </div>
       <div class="homebar"></div>
     </div></div>
     <div class="caption">
-      <div class="cap-head"><span class="num">08</span><span class="cap-title">Train / library</span><span class="new">NEW</span></div>
-      <div class="cap-desc">Closes the gap in the nav: searchable exercise library + saved routines, feeding into “＋ Empty workout”.</div>
+      <div class="cap-head"><span class="num">17</span><span class="cap-title">Train / library</span><span class="new">NEW</span></div>
+      <div class="cap-desc">Searchable exercise library plus saved routines. Detail, routine list, and routine builder are sub-routes.</div>
     </div>
   </div>
 
   <div class="connector"><span class="lbl">tab · Social</span><div class="arrow"></div></div>
 
-  <!-- 09 · SOCIAL FEED -->
+  <!-- 18 - SOCIAL FEED -->
   <div class="step">
     <div class="phone"><div class="screen">
-      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G 🔋</span></div>
+      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G</span></div>
       <div class="body">
         <div class="h-title">Feed</div>
         <div class="post">
           <div class="avatar" style="background:#7dd3fc">A</div>
-          <div><div class="nm">Andrei</div><div class="txt">Leg day · 2 PRs 🏆</div></div>
-          <div class="kudos">👍 14</div>
+          <div><div class="nm">Andrei <span class="tag" style="font-size:8px">SAMPLE</span></div><div class="txt">Leg day · 2 PRs · 2h</div></div>
+          <div class="kudos">Kudos 14</div>
         </div>
         <div class="post">
           <div class="avatar" style="background:#f9a8d4">M</div>
-          <div><div class="nm">Maria</div><div class="txt">First 5-min workout 🏆</div></div>
-          <div class="kudos given">👍 32</div>
+          <div><div class="nm">Maria <span class="tag" style="font-size:8px">SAMPLE</span></div><div class="txt">First workout · PR · 5h</div></div>
+          <div class="kudos given">Kudos 32 ✓</div>
         </div>
         <div class="post">
           <div class="avatar" style="background:#fcd34d">V</div>
-          <div><div class="nm">Vlad</div><div class="txt">Track intervals · RPE 9</div></div>
-          <div class="kudos">👍 8</div>
+          <div><div class="nm">Vlad <span class="tag" style="font-size:8px">SAMPLE</span></div><div class="txt">Track intervals · RPE 9 · 1d</div></div>
+          <div class="kudos">Kudos 8</div>
         </div>
-        <div class="card small muted">Kudos are the only currency — no comments, no noise.</div>
+        <div class="card small muted">Kudos are the only currency: no comments and no follower graph. Seeded posts are labelled sample content.</div>
         <div style="flex:1"></div>
       </div>
       <div class="navbar">
-        <div class="tab"><span class="ic">🏠</span>Today</div>
-        <div class="tab"><span class="ic">🏋️</span>Train</div>
-        <div class="tab"><span class="ic">📈</span>Progress</div>
-        <div class="tab active"><span class="ic">💬</span>Social</div>
-        <div class="tab"><span class="ic">👤</span>Me</div>
+        <div class="tab"><svg class="ic"><use href="#ic-home"/></svg>Today</div>
+        <div class="tab"><svg class="ic"><use href="#ic-train"/></svg>Train</div>
+        <div class="tab"><svg class="ic"><use href="#ic-progress"/></svg>Progress</div>
+        <div class="tab active"><svg class="ic"><use href="#ic-social"/></svg>Social</div>
+        <div class="tab"><svg class="ic"><use href="#ic-me"/></svg>Me</div>
       </div>
       <div class="homebar"></div>
     </div></div>
     <div class="caption">
-      <div class="cap-head"><span class="num">09</span><span class="cap-title">Social feed</span></div>
-      <div class="cap-desc">Strava-style kudos, minus the noise.</div>
+      <div class="cap-head"><span class="num">18</span><span class="cap-title">Social feed</span></div>
+      <div class="cap-desc">Local-first kudos, minus the noise. No comments, direct messages, or leaderboard.</div>
     </div>
   </div>
 
   <div class="connector"><span class="lbl">tab · Me</span><div class="arrow"></div></div>
 
-  <!-- 10 · ME (NEW) -->
+  <!-- 19 - ME -->
   <div class="step">
     <div class="phone"><div class="screen">
-      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G 🔋</span></div>
+      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G</span></div>
       <div class="body">
         <div class="me-head">
           <div class="avatar" style="background:#b7f24c">A</div>
           <div>
             <div style="font-weight:800; font-size:15px">Andrei M.</div>
-            <span class="tag" style="margin-top:5px;display:inline-block">🔥 Gymrat · since Sep</span>
+            <span class="tag" style="margin-top:5px;display:inline-block">Gym rat · since Sep</span>
           </div>
         </div>
         <div class="me-stats">
           <div class="stat" style="text-align:center"><div class="v" style="font-size:15px">128</div><div class="k">workouts</div></div>
-          <div class="stat" style="text-align:center"><div class="v" style="font-size:15px">🔥 12</div><div class="k">streak</div></div>
+          <div class="stat" style="text-align:center"><div class="v" style="font-size:15px">12</div><div class="k">streak</div></div>
           <div class="stat" style="text-align:center"><div class="v" style="font-size:15px">6</div><div class="k">PRs</div></div>
         </div>
-        <div class="setting">📏 Units <span class="val">kg</span><span class="chev">›</span></div>
-        <div class="setting">⌚ Sync <span class="val">Apple Health ✓</span><span class="chev">›</span></div>
-        <div class="setting">🔔 Workout reminders <span class="val">On</span><span class="chev">›</span></div>
-        <div class="setting">🔒 Privacy and social <span class="val">Friends</span><span class="chev">›</span></div>
+        <div class="setting">Edit profile<span class="chev">›</span></div>
+        <div class="setting">Units<span class="val">kg · km · cm</span><span class="chev">›</span></div>
+        <div class="setting">Workout reminders<span class="val">On</span><span class="chev">›</span></div>
+        <div class="setting">Integrations<span class="val">Apple Health</span><span class="chev">›</span></div>
+        <div class="setting">Privacy and social<span class="val">Local only</span><span class="chev">›</span></div>
+        <div class="setting">Help and support<span class="chev">›</span></div>
+        <div class="setting">Reset local data<span class="chev">›</span></div>
+        <div class="small muted" style="text-align:center; margin-top:2px">Mova 1.0.0</div>
         <div style="flex:1"></div>
       </div>
       <div class="navbar">
-        <div class="tab"><span class="ic">🏠</span>Today</div>
-        <div class="tab"><span class="ic">🏋️</span>Train</div>
-        <div class="tab"><span class="ic">📈</span>Progress</div>
-        <div class="tab"><span class="ic">💬</span>Social</div>
-        <div class="tab active"><span class="ic">👤</span>Me</div>
+        <div class="tab"><svg class="ic"><use href="#ic-home"/></svg>Today</div>
+        <div class="tab"><svg class="ic"><use href="#ic-train"/></svg>Train</div>
+        <div class="tab"><svg class="ic"><use href="#ic-progress"/></svg>Progress</div>
+        <div class="tab"><svg class="ic"><use href="#ic-social"/></svg>Social</div>
+        <div class="tab active"><svg class="ic"><use href="#ic-me"/></svg>Me</div>
       </div>
       <div class="homebar"></div>
     </div></div>
     <div class="caption">
-      <div class="cap-head"><span class="num">10</span><span class="cap-title">Me / profile</span><span class="new">NEW</span></div>
-      <div class="cap-desc">Identity, lifetime totals and settings — completes the 5-tab navigation.</div>
+      <div class="cap-head"><span class="num">19</span><span class="cap-title">Me / profile</span><span class="new">NEW</span></div>
+      <div class="cap-desc">Identity, lifetime totals, and settings. No account, sign-in, or log out. Legal and licenses live in Settings.</div>
     </div>
   </div>
+
+</div>
+
+<div class="footnote">
+  <b>Screen to route map.</b> Splash <code>/splash</code>; Welcome <code>/welcome</code>; onboarding steps <code>/onboarding/units</code>, <code>/onboarding/gender</code>, <code>/onboarding/birth-date</code>, <code>/onboarding/weight</code>, <code>/onboarding/height</code>, <code>/onboarding/goals</code>, <code>/onboarding/experience</code>, <code>/onboarding/schedule</code>, <code>/onboarding/notifications</code>, <code>/onboarding/plan</code>; tabs <code>/today</code>, <code>/train</code>, <code>/progress</code>, <code>/social</code>, <code>/me</code>; full-screen flows <code>/logger</code> and <code>/summary</code>.
+  <br><br>
+  <b>Sub-routes not shown as full frames:</b> <code>/me/edit</code>, <code>/me/settings</code>, <code>/me/legal/:doc</code>, <code>/me/licenses</code>, <code>/progress/history</code>, <code>/progress/history/:id</code>, <code>/train/exercises/:id</code>, <code>/train/routines</code>, <code>/train/routines/new</code>, <code>/train/routines/:id</code>, <code>/train/routines/:id/edit</code>. Sheets and dialogs: exercise picker, numeric input, workout interruption, plan overview, body weight, share card, manual steps, permissions, and reset local data.
 </div>
 </body>
 </html>

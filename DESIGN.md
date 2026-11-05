@@ -208,7 +208,7 @@ The HTML mockup uses a system sans at small sizes. Those values describe a 292 p
 | `xs` | 6 | Micro tags, tiny badges |
 | `sm` | 8 | Stepper buttons, small icon buttons |
 | `md` | 11 | Inputs, set rows, search fields |
-| `lg` | 13 | Stat tiles, persona rows, goal tiles |
+| `lg` | 13 | Stat tiles, choice rows, goal tiles |
 | `xl` | 14 | Cards |
 | `2xl` | 16 | Featured cards, PR cards, sheets on compact screens |
 | `3xl` | 20 | Bottom sheets, dialogs |
@@ -247,7 +247,7 @@ The HTML mockup uses a system sans at small sizes. Those values describe a 292 p
 
 ### 7.2 Emoji
 
-- Emoji are allowed in onboarding personas and training goals only.
+- Emoji are allowed in onboarding goal and experience cards only.
 - Emoji are allowed inside seeded social content.
 - Do not use emoji as navigation icons, button labels, or data labels.
 - Do not use emoji in the PR share card.
@@ -453,9 +453,13 @@ Each component lives in its own file under `lib/widgets/`. No component file may
 ```text
 Splash
   |
-  +-- First launch --> Welcome --> Persona --> Goal & schedule --> Plan preview --> Main
+  +-- First launch --> Welcome --> Units --> Gender --> Birth date --> Weight
+  |                     --> Height --> Goals --> Experience --> Schedule
+  |                     --> Notifications --> Plan preview --> Main
   |
   +-- Returning user with profile --> Main
+  +-- Paused session --> Main / Today with Resume
+  +-- Active session --> Live logger
 
 Main (5-tab shell)
   |-- Today
@@ -463,27 +467,35 @@ Main (5-tab shell)
   |     |     |-- Workout summary + PR
   |     |           |-- Share card
   |     |-- Plan overview / edit plan (sheet)
+  |     |-- Manual steps (sheet)
   |     |-- Quick actions: empty workout, walk, routine
   |-- Train
   |     |-- Exercise library
   |     |-- Exercise details
+  |     |-- Routine list
   |     |-- Routine details
   |     |-- Routine builder
   |-- Progress
   |     |-- Workout history
   |     |-- Workout detail
+  |     |-- Body weight (sheet)
   |-- Social
   |     |-- Feed
   |     |-- PR share card preview
   |-- Me
         |-- Profile
+        |-- Profile edit
         |-- Settings
               |-- Units
               |-- Reminders
               |-- Integrations
-              |-- Privacy
-              |-- Account
+              |-- Privacy and data
+              |-- Legal
+              |-- Licenses
+              |-- Reset local data
 ```
+
+`MOCK.html` is the canonical visual storyboard. It shows Splash, all 11 onboarding screens (Welcome plus the ten steps), and the five-tab core screens: Today, Live logger, Summary and PR, Progress, Train, Social, and Me. Sub-routes such as profile edit, settings, history detail, routine detail, legal, and licenses reuse the same components and are listed in the route table below.
 
 ### 9.2 Route names
 
@@ -491,27 +503,39 @@ Main (5-tab shell)
 |---|---|---|
 | `/splash` | Splash | No |
 | `/welcome` | Welcome | No |
-| `/onboarding/persona` | Who are you | No |
-| `/onboarding/goal` | Goal and schedule | No |
+| `/onboarding/units` | Unit selection | No |
+| `/onboarding/gender` | Gender | No |
+| `/onboarding/birth-date` | Birth date | No |
+| `/onboarding/weight` | Weight | No |
+| `/onboarding/height` | Height | No |
+| `/onboarding/goals` | Goals | No |
+| `/onboarding/experience` | Experience | No |
+| `/onboarding/schedule` | Schedule | No |
+| `/onboarding/notifications` | Notification permission | No |
 | `/onboarding/plan` | Plan preview | No |
 | `/today` | Today | Yes |
 | `/train` | Train | Yes |
-| `/train/exercise/:id` | Exercise details | Yes |
-| `/train/routine/:id` | Routine details | Yes |
-| `/train/builder` | Routine builder | No |
+| `/train/exercises/:id` | Exercise details | Yes |
+| `/train/routines` | Routine list | Yes |
+| `/train/routines/new` | Routine builder, new | No |
+| `/train/routines/:id` | Routine details | Yes |
+| `/train/routines/:id/edit` | Routine builder, edit | No |
 | `/progress` | Progress | Yes |
 | `/progress/history` | Workout history | Yes |
 | `/progress/history/:id` | Workout detail | Yes |
 | `/social` | Social feed | Yes |
 | `/me` | Me | Yes |
+| `/me/edit` | Profile edit | No |
 | `/me/settings` | Settings | Yes |
+| `/me/legal/:doc` | Legal document | Yes |
+| `/me/licenses` | Licenses | Yes |
 | `/logger` | Live logger | No |
 | `/summary` | Summary and PR | No |
 
 ### 9.3 Navigation rules
 
 - The logger is a full-screen route. Back opens the interruption sheet, not the previous screen.
-- After saving a workout, replace the logger stack with Today and show the summary as a modal result.
+- The summary is a full-screen route after the logger. Save replaces the stack with Today.
 - After discarding, return to Today and keep the previous plan intact.
 - Onboarding cannot be skipped once started. The only exit is closing the app, which resumes at the same step.
 - Tabs keep their scroll position per session.
@@ -535,36 +559,43 @@ All screens use `background`, 16 px horizontal padding, and the `body` type as t
 ### 10.2 Welcome
 
 - **Purpose:** Introduce the product in one screen and start onboarding.
-- **Layout:** Mark, headline "Train with a plan", three value bullets (plan, logger, progress), primary "Get started", ghost "I have a profile".
-- **Components:** Logo, `h1`, three rows with 20 px icons, primary and ghost buttons.
-- **Behavior:** "Get started" routes to persona. "I have a profile" is present only if a local backup exists, otherwise it is hidden.
-- **States:** No loading. Buttons disabled only while creating the profile.
+- **Layout:** Mark, headline "Train with a plan", three value bullets (plan, logger, progress), primary "Get started". The step progress indicator starts on the next screen.
+- **Components:** Logo, `h1`, three rows with 20 px icons, primary button.
+- **Behavior:** "Get started" opens `/onboarding/units`. If a saved draft exists, the primary action becomes "Continue" and resumes at the saved step. "I have a profile" is not shown because local backup and accounts are out of scope in v1.
+- **States:** No loading. The button is disabled only while a draft is being created.
 
-### 10.3 Who are you
+### 10.3 Onboarding: units, gender, birth date, weight, height
 
-- **Purpose:** Capture the persona that shapes copy and default plan volume.
-- **Layout:** `h1` "Who are you?", `caption` subtitle, four persona rows, flexible spacer, primary Continue, step dots.
-- **Components:** Persona row (emoji 18, label 14, check `lime`), selected border `lime`, step dots.
-- **Options:** Just starting, I go to the gym, Gymrat, Elite athlete.
-- **Behavior:** Single select. Continue is enabled after a selection and persists the persona immediately.
-- **States:** Default none selected. Returning to the step restores the saved choice.
+- **Purpose:** Capture the measurements that personalise the plan and profile.
+- **Screens:** `/onboarding/units`, `/onboarding/gender`, `/onboarding/birth-date`, `/onboarding/weight`, `/onboarding/height`.
+- **Units:** Three segmented rows for weight (kg or lb), distance (km or mi), and body size (cm or in). Defaults are kg, km, and cm. All three persist before Continue. Distance is stored for future cardio tracking; no distance entry ships in v1.
+- **Gender:** Three full-width `AppChoiceCard` buttons with icon and text for male, female, and other. Selection is required.
+- **Birth date:** Three vertical wheels for month, day, and year. Default is 25 years before today. The date must make the user at least 13 and no more than 120 years old. Leap years are handled.
+- **Weight:** Horizontal ruler slider, 30 to 250 kg in 0.5 kg steps. The displayed value uses the weight unit. The stored value is kg. Skip stores 0.
+- **Height:** Vertical roller, 120 to 230 cm in 1 cm steps. The displayed value uses the body unit. The stored value is cm. Skip stores 0.
+- **Components:** `AppSegmentedControl`, `AppChoiceCard`, `AppWheelPicker`, `AppRulerSlider`, step progress, primary Continue, ghost Skip where allowed.
+- **Behavior:** Every step persists the draft before moving forward. Back preserves values. Weight and height can be skipped; gender and birth date are required.
+- **States:** Default, selected, skipped, restored draft, invalid age.
 
-### 10.4 Goal and schedule
+### 10.4 Onboarding: goals, experience, schedule, notifications
 
-- **Purpose:** Convert the persona into goal, frequency, and training days.
-- **Layout:** `h1` "What are you training for?", 2x2 goal grid, days-per-week stepper, seven-day selector, flexible spacer, primary "Build my plan", step dots.
-- **Components:** Goal tile (emoji, label, selected lime border), stepper 1 to 7, day selector.
-- **Defaults by persona:** Just starting 2 days, Gym 3, Gymrat 4, Elite 5.
-- **Behavior:** Choosing a day count auto-selects the recommended split and highlights that many days. The user can override individual days. At least one day must be selected.
-- **States:** Validation message in `orange` if no day is selected. Plan generation shows an inline progress state for under 500 ms.
+- **Purpose:** Turn the profile into a goal, a training week, and a reminder choice.
+- **Screens:** `/onboarding/goals`, `/onboarding/experience`, `/onboarding/schedule`, `/onboarding/notifications`.
+- **Goals:** Multi-select cards for build muscle, get stronger, lose weight, and stay healthy. At least one is required. The first selected goal is primary and is labelled as such.
+- **Experience:** Single-select cards for beginner, regular, gym rat, and veteran, each with a one-line description.
+- **Schedule:** Days per week from 1 to 7 and the training weekdays. Default is 3 days on Monday, Wednesday, and Friday. At least one weekday is required and the count must match the selected days per week.
+- **Notifications:** Explain workout reminders. Enable asks for system permission. Deny, Not now, or unavailable continues with reminders off. The choice is stored and can be changed later in Settings.
+- **Components:** `AppMultiSelect`, `AppChoiceCard`, stepper, day selector, step progress, primary Continue.
+- **Behavior:** The schedule feeds the plan generator. The notification choice never blocks progress.
+- **States:** No goal, no day, invalid day count, permission granted, denied, unavailable, skipped.
 
 ### 10.5 Plan preview
 
 - **Purpose:** Show the generated week before committing.
 - **Layout:** `h1` "Your Week 1", subtitle with goal and frequency, list of training-day cards, primary "Start using Mova", ghost "Edit schedule".
 - **Components:** Plan day card with day label, workout name, muscle groups, exercise count, estimated duration.
-- **Behavior:** Confirm saves the plan and routes to `/today`. Edit returns to the schedule step with selections preserved.
-- **States:** If generation fails, show a retry card and a fallback full-body plan.
+- **Behavior:** Confirm persists the profile, settings, and plan through `AppCoordinator`, clears the draft, and routes to `/today`. Edit returns to `/onboarding/schedule` with selections preserved.
+- **States:** Generated plan, editing, generation in progress under 500 ms. If generation fails, show a retry card and a fallback full-body plan labelled "Starter plan".
 
 ### 10.6 Today
 
@@ -577,15 +608,16 @@ All screens use `background`, 16 px horizontal padding, and the `body` type as t
   - Planned: card plus Start.
   - Rest day: "Rest day" card with "Start empty workout" as the primary action.
   - No plan: empty state with "Build a plan".
-  - Active session exists: card becomes "Resume workout" with elapsed time.
+  - Active session at startup: the app opens `/logger`.
+  - Paused session: Today shows a "Resume workout" card with elapsed time and a discard action.
   - Steps unavailable: show "Add steps" and open a manual entry sheet.
-- **Rules:** Only one primary button. Quick actions are dashed ghost chips, not buttons.
+- **Rules:** Only one primary button. Quick actions are dashed ghost chips, not buttons. In Phase 1 the screen is read-only; Start, Resume, steps, and reminders appear in their later phases.
 
 ### 10.7 Live logger
 
 - **Purpose:** Log sets faster than any competitor.
-- **Layout:** Top row with close, exercise name, elapsed timer, tag. Set table header. Current exercise set rows. Rest timer when active. Up-next card. Flexible spacer. Primary "Finish workout" or "Add set".
-- **Components:** Set row, rest banner, up-next card, finish button, overflow menu.
+- **Layout:** Top row with close, exercise name, elapsed timer, tag. Set table header. Current exercise set rows. Rest timer when active. Up-next card. Flexible spacer. The active set row is the primary control; "Finish workout" is a secondary action.
+- **Components:** Set row, rest banner, up-next card, finish action, overflow menu.
 - **Actions:** Complete set, edit weight or reps, add or remove a set, skip rest, add exercise, replace exercise, pause, finish, discard.
 - **Behavior:**
   - Prefill weight and reps from the previous session for the same exercise.
@@ -599,9 +631,9 @@ All screens use `background`, 16 px horizontal padding, and the `body` type as t
 ### 10.8 Summary and PR
 
 - **Purpose:** Close the loop and reward progress.
-- **Layout:** PR badge if any, PR card with exercise and estimated 1RM, three stat tiles (time, volume, sets), share card preview, primary Share, ghost Save.
+- **Layout:** PR badge if any, PR card with exercise and estimated 1RM, three stat tiles (time, volume, sets), share card preview, primary "Share card", ghost "Save".
 - **Components:** Gold badge, PR card, stat trio, story preview, buttons.
-- **Behavior:** Save commits the session, updates PRs, streak, and volume, then returns to Today. Share opens the native share sheet with the rendered card.
+- **Behavior:** Save commits the session and its PRs, then returns to Today. Streak and volume derive from saved history. Share opens the native share sheet with the rendered card.
 - **States:** New PR, no PR, empty workout, partial workout.
 - **Rules:** If multiple PRs exist, show the highest estimated 1RM first and list the rest under "Also new". Never show a PR for an uncompleted set.
 
@@ -634,10 +666,10 @@ All screens use `background`, 16 px horizontal padding, and the `body` type as t
 ### 10.12 Progress
 
 - **Purpose:** Answer "Am I improving?" with honest local metrics.
-- **Layout:** `h1` Progress, strength score card with ring, weekly volume card with bars, PR list, workout history shortcut.
-- **Components:** Progress ring, volume bars, PR rows, history link.
+- **Layout:** `h1` Progress, lifetime totals trio (workouts, total volume, day streak), strength score card with ring, weekly volume card with bars, PR list, workout history shortcut.
+- **Components:** Stat tiles, progress ring, volume bars, PR rows, history link.
 - **Metrics:** Total workouts, total volume, current streak, weekly volume, best estimated 1RM per tracked lift.
-- **Strength score:** Display with a "Beta" tag and a tap-through explanation. Do not show a gym or global ranking in v1.
+- **Strength score:** Display with a "Beta" tag and a tap-through explanation. Do not show a gym or global ranking in v1. The mock's gym ranking line is intentionally omitted because there is no comparative dataset.
 - **States:** No workouts shows an empty state with "Start your first workout". Fewer than three sessions hides the score and shows the raw metrics instead.
 - **Rules:** Every chart has a text summary. No chart is the only way to read a value.
 
@@ -646,7 +678,7 @@ All screens use `background`, 16 px horizontal padding, and the `body` type as t
 - **Purpose:** Let the user review and trust their data.
 - **Layout:** History list grouped by month, each row with date, workout name, duration, volume, PR count. Detail screen shows exercises, sets, and notes.
 - **Components:** Month header, history row, detail set table.
-- **Actions:** Open detail, repeat workout, delete workout with confirmation.
+- **Actions:** Open detail, delete workout with confirmation.
 - **States:** Empty history, no results for a filter, deleted workout confirmation.
 - **Rules:** Deleting a workout recalculates PRs and streaks.
 
@@ -666,34 +698,35 @@ All screens use `background`, 16 px horizontal padding, and the `body` type as t
 ### 10.15 Me
 
 - **Purpose:** Identity, lifetime totals, and settings entry.
-- **Layout:** Profile header with avatar, name, persona tag, three stat tiles, settings list, app version.
+- **Layout:** Profile header with avatar, name, experience tag, three stat tiles, settings list, app version.
 - **Components:** Avatar, name, tag, stat trio, setting rows with icon, label, value, chevron.
-- **Entries:** Units, Sync, Workout reminders, Privacy and social, Account, Help and support, Terms and privacy.
+- **Entries:** Edit profile, Units, Workout reminders, Integrations, Privacy and social, Help and support, Reset local data, App version. Privacy policy, Terms of service, and Open-source licenses open from Settings.
 - **States:** Default profile, edited name, no PRs.
-- **Rules:** Account entries are local. "Log out" is replaced by "Reset local profile" with a confirmation.
+- **Rules:** There is no account, sign-in, or log out in v1. Reset local data requires a confirmation and explains what is removed. Legal and license screens live under Settings, not as separate Me rows.
 
 ### 10.16 Settings
 
-- **Units:** kg or lb. Converts display only. Canonical storage stays kg.
+- **Profile:** Edit name, experience, goals, gender, birth date, height, and body weight on `/me/edit`.
+- **Units:** Weight, distance, and body units. Converts display only. Canonical storage stays kg, km, and cm.
 - **Reminders:** Toggle plus weekday and time picker. Requires notification permission at the moment of enabling.
 - **Integrations:** Apple Health or Health Connect row. Shows connected, not connected, or unavailable. Manual steps fallback is always available.
 - **Privacy and social:** Local-only explanation. Toggle for showing own workouts in the feed.
-- **Account:** Edit name, edit persona, reset local data, delete local data.
+- **Privacy and data:** Explains that data stays on the device and opens the reset local data dialog.
 - **Help and support:** FAQ, contact link, document version.
-- **Terms and privacy:** Local legal text assets.
+- **Legal and licenses:** Opens the bundled privacy policy, terms of service, and open-source licenses pages.
 
 ### 10.17 Plan overview and edit
 
 - **Purpose:** Review and change the weekly schedule without redoing onboarding.
 - **Layout:** Bottom sheet or full screen with seven day rows, current workout per day, and "Edit schedule".
-- **Actions:** Move a workout to another day, swap the split, regenerate the week.
+- **Actions:** Move a whole split day to another weekday, swap two occupied days, regenerate the week.
 - **States:** Rest day, edited week, regeneration confirmation.
-- **Rules:** Editing the plan never deletes completed history.
+- **Rules:** Editing the plan never deletes completed history. Per-exercise editing is not part of v1.
 
 ### 10.18 Permissions
 
 - **Purpose:** Request access at the moment it is useful, not on first launch.
-- **Triggers:** Notifications when enabling reminders. Health when connecting an integration. Photos only if the user saves a share card.
+- **Triggers:** Notifications when enabling reminders. Health when connecting an integration. Share cards use the native share sheet or a download and do not request photo library access.
 - **Components:** Explanatory sheet with a benefit line, primary "Allow", ghost "Not now".
 - **States:** Granted, denied, permanently denied with a link to system settings.
 
@@ -710,7 +743,7 @@ All screens use `background`, 16 px horizontal padding, and the `body` type as t
 
 ### 11.1 Units and formatting
 
-- Store weight in kilograms and distance in meters. Store durations in seconds.
+- Store weight in kilograms and distance in kilometers. Store durations in seconds.
 - Display kg or lb based on the user's setting.
 - Weight: one decimal when needed, no trailing zero. `82.5 kg`, `80 kg`.
 - Body weight: one decimal.
@@ -912,6 +945,7 @@ mova.v1.workouts
 mova.v1.routines
 mova.v1.prs
 mova.v1.social
+mova.v1.steps
 mova.v1.onboarding
 ```
 
@@ -947,12 +981,12 @@ mova.v1.onboarding
 
 ## 17. Known limitations and deferred work
 
-- **No ranking or leaderboard.** The "Top 18% at your gym" line from the mockup is not implemented. It requires real comparative data.
+- **No ranking or leaderboard.** The gym ranking line from the mockup is not implemented. It requires real comparative data.
 - **No networked social graph.** Friends, following, and comments are post-MVP. The feed is local.
 - **No account recovery.** The profile is local. Clearing app data removes it.
 - **No exercise media.** Instructions are text only in v1.
 - **No Apple Watch or Wear OS app.** The phone app is the source of truth.
-- **No AI plan generation.** The plan is generated from deterministic rules by persona, goal, and frequency.
+- **No AI plan generation.** The plan is generated from deterministic rules by goal, experience, and schedule.
 - **No nutrition tracking or GPS routes.** Both are post-MVP.
 - **Light theme is not implemented.** Tokens are structured for it, but only dark is built and tested.
 
