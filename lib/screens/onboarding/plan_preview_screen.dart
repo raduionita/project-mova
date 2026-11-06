@@ -86,7 +86,7 @@ class _PlanPreviewScreenState extends State<PlanPreviewScreen> {
   @override
   void initState() {
     super.initState();
-    _generatePreview();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _generatePreview());
   }
 
   Future<void> _generatePreview() async {

@@ -11,6 +11,7 @@ import '../../models/training_plan.dart';
 import '../../models/workout_session.dart';
 import '../../navigation/routes.dart';
 import '../../providers/plan_provider.dart';
+import '../../providers/progress_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../../providers/steps_provider.dart';
 import '../../providers/workout_provider.dart';
@@ -350,10 +351,18 @@ class _TodayScreenState extends State<TodayScreen> with WidgetsBindingObserver {
     );
   }
 
-  Widget _buildHeader({String? label}) {
+  Widget _buildHeader({String? label, int streak = 0}) {
     return Row(
       children: <Widget>[
         AppTag(label: label ?? _weekdayNames[_now.weekday - 1]),
+        if (streak > 0) ...<Widget>[
+          const SizedBox(width: AppSpacing.sm),
+          AppTag(
+            key: const Key('today-streak'),
+            label: '$streak day streak',
+            variant: AppTagVariant.gold,
+          ),
+        ],
         const Spacer(),
         IconButton(
           key: const Key('today-reminders'),
@@ -562,6 +571,7 @@ class _TodayScreenState extends State<TodayScreen> with WidgetsBindingObserver {
     final now = _now;
     final storageWarning = context.watch<SettingsProvider>().storageWarning;
     final warning = _warningDismissed ? null : storageWarning;
+    final streak = context.watch<ProgressProvider?>()?.streak ?? 0;
 
     if (plan == null) {
       return Scaffold(
@@ -614,7 +624,7 @@ class _TodayScreenState extends State<TodayScreen> with WidgetsBindingObserver {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              _buildHeader(label: _weekLabel(plan, now)),
+              _buildHeader(label: _weekLabel(plan, now), streak: streak),
               if (warning != null) ...<Widget>[
                 const SizedBox(height: AppSpacing.xl),
                 _buildWarningBanner(warning),

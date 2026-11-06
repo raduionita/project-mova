@@ -542,8 +542,6 @@ class _RoutineBuilderScreenState extends State<RoutineBuilderScreen> {
           onPressed: _saving ? null : _save,
           isLoading: _saving,
         ),
-        const SizedBox(height: AppSpacing.sm),
-        const AppButton(label: 'Start now', variant: AppButtonVariant.ghost),
       ],
     );
   }

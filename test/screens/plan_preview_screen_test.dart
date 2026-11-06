@@ -11,6 +11,7 @@ import 'package:mova/models/plan_exercise.dart';
 import 'package:mova/models/training_plan.dart';
 import 'package:mova/models/unit_preferences.dart';
 import 'package:mova/navigation/routes.dart';
+import 'package:mova/providers/exercise_provider.dart';
 import 'package:mova/providers/history_provider.dart';
 import 'package:mova/providers/onboarding_provider.dart';
 import 'package:mova/providers/plan_provider.dart';
@@ -20,6 +21,7 @@ import 'package:mova/providers/settings_provider.dart';
 import 'package:mova/screens/onboarding/plan_preview_screen.dart';
 import 'package:mova/services/clock.dart';
 import 'package:mova/services/id_service.dart';
+import 'package:mova/services/seed_data_service.dart';
 import 'package:mova/services/storage_service.dart';
 import 'package:mova/theme/app_theme.dart';
 import 'package:mova/widgets/app_button.dart';
@@ -160,10 +162,27 @@ Future<_Setup> _setup() async {
   );
 }
 
-Widget _wrap(_Setup setup, Widget child) {
+/// Serves a preloaded library so the real generation path never loads assets
+/// inside a `testWidgets` body.
+class _StaticSeedDataService extends SeedDataService {
+  _StaticSeedDataService(this._exercises);
+
+  final List<Exercise> _exercises;
+
+  @override
+  Future<List<Exercise>> loadExercises() async => _exercises;
+}
+
+Widget _wrap(
+  _Setup setup,
+  Widget child, {
+  ExerciseProvider? exercises,
+}) {
   return MultiProvider(
     providers: [
       ChangeNotifierProvider<OnboardingProvider>.value(value: setup.onboarding),
+      if (exercises != null)
+        ChangeNotifierProvider<ExerciseProvider>.value(value: exercises),
       Provider<AppCoordinator>.value(value: setup.coordinator),
     ],
     child: MaterialApp(theme: AppTheme.dark, home: child),
@@ -171,6 +190,34 @@ Widget _wrap(_Setup setup, Widget child) {
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  late List<Exercise> library;
+
+  setUpAll(() async {
+    library = await SeedDataService().loadExercises();
+  });
+
+  testWidgets('generates a plan from the library without a build error', (
+    tester,
+  ) async {
+    final setup = await _setup();
+    final exercises = ExerciseProvider(
+      StorageService.inMemory(),
+      _StaticSeedDataService(library),
+    );
+
+    await tester.pumpWidget(
+      _wrap(setup, const PlanPreviewScreen(), exercises: exercises),
+    );
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('Could not build your plan.'), findsNothing);
+    expect(find.text('Start using Mova'), findsOneWidget);
+    expect(find.text('Push'), findsOneWidget);
+  });
+
   testWidgets('renders the week, day details, and both actions', (
     tester,
   ) async {

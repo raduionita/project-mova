@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mova/common/constants.dart';
 import 'package:mova/models/experience_level.dart';
 import 'package:mova/models/goal.dart';
 import 'package:mova/models/plan_day.dart';
 import 'package:mova/models/plan_exercise.dart';
+import 'package:mova/models/session_exercise.dart';
 import 'package:mova/models/training_plan.dart';
 import 'package:mova/models/workout_session.dart';
 import 'package:mova/navigation/routes.dart';
 import 'package:mova/providers/plan_provider.dart';
+import 'package:mova/providers/progress_provider.dart';
 import 'package:mova/providers/settings_provider.dart';
 import 'package:mova/providers/steps_provider.dart';
 import 'package:mova/providers/workout_provider.dart';
@@ -101,6 +104,7 @@ Widget _wrap(
   Clock? clock,
   WorkoutProvider? workout,
   SettingsProvider? settings,
+  ProgressProvider? progress,
 }) {
   final activeClock = clock ?? FakeClock(_now);
   final storage = StorageService.inMemory();
@@ -110,6 +114,8 @@ Widget _wrap(
     providers: [
       ChangeNotifierProvider<PlanProvider>.value(value: provider),
       ChangeNotifierProvider<WorkoutProvider>.value(value: workoutProvider),
+      if (progress != null)
+        ChangeNotifierProvider<ProgressProvider>.value(value: progress),
       if (settings != null)
         ChangeNotifierProvider<SettingsProvider>.value(value: settings)
       else
@@ -207,6 +213,41 @@ void main() {
     await tester.pump();
 
     expect(find.byKey(const Key('today-storage-warning')), findsNothing);
+  });
+
+  testWidgets('shows the current streak in the header', (tester) async {
+    final provider = _provider();
+    await provider.replacePlan(
+      _plan(
+        days: <PlanDay>[
+          _day(
+            weekday: 4,
+            name: 'Push Day',
+            muscles: const <String>['Chest'],
+            minutes: 55,
+          ),
+        ],
+      ),
+    );
+    final storage = StorageService.inMemory();
+    await storage.writeList(kWorkoutsKey, <Map<String, dynamic>>[
+      WorkoutSession(
+        id: 'recent',
+        name: 'Push Day',
+        source: SessionSource.plan,
+        startedAt: DateTime(2026, 11, 5, 17, 20),
+        completedAt: DateTime(2026, 11, 5, 18),
+        status: SessionStatus.completed,
+        exercises: const <SessionExercise>[],
+      ).toJson(),
+    ]);
+    final progress = ProgressProvider(storage, clock: FakeClock(_now));
+    await progress.load();
+
+    await tester.pumpWidget(_wrap(provider, progress: progress));
+
+    expect(find.byKey(const Key('today-streak')), findsOneWidget);
+    expect(find.text('1 day streak'), findsOneWidget);
   });
 
   testWidgets('week label counts weeks since the plan was generated', (

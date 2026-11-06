@@ -96,3 +96,4 @@
 2026.11.06 QA-06 Build 1.0.0+1 debug and release APK and web release with checksums
 2026.11.06 QA-07 Smoke test notifications, health guidance, share, and wakelock on Android emulator
 2026.11.06 QA-08 Verify streak, Today, and volume rollover under two DST time zones
+2026.11.06 TRN-22 Show the live streak on Today after a workout is saved

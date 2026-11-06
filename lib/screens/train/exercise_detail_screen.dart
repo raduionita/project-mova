@@ -188,11 +188,6 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
             label: 'Add to workout',
             onPressed: canAdd ? () => _openPicker(exercise) : null,
           ),
-          const SizedBox(height: AppSpacing.sm),
-          const AppButton(
-            label: 'Add to routine',
-            variant: AppButtonVariant.ghost,
-          ),
         ],
       ),
     );

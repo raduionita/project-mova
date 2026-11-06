@@ -28,8 +28,6 @@ The product bet is simple: the workout logger is the feature people touch every 
 |---|---|
 | ![Onboarding, Today, Live logger](resources/mock-01.jpg) | ![Summary, Progress, Social](resources/mock-02.jpg) |
 
-![Mova screen tree](resources/screen-tree.jpg)
-
 The canonical interactive storyboard is [`MOCK.html`](MOCK.html). Open it in a browser to view all 19 screens in one horizontal flow: Splash, the 11-screen onboarding, and the five-tab core loop.
 
 ---
@@ -59,7 +57,6 @@ The canonical interactive storyboard is [`MOCK.html`](MOCK.html). Open it in a b
 ### Post-MVP
 
 - Google and Apple Sign-In, accounts, and cloud sync
-- Integration tests and device automation
 - Networked social graph, friends, following
 - Comments and direct messages
 - Gym rankings and leaderboards
