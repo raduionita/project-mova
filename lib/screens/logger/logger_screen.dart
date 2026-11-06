@@ -1,0 +1,752 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../../app_coordinator.dart';
+import '../../common/formatters.dart';
+import '../../models/session_exercise.dart';
+import '../../models/unit_preferences.dart';
+import '../../models/workout_session.dart';
+import '../../models/workout_set.dart';
+import '../../navigation/routes.dart';
+import '../../providers/exercise_provider.dart';
+import '../../providers/history_provider.dart';
+import '../../providers/settings_provider.dart';
+import '../../providers/workout_provider.dart';
+import '../../services/clock.dart';
+import '../../services/haptics_service.dart';
+import '../../services/keep_awake_service.dart';
+import '../../services/unit_conversion_service.dart';
+import '../../services/workout_calculator.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_spacing.dart';
+import '../../theme/app_typography.dart';
+import '../../widgets/app_button.dart';
+import '../../widgets/app_card.dart';
+import '../../widgets/app_chip.dart';
+import '../../widgets/app_empty_state.dart';
+import '../../widgets/app_tag.dart';
+import '../../widgets/exercise_picker_sheet.dart';
+import '../../widgets/numeric_input_sheet.dart';
+import '../../widgets/rest_timer_banner.dart';
+import '../../widgets/set_row.dart';
+import '../../widgets/workout_interruption_sheet.dart';
+import '../summary/summary_screen.dart';
+
+/// Full-screen live workout logger with rest, pause, and finish.
+class LoggerScreen extends StatefulWidget {
+  const LoggerScreen({super.key, this.clock, this.keepAwake, this.haptics});
+
+  final Clock? clock;
+  final KeepAwakeService? keepAwake;
+  final HapticsService? haptics;
+
+  @override
+  State<LoggerScreen> createState() => _LoggerScreenState();
+}
+
+class _LoggerScreenState extends State<LoggerScreen>
+    with WidgetsBindingObserver {
+  static const UnitConversionService _units = UnitConversionService();
+
+  late final Clock _clock = widget.clock ?? const SystemClock();
+  late final KeepAwakeService _keepAwake =
+      widget.keepAwake ?? const KeepAwakeService();
+  late final HapticsService _haptics = widget.haptics ?? const HapticsService();
+  int _selectedIndex = 0;
+  DateTime? _restEndsAt;
+  int _restTotalSeconds = 0;
+  bool _finishing = false;
+  bool _keepAwakeOn = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _load());
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    unawaited(_releaseKeepAwake());
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.resumed:
+        if (mounted) {
+          setState(() {});
+        }
+        unawaited(_syncKeepAwake());
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.paused:
+      case AppLifecycleState.hidden:
+      case AppLifecycleState.detached:
+        unawaited(_releaseKeepAwake());
+    }
+  }
+
+  Future<void> _syncKeepAwake() async {
+    if (!mounted) {
+      return;
+    }
+    final shouldStayAwake =
+        context.read<WorkoutProvider>().activeSession?.status ==
+        SessionStatus.active;
+    if (shouldStayAwake == _keepAwakeOn) {
+      return;
+    }
+    _keepAwakeOn = shouldStayAwake;
+    if (shouldStayAwake) {
+      await _keepAwake.enable();
+    } else {
+      await _keepAwake.disable();
+    }
+  }
+
+  Future<void> _releaseKeepAwake() async {
+    if (!_keepAwakeOn) {
+      return;
+    }
+    _keepAwakeOn = false;
+    await _keepAwake.disable();
+  }
+
+  Future<void> _load() async {
+    if (!mounted) {
+      return;
+    }
+    final history = context.read<HistoryProvider>();
+    final exercises = context.read<ExerciseProvider>();
+    await Future.wait<void>(<Future<void>>[
+      if (history.workouts.isEmpty && !history.isLoading) history.load(),
+      if (exercises.exercises.isEmpty && !exercises.isLoading) exercises.load(),
+    ]);
+    if (!mounted) {
+      return;
+    }
+    final session = context.read<WorkoutProvider>().activeSession;
+    if (session != null && session.exercises.isNotEmpty) {
+      final firstOpen = session.exercises.indexWhere(
+        (exercise) => exercise.sets.any((set) => !set.completed),
+      );
+      setState(() {
+        _selectedIndex = firstOpen == -1 ? 0 : firstOpen;
+      });
+    }
+    await _syncKeepAwake();
+  }
+
+  int _elapsedSeconds(WorkoutSession session) {
+    return WorkoutCalculator.sessionDurationSeconds(session, _clock.now());
+  }
+
+  WorkoutSet? _previousSet(
+    HistoryProvider history,
+    String exerciseId,
+    int index,
+  ) {
+    for (final workout in history.workouts) {
+      for (final exercise in workout.exercises) {
+        if (exercise.exerciseId != exerciseId) {
+          continue;
+        }
+        for (final set in exercise.sets) {
+          if (set.index == index && set.completed) {
+            return set;
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  Future<void> _editWeight(SessionExercise exercise, WorkoutSet set) async {
+    final unit = context
+        .read<SettingsProvider>()
+        .settings
+        .unitPreferences
+        .weightUnit;
+    final displayWeight = unit == WeightUnit.kg
+        ? set.weightKg
+        : _units.kgToLb(set.weightKg);
+    final value = await showNumericInputSheet(
+      context,
+      title: 'Edit weight',
+      label: 'Weight (${_units.weightLabel(unit)})',
+      initialValue: displayWeight,
+      allowDecimal: true,
+      max: 500,
+      helperText: 'Logged in ${_units.weightLabel(unit)}.',
+    );
+    if (value == null || !mounted) {
+      return;
+    }
+    final weightKg = _units.roundInputKg(
+      unit == WeightUnit.kg ? value : _units.lbToKg(value),
+    );
+    await _updateSet(exercise, set, weightKg: weightKg, reps: set.reps);
+  }
+
+  Future<void> _editReps(SessionExercise exercise, WorkoutSet set) async {
+    final value = await showNumericInputSheet(
+      context,
+      title: 'Edit reps',
+      label: 'Reps',
+      initialValue: set.reps.toDouble(),
+      min: 1,
+      max: 100,
+    );
+    if (value == null || !mounted) {
+      return;
+    }
+    await _updateSet(
+      exercise,
+      set,
+      weightKg: set.weightKg,
+      reps: value.round(),
+    );
+  }
+
+  Future<void> _updateSet(
+    SessionExercise exercise,
+    WorkoutSet set, {
+    required double weightKg,
+    required int reps,
+  }) async {
+    final workout = context.read<WorkoutProvider>();
+    final savedSet = await workout.updateSet(
+      exerciseId: exercise.exerciseId,
+      setId: set.id,
+      weightKg: weightKg,
+      reps: reps,
+      isWarmup: set.isWarmup,
+    );
+    if (!savedSet && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(workout.error ?? 'Could not update the set.')),
+      );
+    }
+  }
+
+  Future<void> _toggleComplete(SessionExercise exercise, WorkoutSet set) async {
+    final workout = context.read<WorkoutProvider>();
+    final saved = set.completed
+        ? await workout.uncompleteSet(
+            exerciseId: exercise.exerciseId,
+            setId: set.id,
+          )
+        : await workout.completeSet(
+            exerciseId: exercise.exerciseId,
+            setId: set.id,
+          );
+    if (!saved) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(workout.error ?? 'Could not update the set.')),
+        );
+      }
+      return;
+    }
+    if (!mounted) {
+      return;
+    }
+    if (set.completed) {
+      setState(() => _restEndsAt = null);
+    } else {
+      unawaited(_haptics.setCompleted(reduceMotion: _reduceMotion));
+      _startRest(exercise);
+    }
+  }
+
+  /// Reads the platform's reduced-motion preference for supplementary feedback.
+  bool get _reduceMotion =>
+      MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+
+  void _startRest(SessionExercise exercise) {
+    final meta = context.read<ExerciseProvider>().byId(exercise.exerciseId);
+    final seconds = meta?.isCompound == true ? 120 : 60;
+    setState(() {
+      _restTotalSeconds = seconds;
+      _restEndsAt = _clock.now().add(Duration(seconds: seconds));
+    });
+  }
+
+  void _skipRest() {
+    if (_restEndsAt == null) {
+      return;
+    }
+    setState(() => _restEndsAt = null);
+  }
+
+  void _finishRest() {
+    if (_restEndsAt == null) {
+      return;
+    }
+    unawaited(_haptics.restFinished(reduceMotion: _reduceMotion));
+    setState(() => _restEndsAt = null);
+  }
+
+  Future<void> _toggleWarmup(SessionExercise exercise, WorkoutSet set) async {
+    final workout = context.read<WorkoutProvider>();
+    final saved = await workout.updateSet(
+      exerciseId: exercise.exerciseId,
+      setId: set.id,
+      weightKg: set.weightKg,
+      reps: set.reps,
+      isWarmup: !set.isWarmup,
+    );
+    if (!saved && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(workout.error ?? 'Could not update the set.')),
+      );
+    }
+  }
+
+  Future<void> _removeSet(SessionExercise exercise, WorkoutSet set) async {
+    final workout = context.read<WorkoutProvider>();
+    final removed = await workout.removeSet(
+      exerciseId: exercise.exerciseId,
+      setId: set.id,
+    );
+    if (!removed && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(workout.error ?? 'Could not remove the set.')),
+      );
+    }
+  }
+
+  Future<void> _addSet(SessionExercise exercise) async {
+    final workout = context.read<WorkoutProvider>();
+    final added = await workout.addSet(exercise.exerciseId);
+    if (!added && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(workout.error ?? 'Could not add a set.')),
+      );
+    }
+  }
+
+  Future<void> _addExercises() async {
+    final result = await showExercisePicker(
+      context,
+      mode: ExercisePickerMode.session,
+      multiSelect: true,
+    );
+    if (result == null || result.exercises.isEmpty || !mounted) {
+      return;
+    }
+    final workout = context.read<WorkoutProvider>();
+    for (final exercise in result.exercises) {
+      final added = await workout.addExercise(exercise.id);
+      if (!added && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(workout.error ?? 'Could not add exercise.')),
+        );
+        return;
+      }
+    }
+    if (!mounted) {
+      return;
+    }
+    final session = workout.activeSession;
+    if (session != null && session.exercises.isNotEmpty) {
+      setState(() => _selectedIndex = session.exercises.length - 1);
+    }
+  }
+
+  int _completedSets(WorkoutSession session) {
+    var count = 0;
+    for (final exercise in session.exercises) {
+      for (final set in exercise.sets) {
+        if (set.completed) {
+          count++;
+        }
+      }
+    }
+    return count;
+  }
+
+  Future<void> _finishWorkout() async {
+    if (_finishing) {
+      return;
+    }
+    setState(() => _finishing = true);
+    final result = await context.read<AppCoordinator>().finishWorkout();
+    if (!mounted) {
+      return;
+    }
+    setState(() => _finishing = false);
+    if (result == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not finish the workout.')),
+      );
+      return;
+    }
+    await _releaseKeepAwake();
+    if (!mounted) {
+      return;
+    }
+    Navigator.of(context).pushReplacementNamed(
+      Routes.summary,
+      arguments: SummaryArgs(session: result.session, records: result.records),
+    );
+  }
+
+  Future<void> _handleInterruption() async {
+    final workout = context.read<WorkoutProvider>();
+    final session = workout.activeSession;
+    if (session == null) {
+      Navigator.of(context).maybePop();
+      return;
+    }
+    final action = await showWorkoutInterruptionSheet(
+      context,
+      completedSets: _completedSets(session),
+    );
+    if (action == null || !mounted) {
+      return;
+    }
+    if (action == WorkoutInterruptionAction.pause) {
+      final paused = await workout.pause();
+      if (!paused) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(workout.error ?? 'Could not pause the workout.'),
+            ),
+          );
+        }
+        return;
+      }
+    } else {
+      final discarded = await workout.discard();
+      if (!discarded) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(workout.error ?? 'Could not discard the workout.'),
+            ),
+          );
+        }
+        return;
+      }
+    }
+    if (!mounted) {
+      return;
+    }
+    setState(() => _restEndsAt = null);
+    Navigator.of(context).pushReplacementNamed(Routes.today);
+  }
+
+  Widget _buildHeader(WorkoutSession session) {
+    return Row(
+      children: <Widget>[
+        IconButton(
+          tooltip: 'Close workout',
+          onPressed: _handleInterruption,
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints.tightFor(
+            width: AppSpacing.x5l,
+            height: AppSpacing.x5l,
+          ),
+          icon: const Icon(
+            Icons.close,
+            size: AppSpacing.x3l,
+            color: AppColors.muted,
+          ),
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(
+          child: Text(
+            session.name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppTypography.title.copyWith(color: AppColors.text),
+          ),
+        ),
+        const SizedBox(width: AppSpacing.md),
+        AppTag(label: formatDuration(_elapsedSeconds(session))),
+      ],
+    );
+  }
+
+  Widget _buildExerciseChips(WorkoutSession session, ExerciseProvider library) {
+    if (session.exercises.length < 2) {
+      return const SizedBox.shrink();
+    }
+    return SizedBox(
+      height: AppSpacing.x5l,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: session.exercises.length,
+        separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.sm),
+        itemBuilder: (context, index) {
+          final exercise = session.exercises[index];
+          final name =
+              library.byId(exercise.exerciseId)?.name ?? exercise.exerciseId;
+          return AppChip(
+            label: name,
+            selected: index == _selectedIndex,
+            onTap: () => setState(() => _selectedIndex = index),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildSetHeader(String unitLabel) {
+    final style = AppTypography.micro.copyWith(color: AppColors.tabInactive);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+      child: Row(
+        children: <Widget>[
+          SizedBox(
+            width: AppSpacing.x5l - AppSpacing.xs,
+            child: Text('SET', style: style),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(flex: 3, child: Text('PREV', style: style)),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            flex: 3,
+            child: Text('${unitLabel.toUpperCase()} × REPS', style: style),
+          ),
+          const SizedBox(width: AppSpacing.xs),
+          const SizedBox(
+            width: AppSpacing.x5l - AppSpacing.xs + AppSpacing.x4l,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildExercise(
+    SessionExercise exercise,
+    int selectedIndex,
+    WorkoutSession session,
+    ExerciseProvider library,
+    HistoryProvider history,
+    String unitLabel,
+    WeightUnit weightUnit,
+  ) {
+    final name = library.byId(exercise.exerciseId)?.name ?? exercise.exerciseId;
+    final ordered = <WorkoutSet>[...exercise.sets]
+      ..sort((a, b) => a.index.compareTo(b.index));
+    final activeIndex = ordered.indexWhere((set) => !set.completed);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        Text(name, style: AppTypography.h1.copyWith(color: AppColors.text)),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          '${selectedIndex + 1} of ${session.exercises.length} · '
+          '${ordered.length} sets',
+          style: AppTypography.caption.copyWith(color: AppColors.muted),
+        ),
+        const SizedBox(height: AppSpacing.x3l),
+        _buildSetHeader(unitLabel),
+        const SizedBox(height: AppSpacing.sm),
+        for (var index = 0; index < ordered.length; index++)
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+            child: SetRow(
+              set: ordered[index],
+              previous: _previousSet(
+                history,
+                exercise.exerciseId,
+                ordered[index].index,
+              ),
+              unitLabel: unitLabel,
+              weightUnit: weightUnit,
+              active: index == activeIndex,
+              onEditWeight: () => _editWeight(exercise, ordered[index]),
+              onEditReps: () => _editReps(exercise, ordered[index]),
+              onToggleComplete: () => _toggleComplete(exercise, ordered[index]),
+              onToggleWarmup: () => _toggleWarmup(exercise, ordered[index]),
+              onRemove: () => _removeSet(exercise, ordered[index]),
+            ),
+          ),
+        const SizedBox(height: AppSpacing.xs),
+        AppButton(
+          label: 'Add set',
+          variant: AppButtonVariant.ghost,
+          icon: Icons.add,
+          onPressed: () => _addSet(exercise),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildUpNext(WorkoutSession session, ExerciseProvider library) {
+    if (_selectedIndex >= session.exercises.length - 1) {
+      return const SizedBox.shrink();
+    }
+    final next = session.exercises[_selectedIndex + 1];
+    final name = library.byId(next.exerciseId)?.name ?? next.exerciseId;
+    return AppCard(
+      child: Text.rich(
+        TextSpan(
+          children: <InlineSpan>[
+            TextSpan(
+              text: 'Up next: ',
+              style: AppTypography.body.copyWith(color: AppColors.muted),
+            ),
+            TextSpan(
+              text: name,
+              style: AppTypography.bodyStrong.copyWith(color: AppColors.text),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActiveSession(
+    WorkoutSession session,
+    ExerciseProvider library,
+    HistoryProvider history,
+    SettingsProvider settings,
+  ) {
+    final unit = settings.settings.unitPreferences.weightUnit;
+    final unitLabel = _units.weightLabel(unit);
+    if (session.exercises.isEmpty) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          _buildHeader(session),
+          const Expanded(
+            child: AppEmptyState(
+              icon: Icons.fitness_center_outlined,
+              title: 'No exercises yet',
+              message: 'Add an exercise to start logging sets.',
+            ),
+          ),
+          AppButton(
+            label: 'Add exercise',
+            icon: Icons.add,
+            onPressed: _addExercises,
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          AppButton(
+            label: 'Finish workout',
+            variant: AppButtonVariant.ghost,
+            isLoading: _finishing,
+            onPressed: _finishing ? null : _finishWorkout,
+          ),
+        ],
+      );
+    }
+
+    final selectedIndex = _selectedIndex.clamp(0, session.exercises.length - 1);
+    final exercise = session.exercises[selectedIndex];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        _buildHeader(session),
+        if (_restEndsAt != null) ...<Widget>[
+          const SizedBox(height: AppSpacing.lg),
+          RestTimerBanner(
+            endsAt: _restEndsAt!,
+            totalSeconds: _restTotalSeconds,
+            onSkip: _skipRest,
+            onFinished: _finishRest,
+            clock: _clock,
+          ),
+        ],
+        const SizedBox(height: AppSpacing.lg),
+        _buildExerciseChips(session, library),
+        const SizedBox(height: AppSpacing.lg),
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.only(bottom: AppSpacing.x4l),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                _buildExercise(
+                  exercise,
+                  selectedIndex,
+                  session,
+                  library,
+                  history,
+                  unitLabel,
+                  unit,
+                ),
+                const SizedBox(height: AppSpacing.x2l),
+                AppButton(
+                  label: 'Add exercise',
+                  variant: AppButtonVariant.ghost,
+                  icon: Icons.add,
+                  onPressed: _addExercises,
+                ),
+                const SizedBox(height: AppSpacing.x3l),
+                _buildUpNext(session, library),
+                const SizedBox(height: AppSpacing.x3l),
+                AppButton(
+                  label: 'Finish workout',
+                  variant: AppButtonVariant.ghost,
+                  isLoading: _finishing,
+                  onPressed: _finishing ? null : _finishWorkout,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final workout = context.watch<WorkoutProvider>();
+    final library = context.watch<ExerciseProvider>();
+    final history = context.watch<HistoryProvider>();
+    final settings = context.watch<SettingsProvider>();
+    final session = workout.activeSession;
+    return PopScope(
+      canPop: session == null,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          _handleInterruption();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.x2l,
+              vertical: AppSpacing.xl,
+            ),
+            child: session == null
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      const Expanded(
+                        child: AppEmptyState(
+                          icon: Icons.play_circle_outline,
+                          title: 'No active workout',
+                          message:
+                              'Start a workout from Today or a saved routine.',
+                        ),
+                      ),
+                      AppButton(
+                        label: 'Back to Today',
+                        variant: AppButtonVariant.ghost,
+                        onPressed: () {
+                          Navigator.of(context)
+                              .pushReplacementNamed(Routes.today);
+                        },
+                      ),
+                    ],
+                  )
+                : _buildActiveSession(session, library, history, settings),
+          ),
+        ),
+      ),
+    );
+  }
+}
