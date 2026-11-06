@@ -31,6 +31,8 @@ class StorageService {
     } catch (error) {
       final storage = StorageService.inMemory(migrations: migrations);
       storage.initializationError = error.toString();
+      storage.warning =
+          'Local storage could not be opened. Changes may not persist.';
       return storage;
     }
   }
@@ -41,6 +43,9 @@ class StorageService {
 
   bool isPersistent;
   String? initializationError;
+
+  /// User-facing warning shown when local data could not be read or written.
+  String? warning;
 
   static const int _supportedSchemaVersion = 1;
 
@@ -188,11 +193,13 @@ class StorageService {
       _memory[key] = value;
       return true;
     } catch (_) {
+      warning = 'Could not save local data.';
       return false;
     }
   }
 
   void _dropCorrupt(String key) {
+    warning = 'Some saved data could not be read and was reset.';
     unawaited(remove(key));
   }
 

@@ -17,6 +17,7 @@ import 'providers/progress_provider.dart';
 import 'providers/routine_provider.dart';
 import 'providers/settings_provider.dart';
 import 'providers/social_provider.dart';
+import 'providers/steps_provider.dart';
 import 'providers/workout_provider.dart';
 import 'screens/onboarding/birth_date_screen.dart';
 import 'screens/onboarding/experience_screen.dart';
@@ -29,8 +30,17 @@ import 'screens/onboarding/schedule_screen.dart';
 import 'screens/onboarding/unit_selection_screen.dart';
 import 'screens/onboarding/weight_screen.dart';
 import 'screens/logger/logger_screen.dart';
+import 'screens/me/legal_document_screen.dart';
+import 'screens/me/licenses_screen.dart';
+import 'screens/me/me_screen.dart';
+import 'screens/me/profile_edit_screen.dart';
+import 'screens/me/settings_screen.dart';
 import 'screens/onboarding/welcome_screen.dart';
+import 'screens/progress/history_detail_screen.dart';
+import 'screens/progress/history_screen.dart';
+import 'screens/progress/progress_screen.dart';
 import 'screens/shared/splash_screen.dart';
+import 'screens/social/social_feed_screen.dart';
 import 'screens/summary/summary_screen.dart';
 import 'screens/today/today_screen.dart';
 import 'screens/train/exercise_detail_screen.dart';
@@ -101,7 +111,10 @@ class MovaApp extends StatelessWidget {
           create: (_) => HistoryProvider(storage),
         ),
         ChangeNotifierProvider<ProgressProvider>(
-          create: (_) => ProgressProvider(storage),
+          create: (_) => ProgressProvider(storage, clock: resolvedClock),
+        ),
+        ChangeNotifierProvider<StepsProvider>(
+          create: (_) => StepsProvider(storage, clock: resolvedClock),
         ),
         ChangeNotifierProvider<SocialProvider>(
           create: (_) =>
@@ -109,6 +122,7 @@ class MovaApp extends StatelessWidget {
         ),
         Provider<AppCoordinator>(
           create: (context) => AppCoordinator(
+            storage: storage,
             profileProvider: context.read<ProfileProvider>(),
             settingsProvider: context.read<SettingsProvider>(),
             planProvider: context.read<PlanProvider>(),
@@ -116,6 +130,10 @@ class MovaApp extends StatelessWidget {
             historyProvider: context.read<HistoryProvider>(),
             progressProvider: context.read<ProgressProvider>(),
             workoutProvider: context.read<WorkoutProvider>(),
+            socialProvider: context.read<SocialProvider>(),
+            exerciseProvider: context.read<ExerciseProvider>(),
+            routineProvider: context.read<RoutineProvider>(),
+            stepsProvider: context.read<StepsProvider>(),
             clock: resolvedClock,
             idService: resolvedIds,
           ),
@@ -154,8 +172,18 @@ class _StartupGateState extends State<_StartupGate> {
       context.read<PlanProvider>().load(),
       context.read<WorkoutProvider>().loadActive(),
       context.read<HistoryProvider>().load(),
+      context.read<ProgressProvider>().load(),
+      context.read<StepsProvider>().load(),
       context.read<SettingsProvider>().load(),
     ]);
+    if (!mounted) {
+      return;
+    }
+    final social = context.read<SocialProvider>();
+    social.setSamplesDismissed(
+      context.read<SettingsProvider>().settings.sampleFeedDismissed,
+    );
+    await social.load();
     if (!mounted) {
       return;
     }
@@ -227,6 +255,14 @@ Widget _screenForRoute(String? route, [Object? arguments]) {
   if (routineId != null) {
     return RoutineDetailScreen(routineId: routineId);
   }
+  final historyId = Routes.progressHistoryIdFromRoute(route);
+  if (historyId != null) {
+    return HistoryDetailScreen(sessionId: historyId);
+  }
+  final legalDoc = Routes.legalDocFromRoute(route);
+  if (legalDoc != null) {
+    return LegalDocumentScreen(documentId: legalDoc);
+  }
   switch (route) {
     case Routes.welcome:
       return const WelcomeScreen();
@@ -258,6 +294,20 @@ Widget _screenForRoute(String? route, [Object? arguments]) {
       return const RoutineListScreen();
     case Routes.routineNew:
       return const RoutineBuilderScreen();
+    case Routes.progress:
+      return const ProgressScreen();
+    case Routes.progressHistory:
+      return const HistoryScreen();
+    case Routes.social:
+      return const SocialFeedScreen();
+    case Routes.me:
+      return const MeScreen();
+    case Routes.meEdit:
+      return const ProfileEditScreen();
+    case Routes.meSettings:
+      return const SettingsScreen();
+    case Routes.meLicenses:
+      return const LicensesScreen();
     case Routes.logger:
       return const LoggerScreen();
     case Routes.summary:

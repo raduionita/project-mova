@@ -83,6 +83,16 @@ void main() {
     );
   });
 
+  test('duration clamps to zero when the clock moves backward', () {
+    expect(
+      WorkoutCalculator.durationSeconds(
+        startedAt: DateTime(2026, 11, 6, 12, 30),
+        now: DateTime(2026, 11, 6, 12),
+      ),
+      0,
+    );
+  });
+
   test('session duration uses completedAt when present', () {
     final session = WorkoutSession(
       id: 'session-1',

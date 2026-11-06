@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
+import '../theme/app_spacing.dart';
 import '../widgets/bottom_nav_bar.dart';
 import 'app_navigation.dart';
 
@@ -29,7 +30,14 @@ class AppShell extends StatelessWidget {
     final selected = _selectedTab;
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: child,
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxWidth: AppSpacing.contentMaxWidth,
+          ),
+          child: child,
+        ),
+      ),
       bottomNavigationBar:
           selected == null ||
               !AppNavigation.showsBottomBar(currentRoute, phase: phase)

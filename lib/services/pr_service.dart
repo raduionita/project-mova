@@ -40,6 +40,54 @@ class PrService {
         .toList(growable: false);
   }
 
+  /// Rebuilds the best record per exercise from a full history in
+  /// chronological order. Used after a deletion so removed PRs cannot linger.
+  Map<String, PersonalRecord> recompute(List<WorkoutSession> history) {
+    final sessions =
+        history
+            .where((session) => session.status == SessionStatus.completed)
+            .toList(growable: false)
+          ..sort((a, b) {
+            final aDate = a.completedAt ?? a.startedAt;
+            final bDate = b.completedAt ?? b.startedAt;
+            return aDate.compareTo(bDate);
+          });
+
+    final best = <String, PersonalRecord>{};
+    for (final session in sessions) {
+      for (final exercise in session.exercises) {
+        for (final set in exercise.sets) {
+          if (!set.completed ||
+              set.isWarmup ||
+              set.weightKg <= 0 ||
+              set.reps < 1 ||
+              set.reps > 12) {
+            continue;
+          }
+          final estimated = WorkoutCalculator.estimatedOneRepMax(
+            set.weightKg,
+            set.reps,
+          );
+          final previous = best[exercise.exerciseId];
+          if (previous != null && estimated <= previous.bestE1rmKg) {
+            continue;
+          }
+          best[exercise.exerciseId] = PersonalRecord(
+            exerciseId: exercise.exerciseId,
+            bestE1rmKg: estimated,
+            weightKg: set.weightKg,
+            reps: set.reps,
+            achievedAt:
+                set.completedAt ?? session.completedAt ?? session.startedAt,
+            sessionId: session.id,
+            previousBestKg: previous?.bestE1rmKg ?? 0,
+          );
+        }
+      }
+    }
+    return Map<String, PersonalRecord>.unmodifiable(best);
+  }
+
   PersonalRecord? _recordFor({
     required SessionExercise exercise,
     required WorkoutSet set,

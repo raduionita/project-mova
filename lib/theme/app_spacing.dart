@@ -14,6 +14,9 @@ class AppSpacing {
   static const double x5l = 32;
   static const double x6l = 40;
 
+  /// Keeps tab content readable on tablets and wide web windows.
+  static const double contentMaxWidth = 720;
+
   static const double tagVertical = 3;
   static const double dayGap = 5;
   static const double stepperVertical = 11;

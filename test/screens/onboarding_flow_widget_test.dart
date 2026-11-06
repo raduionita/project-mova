@@ -19,6 +19,7 @@ import 'package:mova/providers/plan_provider.dart';
 import 'package:mova/providers/profile_provider.dart';
 import 'package:mova/providers/progress_provider.dart';
 import 'package:mova/providers/settings_provider.dart';
+import 'package:mova/providers/steps_provider.dart';
 import 'package:mova/providers/workout_provider.dart';
 import 'package:mova/screens/onboarding/birth_date_screen.dart';
 import 'package:mova/screens/onboarding/experience_screen.dart';
@@ -91,7 +92,8 @@ class _FlowHarness {
       ),
       history = HistoryProvider(storage),
       progress = ProgressProvider(storage),
-      workout = WorkoutProvider(storage, clock: FakeClock(_fixedNow));
+      workout = WorkoutProvider(storage, clock: FakeClock(_fixedNow)),
+      steps = StepsProvider(storage, clock: FakeClock(_fixedNow));
 
   final StorageService storage;
   final OnboardingProvider onboarding;
@@ -101,8 +103,10 @@ class _FlowHarness {
   final HistoryProvider history;
   final ProgressProvider progress;
   final WorkoutProvider workout;
+  final StepsProvider steps;
 
   late final AppCoordinator coordinator = AppCoordinator(
+    storage: storage,
     profileProvider: profile,
     settingsProvider: settings,
     planProvider: plan,
@@ -120,6 +124,7 @@ class _FlowHarness {
     await plan.load();
     await history.load();
     await progress.load();
+    await steps.load();
   }
 
   Widget build() {
@@ -132,6 +137,7 @@ class _FlowHarness {
         ChangeNotifierProvider<HistoryProvider>.value(value: history),
         ChangeNotifierProvider<ProgressProvider>.value(value: progress),
         ChangeNotifierProvider<WorkoutProvider>.value(value: workout),
+        ChangeNotifierProvider<StepsProvider>.value(value: steps),
       ],
       child: Provider<AppCoordinator>.value(
         value: coordinator,

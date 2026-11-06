@@ -189,4 +189,117 @@ void main() {
       'dumbbell-fly',
     ]);
   });
+
+  test('recompute walks history in order and fills previous bests', () {
+    final older = _sessionAt(
+      id: 'older',
+      date: _now.subtract(const Duration(days: 3)),
+      weightKg: 80,
+    );
+    final newer = _sessionAt(
+      id: 'newer',
+      date: _now.subtract(const Duration(days: 1)),
+      weightKg: 100,
+    );
+
+    final records = service.recompute(<WorkoutSession>[newer, older]);
+
+    final record = records['barbell-bench-press'];
+    expect(record, isNotNull);
+    expect(record!.sessionId, 'newer');
+    expect(
+      record.bestE1rmKg,
+      closeTo(WorkoutCalculator.estimatedOneRepMax(100, 5), 0.0001),
+    );
+    expect(
+      record.previousBestKg,
+      closeTo(WorkoutCalculator.estimatedOneRepMax(80, 5), 0.0001),
+    );
+  });
+
+  test(
+    'recompute drops a deleted session and falls back to the older best',
+    () {
+      final older = _sessionAt(
+        id: 'older',
+        date: _now.subtract(const Duration(days: 3)),
+        weightKg: 80,
+      );
+      final newer = _sessionAt(
+        id: 'newer',
+        date: _now.subtract(const Duration(days: 1)),
+        weightKg: 100,
+      );
+
+      final records = service.recompute(<WorkoutSession>[older]);
+
+      expect(records, hasLength(1));
+      expect(records['barbell-bench-press']!.sessionId, 'older');
+      expect(
+        records['barbell-bench-press']!.bestE1rmKg,
+        closeTo(WorkoutCalculator.estimatedOneRepMax(80, 5), 0.0001),
+      );
+      expect(
+        records['barbell-bench-press']!.bestE1rmKg,
+        lessThan(
+          service.recompute(<WorkoutSession>[
+            older,
+            newer,
+          ])['barbell-bench-press']!.bestE1rmKg,
+        ),
+      );
+    },
+  );
+
+  test('recompute ignores warm-up and incomplete sets and empty history', () {
+    final incomplete = WorkoutSession(
+      id: 'incomplete',
+      name: 'Workout',
+      source: SessionSource.empty,
+      startedAt: _now,
+      completedAt: _now,
+      status: SessionStatus.completed,
+      exercises: <SessionExercise>[
+        _exercise('barbell-bench-press', <WorkoutSet>[
+          _set('warmup', weightKg: 120, reps: 5, isWarmup: true),
+          _set('incomplete', weightKg: 120, reps: 5, completed: false),
+        ]),
+      ],
+    );
+
+    expect(service.recompute(<WorkoutSession>[incomplete]), isEmpty);
+    expect(service.recompute(const <WorkoutSession>[]), isEmpty);
+  });
+}
+
+WorkoutSession _sessionAt({
+  required String id,
+  required DateTime date,
+  required double weightKg,
+}) {
+  return WorkoutSession(
+    id: id,
+    name: 'Push Day',
+    source: SessionSource.empty,
+    startedAt: date.subtract(const Duration(minutes: 30)),
+    completedAt: date,
+    status: SessionStatus.completed,
+    exercises: <SessionExercise>[
+      SessionExercise(
+        id: 'exercise-$id',
+        exerciseId: 'barbell-bench-press',
+        order: 0,
+        sets: <WorkoutSet>[
+          WorkoutSet(
+            id: 'set-$id',
+            index: 0,
+            weightKg: weightKg,
+            reps: 5,
+            completed: true,
+            completedAt: date,
+          ),
+        ],
+      ),
+    ],
+  );
 }

@@ -68,6 +68,7 @@ void main() {
 
       final storage = await StorageService.create();
       expect(storage.readObject('profile', UserProfile.fromJson), isNull);
+      expect(storage.warning, isNotNull);
       await pumpEventQueue();
       expect(storage.contains('profile'), isFalse);
     });

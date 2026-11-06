@@ -50,3 +50,49 @@
 2026.11.06 TRN-18 Add set, rest, and PR haptics with reduced-motion support
 2026.11.06 TRN-19 Cover navigation guards for active sessions and unsaved edits
 2026.11.06 TRN-20 Wire Today start, quick action, and resume states
+2026.11.06 PRG-01 Add month-grouped workout history with empty state
+2026.11.06 PRG-02 Add workout history detail with exercises, sets, notes, and date
+2026.11.06 PRG-03 Add workout deletion with confirmation and PR, streak, and score recomputation
+2026.11.06 PRG-04 Add Progress dashboard with lifetime totals, PR wall, history shortcut, and empty state
+2026.11.06 PRG-05 Add seven-day volume bars with dim empty days and text summary
+2026.11.06 PRG-06 Add streak and PR aggregation across gaps, today, and yesterday
+2026.11.06 PRG-07 Add beta strength score with thresholds, explanation sheet, and no ranking
+2026.11.06 PRG-08 Add plan overview sheet with day moves and history-preserving regeneration
+2026.11.06 PRG-09 Add progress aggregation, deletion, score, and screen tests
+2026.11.06 PRG-10 Add body weight sheet from the score CTA with score refresh
+2026.11.06 SOC-01 Add Social feed with sample and own post cards
+2026.11.06 SOC-02 Seed three labeled sample posts with persistent dismissal
+2026.11.06 SOC-03 Add persistent local kudos toggle
+2026.11.06 SOC-04 Publish one own post per completed workout and remove it on delete
+2026.11.06 SOC-05 Add 1080x1920 share card renderer
+2026.11.06 SOC-06 Add share card sheet and share entry points
+2026.11.06 SOC-07 Hide own posts when workout sharing is off
+2026.11.06 SOC-08 Add Social feed, kudos, own post, and share card tests
+2026.11.06 SET-01 Add Me profile screen with identity, lifetime totals, and settings entry points
+2026.11.06 SET-02 Add full-screen profile edit for name, experience, goals, body, and birth date
+2026.11.06 SET-03 Add weight, distance, and body unit preferences with display conversion
+2026.11.06 SET-04 Add local workout reminder scheduling, cancellation, and settings rescheduling
+2026.11.06 SET-05 Add fail-soft Apple Health and Health Connect step service
+2026.11.06 SET-06 Add manual steps fallback with source labeling
+2026.11.06 SET-07 Add health integration settings for connected, disconnected, and unavailable states
+2026.11.06 SET-08 Add privacy settings and reset local data confirmation
+2026.11.06 SET-09 Add point-of-use notification and health permission guidance
+2026.11.06 SET-10 Audit empty states across lists, charts, and sheets
+2026.11.06 SET-11 Audit accessibility labels, touch targets, and 1.3x text scale
+2026.11.06 SET-12 Add Mova app icon, splash, and web branding
+2026.11.06 SET-13 Add Android release SDK, permissions, desugaring, queries, backup, and signing config
+2026.11.06 SET-14 Add iOS health strings, entitlement, portrait lock, and notification delegate
+2026.11.06 SET-15 Add legal documents, store listing draft, and font licenses
+2026.11.06 SET-16 Add Phase 5 screen, service, provider, and reset test coverage gate
+2026.11.06 SET-17 Pass format, analyze, tests, coverage, debug and release APK, and web release gates
+2026.11.06 SET-18 Disable Android backup and document local privacy and iOS backup behavior
+2026.11.06 SET-19 Add legal document and open-source licenses screens
+2026.11.06 QA-01 Run acceptance scenarios A through P on web, automated suites, and Android emulator
+2026.11.06 QA-01 Seed social sample posts during startup before any own workout post
+2026.11.06 QA-02 Verify phone, tablet, landscape, and web layouts and center wide content at 720 dp
+2026.11.06 QA-03 Pass Lighthouse accessibility, merged settings switch labels, and 1.3x text audit
+2026.11.06 QA-04 Verify warm startup at 157 ms LCP and logger scroll above 60 fps
+2026.11.06 QA-05 Add dismissible storage warning and verify corrupt payload, reset, and clock integrity
+2026.11.06 QA-06 Build 1.0.0+1 debug and release APK and web release with checksums
+2026.11.06 QA-07 Smoke test notifications, health guidance, share, and wakelock on Android emulator
+2026.11.06 QA-08 Verify streak, Today, and volume rollover under two DST time zones

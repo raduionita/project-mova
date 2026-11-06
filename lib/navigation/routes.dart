@@ -85,8 +85,55 @@ class Routes {
   }
 
   static const String progress = '/progress';
+
+  /// Workout history routes are `/progress/history` and
+  /// `/progress/history/:id`.
+  static const String progressHistory = '$progress/history';
+
+  static String progressHistoryDetail(String sessionId) {
+    return '$progressHistory/${Uri.encodeComponent(sessionId)}';
+  }
+
+  /// Returns the session id for a history detail route, or null for the list
+  /// and unrelated routes.
+  static String? progressHistoryIdFromRoute(String? route) {
+    if (route == null || !route.startsWith('$progressHistory/')) {
+      return null;
+    }
+    final id = route.substring(progressHistory.length + 1);
+    if (id.isEmpty) {
+      return null;
+    }
+    return Uri.decodeComponent(id);
+  }
+
   static const String social = '/social';
   static const String me = '/me';
+
+  static const String meEdit = '$me/edit';
+  static const String meSettings = '$me/settings';
+
+  /// Legal document routes are `/me/legal/:doc`.
+  static const String meLegal = '$me/legal';
+
+  static String legalDocument(String doc) {
+    return '$meLegal/${Uri.encodeComponent(doc)}';
+  }
+
+  /// Returns the document id for a legal route, or null when [route] is not a
+  /// legal document route.
+  static String? legalDocFromRoute(String? route) {
+    if (route == null || !route.startsWith('$meLegal/')) {
+      return null;
+    }
+    final doc = route.substring(meLegal.length + 1);
+    if (doc.isEmpty || doc.contains('/')) {
+      return null;
+    }
+    return Uri.decodeComponent(doc);
+  }
+
+  static const String meLicenses = '$me/licenses';
 
   static const String logger = '/logger';
   static const String summary = '/summary';

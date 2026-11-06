@@ -24,40 +24,54 @@ class AppEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 280),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.x2l),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Icon(icon, size: 56, color: AppColors.muted),
-              const SizedBox(height: AppSpacing.x2l),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: AppTypography.h2.copyWith(color: AppColors.text),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              Text(
-                message,
-                textAlign: TextAlign.center,
-                style: AppTypography.body.copyWith(color: AppColors.muted),
-              ),
-              if (actionLabel != null && onAction != null) ...<Widget>[
-                const SizedBox(height: AppSpacing.x3l),
-                AppButton(
-                  label: actionLabel!,
-                  onPressed: onAction,
-                  variant: AppButtonVariant.ghost,
-                  fullWidth: false,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final minHeight =
+            constraints.hasBoundedHeight &&
+                constraints.maxHeight > AppSpacing.x4l
+            ? constraints.maxHeight - AppSpacing.x4l
+            : 0.0;
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(AppSpacing.x2l),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: minHeight),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 280),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Icon(icon, size: 48, color: AppColors.muted),
+                    const SizedBox(height: AppSpacing.xl),
+                    Text(
+                      title,
+                      textAlign: TextAlign.center,
+                      style: AppTypography.h2.copyWith(color: AppColors.text),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    Text(
+                      message,
+                      textAlign: TextAlign.center,
+                      style: AppTypography.body.copyWith(
+                        color: AppColors.muted,
+                      ),
+                    ),
+                    if (actionLabel != null && onAction != null) ...<Widget>[
+                      const SizedBox(height: AppSpacing.x3l),
+                      AppButton(
+                        label: actionLabel!,
+                        onPressed: onAction,
+                        variant: AppButtonVariant.ghost,
+                        fullWidth: false,
+                      ),
+                    ],
+                  ],
                 ),
-              ],
-            ],
+              ),
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

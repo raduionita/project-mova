@@ -12,11 +12,14 @@ void main() {
     expect(tabs.single.route, Routes.today);
   });
 
-  test('the shipped phase flag exposes Today and Train', () {
-    expect(AppNavigation.currentPhase, AppPhase.training);
+  test('the shipped phase flag exposes every tab through Me', () {
+    expect(AppNavigation.currentPhase, AppPhase.profile);
     expect(AppNavigation.visibleTabs().map((item) => item.tab), <AppTab>[
       AppTab.today,
       AppTab.train,
+      AppTab.progress,
+      AppTab.social,
+      AppTab.me,
     ]);
   });
 
@@ -79,10 +82,10 @@ void main() {
       isNull,
     );
     expect(AppNavigation.selectedTab(Routes.train)?.tab, AppTab.train);
-    expect(AppNavigation.selectedTab(Routes.me), isNull);
+    expect(AppNavigation.selectedTab(Routes.me)?.tab, AppTab.me);
     expect(
-      AppNavigation.selectedTab(Routes.me, phase: AppPhase.profile)?.tab,
-      AppTab.me,
+      AppNavigation.selectedTab(Routes.me, phase: AppPhase.social),
+      isNull,
     );
   });
 
@@ -104,7 +107,18 @@ void main() {
     );
     expect(
       AppNavigation.showsBottomBar('/me/settings', phase: AppPhase.profile),
-      isTrue,
+      isFalse,
+    );
+    expect(
+      AppNavigation.showsBottomBar('/me/licenses', phase: AppPhase.profile),
+      isFalse,
+    );
+    expect(
+      AppNavigation.showsBottomBar(
+        '/me/legal/privacy',
+        phase: AppPhase.profile,
+      ),
+      isFalse,
     );
   });
 

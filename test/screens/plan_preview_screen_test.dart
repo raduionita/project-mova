@@ -139,6 +139,7 @@ Future<_Setup> _setup() async {
   final history = HistoryProvider(storage);
   final progress = ProgressProvider(storage);
   final coordinator = AppCoordinator(
+    storage: storage,
     profileProvider: profile,
     settingsProvider: settings,
     planProvider: plan,

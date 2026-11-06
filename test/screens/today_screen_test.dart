@@ -8,6 +8,8 @@ import 'package:mova/models/training_plan.dart';
 import 'package:mova/models/workout_session.dart';
 import 'package:mova/navigation/routes.dart';
 import 'package:mova/providers/plan_provider.dart';
+import 'package:mova/providers/settings_provider.dart';
+import 'package:mova/providers/steps_provider.dart';
 import 'package:mova/providers/workout_provider.dart';
 import 'package:mova/screens/today/today_screen.dart';
 import 'package:mova/services/clock.dart';
@@ -94,20 +96,36 @@ PlanProvider _provider() {
   );
 }
 
-Widget _wrap(PlanProvider provider, {Clock? clock, WorkoutProvider? workout}) {
+Widget _wrap(
+  PlanProvider provider, {
+  Clock? clock,
+  WorkoutProvider? workout,
+  SettingsProvider? settings,
+}) {
   final activeClock = clock ?? FakeClock(_now);
+  final storage = StorageService.inMemory();
   final workoutProvider =
       workout ?? WorkoutProvider(StorageService.inMemory(), clock: activeClock);
   return MultiProvider(
     providers: [
       ChangeNotifierProvider<PlanProvider>.value(value: provider),
       ChangeNotifierProvider<WorkoutProvider>.value(value: workoutProvider),
+      if (settings != null)
+        ChangeNotifierProvider<SettingsProvider>.value(value: settings)
+      else
+        ChangeNotifierProvider<SettingsProvider>(
+          create: (_) => SettingsProvider(storage),
+        ),
+      ChangeNotifierProvider<StepsProvider>(
+        create: (_) => StepsProvider(storage, clock: activeClock),
+      ),
     ],
     child: MaterialApp(
       theme: AppTheme.dark,
       routes: <String, WidgetBuilder>{
         Routes.logger: (_) => const Scaffold(body: Text('Logger route')),
         Routes.routines: (_) => const Scaffold(body: Text('Routines route')),
+        Routes.meSettings: (_) => const Scaffold(body: Text('Settings route')),
       },
       home: TodayScreen(clock: activeClock),
     ),
@@ -168,6 +186,27 @@ void main() {
       find.text('Finish onboarding to build your weekly training plan.'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('storage warnings are dismissible', (tester) async {
+    final provider = _provider();
+    await provider.replacePlan(_plan());
+    final storage = StorageService.inMemory();
+    storage.warning = 'Some saved data could not be read and was reset.';
+    final settings = SettingsProvider(storage);
+
+    await tester.pumpWidget(_wrap(provider, settings: settings));
+
+    expect(find.byKey(const Key('today-storage-warning')), findsOneWidget);
+    expect(
+      find.text('Some saved data could not be read and was reset.'),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.byKey(const Key('today-storage-warning-dismiss')));
+    await tester.pump();
+
+    expect(find.byKey(const Key('today-storage-warning')), findsNothing);
   });
 
   testWidgets('week label counts weeks since the plan was generated', (
@@ -322,7 +361,7 @@ void main() {
     expect(find.text('Logger route'), findsOneWidget);
   });
 
-  testWidgets('steps and reminders stay hidden', (tester) async {
+  testWidgets('steps card and reminder bell open their routes', (tester) async {
     final provider = _provider();
     await provider.replacePlan(
       _plan(
@@ -338,10 +377,16 @@ void main() {
     );
 
     await tester.pumpWidget(_wrap(provider));
+    await tester.pumpAndSettle();
 
-    expect(find.textContaining('steps'), findsNothing);
-    expect(find.textContaining('Reminder'), findsNothing);
-    expect(find.byIcon(Icons.notifications_outlined), findsNothing);
+    expect(find.text('No steps yet'), findsOneWidget);
+    expect(find.byKey(const Key('today-add-steps')), findsOneWidget);
+    expect(find.byKey(const Key('today-reminders')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('today-reminders')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Settings route'), findsOneWidget);
   });
 
   testWidgets('rolls over to the next day at midnight', (tester) async {
@@ -401,5 +446,17 @@ void main() {
 
     expect(find.text('Rest day'), findsOneWidget);
     expect(find.text('Push Day'), findsNothing);
+  });
+
+  testWidgets('a moved plan day appears on Today', (tester) async {
+    final provider = _provider();
+    await provider.replacePlan(_plan());
+
+    expect(await provider.movePlanDay(fromWeekday: 1, toWeekday: 4), isTrue);
+    await tester.pumpWidget(_wrap(provider));
+
+    expect(find.text('Thursday · Week 1'), findsOneWidget);
+    expect(find.text('Push Day'), findsOneWidget);
+    expect(find.text('Planned'), findsOneWidget);
   });
 }

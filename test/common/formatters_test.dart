@@ -31,4 +31,26 @@ void main() {
     expect(formatShortDate(date), 'Mon, Nov 2');
     expect(formatDetailDate(date), 'Nov 2, 2026');
   });
+
+  test('relative feed time uses minutes, hours, days, then a date', () {
+    final now = DateTime(2026, 11, 6, 18);
+
+    expect(formatRelativeTime(now, now), 'Just now');
+    expect(
+      formatRelativeTime(now.subtract(const Duration(minutes: 5)), now),
+      '5m',
+    );
+    expect(
+      formatRelativeTime(now.subtract(const Duration(hours: 3)), now),
+      '3h',
+    );
+    expect(
+      formatRelativeTime(now.subtract(const Duration(days: 2)), now),
+      '2d',
+    );
+    expect(
+      formatRelativeTime(now.subtract(const Duration(days: 10)), now),
+      'Tue, Oct 27',
+    );
+  });
 }

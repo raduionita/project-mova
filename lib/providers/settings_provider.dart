@@ -1,17 +1,24 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import '../common/constants.dart';
 import '../models/app_settings.dart';
 import '../models/unit_preferences.dart';
+import '../services/notification_service.dart';
 import '../services/storage_service.dart';
 
 /// Owns the app settings payload stored at [kSettingsKey].
 class SettingsProvider extends ChangeNotifier {
-  SettingsProvider(this._storage) {
+  SettingsProvider(
+    this._storage, {
+    this.notificationService = const NotificationService(),
+  }) {
     _settings = const AppSettings();
   }
 
   final StorageService _storage;
+  final NotificationService notificationService;
 
   late AppSettings _settings;
   bool _isLoading = false;
@@ -20,6 +27,9 @@ class SettingsProvider extends ChangeNotifier {
   AppSettings get settings => _settings;
   bool get isLoading => _isLoading;
   String? get error => _error;
+
+  /// Non-persisted warning raised by [StorageService] during startup reads.
+  String? get storageWarning => _storage.warning;
 
   Future<void> load() async {
     _isLoading = true;
@@ -32,6 +42,12 @@ class SettingsProvider extends ChangeNotifier {
       );
       if (stored != null) {
         _settings = stored;
+        if (stored.remindersEnabled) {
+          unawaited(notificationService.reschedule(stored));
+        }
+      } else {
+        // A cleared or missing payload returns every preference to defaults.
+        _settings = const AppSettings();
       }
     } catch (error) {
       _error = error.toString();
@@ -50,8 +66,8 @@ class SettingsProvider extends ChangeNotifier {
     required List<int> weekdays,
     required int hour,
     required int minute,
-  }) {
-    return _save(
+  }) async {
+    final saved = await _save(
       _settings.copyWith(
         remindersEnabled: enabled,
         reminderWeekdays: weekdays,
@@ -59,6 +75,15 @@ class SettingsProvider extends ChangeNotifier {
         reminderMinute: minute,
       ),
     );
+    if (!saved) {
+      return false;
+    }
+    if (enabled) {
+      await notificationService.reschedule(_settings);
+    } else {
+      await notificationService.cancelAll();
+    }
+    return true;
   }
 
   Future<bool> setHealthProvider(HealthProvider provider) {

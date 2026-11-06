@@ -17,11 +17,33 @@ class SocialProvider extends ChangeNotifier {
 
   List<ActivityPost> _posts = const <ActivityPost>[];
   bool _isLoading = false;
+  bool _samplesDismissed = false;
   String? _error;
 
   List<ActivityPost> get posts => _posts;
   bool get isLoading => _isLoading;
   String? get error => _error;
+
+  /// Posts visible in the feed. Own posts are hidden when the user turns
+  /// workout sharing off, while the Social tab itself stays available.
+  List<ActivityPost> visiblePosts({bool includeOwnPosts = true}) {
+    if (includeOwnPosts) {
+      return _posts;
+    }
+    return _posts.where((post) => !post.isOwn).toList(growable: false);
+  }
+
+  bool get hasSamples => _posts.any((post) => post.isSample);
+
+  bool hasPostForSession(String sessionId) {
+    return _posts.any((post) => post.sessionId == sessionId);
+  }
+
+  /// Tells the provider whether sample posts were dismissed in Settings.
+  /// Call this before [load] so a missing payload does not reseed them.
+  void setSamplesDismissed(bool dismissed) {
+    _samplesDismissed = dismissed;
+  }
 
   Future<void> load() async {
     _isLoading = true;
@@ -33,7 +55,9 @@ class SocialProvider extends ChangeNotifier {
         (json) => json,
       );
       if (payload == null) {
-        _posts = _seedDataService.samplePosts(_clock.now());
+        _posts = _samplesDismissed
+            ? const <ActivityPost>[]
+            : _seedDataService.samplePosts(_clock.now());
         await _write(_posts);
       } else {
         final rawPosts = payload['posts'];
@@ -101,6 +125,7 @@ class SocialProvider extends ChangeNotifier {
   }
 
   Future<bool> dismissSamples() {
+    _samplesDismissed = true;
     final next = _posts.where((post) => !post.isSample).toList(growable: false);
     return _write(next);
   }

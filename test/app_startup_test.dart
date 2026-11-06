@@ -145,6 +145,29 @@ void main() {
     expect(find.text('No plan yet'), findsOneWidget);
   });
 
+  testWidgets('startup seeds the sample feed before a workout is saved', (
+    tester,
+  ) async {
+    final storage = await _pumpApp(tester, profile: _completeProfile());
+
+    final payload = storage.readObject<Map<String, dynamic>>(
+      kSocialKey,
+      (json) => json,
+    );
+    expect(payload, isNotNull);
+    final posts = payload!['posts'] as List<dynamic>;
+    expect(posts, hasLength(3));
+    expect(
+      posts.every((post) => (post as Map<String, dynamic>)['isSample'] == true),
+      isTrue,
+    );
+
+    await tester.tap(find.text('Social'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Sample'), findsNWidgets(3));
+  });
+
   testWidgets('an incomplete profile with a draft resumes onboarding', (
     tester,
   ) async {

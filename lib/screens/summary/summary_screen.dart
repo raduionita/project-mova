@@ -12,6 +12,7 @@ import '../../providers/exercise_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../../services/clock.dart';
 import '../../services/haptics_service.dart';
+import '../../services/share_card_service.dart';
 import '../../services/unit_conversion_service.dart';
 import '../../services/workout_calculator.dart';
 import '../../theme/app_colors.dart';
@@ -22,6 +23,7 @@ import '../../widgets/app_card.dart';
 import '../../widgets/app_stat_tile.dart';
 import '../../widgets/app_tag.dart';
 import '../../widgets/pr_badge.dart';
+import '../../widgets/share_card_sheet.dart';
 
 /// Arguments for the summary route.
 class SummaryArgs {
@@ -45,6 +47,7 @@ class SummaryScreen extends StatefulWidget {
     this.onShare,
     this.clock,
     this.haptics,
+    this.shareCardService = const ShareCardService(),
   });
 
   final WorkoutSession session;
@@ -53,6 +56,7 @@ class SummaryScreen extends StatefulWidget {
   final VoidCallback? onShare;
   final Clock? clock;
   final HapticsService? haptics;
+  final ShareCardService shareCardService;
 
   @override
   State<SummaryScreen> createState() => _SummaryScreenState();
@@ -167,7 +171,7 @@ class _SummaryScreenState extends State<SummaryScreen> {
     );
   }
 
-  Widget _buildMetrics() {
+  Widget _buildMetrics(WeightUnit unit) {
     final seconds = WorkoutCalculator.sessionDurationSeconds(
       widget.session,
       _clock.now(),
@@ -187,7 +191,7 @@ class _SummaryScreenState extends State<SummaryScreen> {
         const SizedBox(width: AppSpacing.md),
         Expanded(
           child: AppStatTile(
-            value: formatVolume(volume),
+            value: formatVolume(volume, unit: unit),
             label: 'Volume',
             icon: Icons.fitness_center,
           ),
@@ -232,7 +236,7 @@ class _SummaryScreenState extends State<SummaryScreen> {
                   _buildPrCard(library, topRecord, unit),
                   const SizedBox(height: AppSpacing.x2l),
                 ],
-                _buildMetrics(),
+                _buildMetrics(unit),
                 if (otherRecords.isNotEmpty) ...<Widget>[
                   const SizedBox(height: AppSpacing.x3l),
                   Text(
@@ -262,9 +266,24 @@ class _SummaryScreenState extends State<SummaryScreen> {
         AppButton(
           label: 'Share card',
           variant: AppButtonVariant.ghost,
-          onPressed: widget.onShare,
+          onPressed: _share,
         ),
       ],
+    );
+  }
+
+  Future<void> _share() async {
+    final onShare = widget.onShare;
+    if (onShare != null) {
+      onShare();
+      return;
+    }
+    final records = _records;
+    await ShareCardSheet.show(
+      context,
+      session: widget.session,
+      record: records.isEmpty ? null : records.first,
+      service: widget.shareCardService,
     );
   }
 

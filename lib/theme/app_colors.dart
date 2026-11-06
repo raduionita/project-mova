@@ -35,6 +35,7 @@ class AppColors {
   static const Color ringTrack = Color(0xFF223049);
   static const Color ringInner = Color(0xFF111827);
   static const Color volumeEmpty = Color(0xFF263044);
+  static const Color volumeFillEnd = Color(0xFF5D8A2C);
 
   static Color limeBorder45 = lime.withValues(alpha: 0.45);
   static Color orangeBorder50 = orange.withValues(alpha: 0.5);

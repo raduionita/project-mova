@@ -29,13 +29,13 @@ class AppTabItem {
   bool isAvailableIn(AppPhase phase) => releasePhase.index <= phase.index;
 }
 
-/// Phase-aware tab registry. Phase 1 exposes Today only.
+/// Phase-aware tab registry. Phase 5 exposes all five destinations.
 class AppNavigation {
   const AppNavigation._();
 
   /// The phase flag for the shipped build. Later tabs stay hidden until the
   /// phase that owns them is enabled here.
-  static const AppPhase currentPhase = AppPhase.training;
+  static const AppPhase currentPhase = AppPhase.profile;
 
   static const List<AppTabItem> allTabs = <AppTabItem>[
     AppTabItem(
@@ -118,6 +118,12 @@ class AppNavigation {
   /// yet.
   static bool showsBottomBar(String? route, {AppPhase phase = currentPhase}) {
     if (route == Routes.logger || route == Routes.summary) {
+      return false;
+    }
+    if (route == Routes.meEdit || route == Routes.meSettings) {
+      return false;
+    }
+    if (route == Routes.meLicenses || Routes.legalDocFromRoute(route) != null) {
       return false;
     }
     if (Routes.isRoutineBuilderRoute(route)) {

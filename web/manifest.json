@@ -1,11 +1,11 @@
 {
-    "name": "mova",
-    "short_name": "mova",
+    "name": "Mova",
+    "short_name": "Mova",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#0B0F16",
+    "theme_color": "#B7F24C",
+    "description": "Local-first fitness tracking for plans, workouts, steps, and progress.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
