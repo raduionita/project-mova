@@ -44,12 +44,14 @@ class AppChip extends StatelessWidget {
                 horizontal: AppSpacing.xl,
                 vertical: AppSpacing.sm,
               ),
-              alignment: Alignment.center,
-              child: Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: AppTypography.label.copyWith(color: foreground),
+              child: Center(
+                widthFactor: 1,
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTypography.label.copyWith(color: foreground),
+                ),
               ),
             ),
           ),

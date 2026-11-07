@@ -37,7 +37,7 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
 
   Widget _buildHeader(int count) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Expanded(
           child: Column(

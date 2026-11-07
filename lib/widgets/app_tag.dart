@@ -48,16 +48,18 @@ class AppTag extends StatelessWidget {
         horizontal: AppSpacing.md,
         vertical: AppSpacing.tagVertical,
       ),
-      alignment: Alignment.center,
       decoration: BoxDecoration(
         color: _background,
         borderRadius: BorderRadius.circular(AppRadii.pill),
       ),
-      child: Text(
-        label,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: AppTypography.micro.copyWith(color: _foreground),
+      child: Center(
+        widthFactor: 1,
+        child: Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: AppTypography.micro.copyWith(color: _foreground),
+        ),
       ),
     );
   }

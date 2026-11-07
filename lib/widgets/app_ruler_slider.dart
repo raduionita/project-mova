@@ -222,6 +222,8 @@ class _RulerPainter extends CustomPainter {
       ..color = const Color(0xFF4A5A7C)
       ..strokeWidth = 1;
 
+    canvas.save();
+    canvas.clipRRect(rect);
     for (var stepIndex = firstStep; stepIndex <= lastStep; stepIndex++) {
       final tickValue = min + stepIndex * step;
       if (tickValue < min || tickValue > max) {
@@ -244,6 +246,7 @@ class _RulerPainter extends CustomPainter {
         ..color = AppColors.lime
         ..strokeWidth = 2,
     );
+    canvas.restore();
   }
 
   @override

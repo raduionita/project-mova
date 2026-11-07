@@ -1,4 +1,3 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -7,9 +6,7 @@ import '../../navigation/onboarding_flow.dart';
 import '../../navigation/routes.dart';
 import '../../providers/onboarding_provider.dart';
 import '../../services/unit_conversion_service.dart';
-import '../../theme/app_colors.dart';
-import '../../theme/app_spacing.dart';
-import '../../theme/app_typography.dart';
+import '../../widgets/app_vertical_ruler_slider.dart';
 import 'onboarding_scaffold.dart';
 
 /// Onboarding step 5: body height. The value is shown in the chosen body unit
@@ -83,6 +80,17 @@ class _HeightScreenState extends State<HeightScreen> {
     _open(context, OnboardingFlow.previousRoute(Routes.onboardingHeight)!);
   }
 
+  String _formatHeight(double cm) {
+    if (_unit == HeightUnit.cm) {
+      return cm.toStringAsFixed(0);
+    }
+    return _conversion.cmToIn(cm).toStringAsFixed(1);
+  }
+
+  String _rangeLabel(double cm) {
+    return '${_formatHeight(cm)} ${_conversion.heightLabel(_unit)}';
+  }
+
   @override
   Widget build(BuildContext context) {
     return OnboardingScaffold(
@@ -94,255 +102,18 @@ class _HeightScreenState extends State<HeightScreen> {
       isBusy: _isBusy,
       onSkip: _isBusy ? null : () => _continue(skip: true),
       skipLabel: 'Skip for now',
-      child: _VerticalHeightRoller(
-        valueCm: _cm.toDouble(),
-        minCm: _minCm.toDouble(),
-        maxCm: _maxCm.toDouble(),
-        unit: _unit,
-        conversion: _conversion,
+      child: AppVerticalRulerSlider(
+        value: _cm.toDouble(),
+        min: _minCm.toDouble(),
+        max: _maxCm.toDouble(),
+        step: 1,
+        unitLabel: _conversion.heightLabel(_unit),
+        valueLabel: _formatHeight(_cm.toDouble()),
+        minLabel: _rangeLabel(_minCm.toDouble()),
+        maxLabel: _rangeLabel(_maxCm.toDouble()),
+        hint: 'Drag to adjust',
         onChanged: _handleChanged,
       ),
     );
-  }
-}
-
-class _VerticalHeightRoller extends StatefulWidget {
-  const _VerticalHeightRoller({
-    required this.valueCm,
-    required this.minCm,
-    required this.maxCm,
-    required this.unit,
-    required this.conversion,
-    required this.onChanged,
-  });
-
-  final double valueCm;
-  final double minCm;
-  final double maxCm;
-  final HeightUnit unit;
-  final UnitConversionService conversion;
-  final ValueChanged<double> onChanged;
-
-  @override
-  State<_VerticalHeightRoller> createState() => _VerticalHeightRollerState();
-}
-
-class _VerticalHeightRollerState extends State<_VerticalHeightRoller> {
-  static const double _pixelsPerStep = 10;
-
-  late double _current;
-  double _accumulated = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _current = _clamp(widget.valueCm);
-  }
-
-  @override
-  void didUpdateWidget(covariant _VerticalHeightRoller oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.valueCm != oldWidget.valueCm) {
-      _current = _clamp(widget.valueCm);
-    }
-  }
-
-  double _clamp(double cm) => cm.clamp(widget.minCm, widget.maxCm).toDouble();
-
-  void _emit(double raw) {
-    final next = _clamp(raw.roundToDouble());
-    if (next == _current) {
-      return;
-    }
-    setState(() => _current = next);
-    widget.onChanged(next);
-  }
-
-  void _handleDragUpdate(DragUpdateDetails details) {
-    _accumulated += -details.delta.dy;
-    final steps = (_accumulated / _pixelsPerStep).truncate();
-    if (steps == 0) {
-      return;
-    }
-    _accumulated -= steps * _pixelsPerStep;
-    _emit(_current + steps);
-  }
-
-  void _handleTapDown(TapDownDetails details, double height) {
-    final steps = ((height / 2 - details.localPosition.dy) / _pixelsPerStep)
-        .round();
-    _emit(_current + steps);
-  }
-
-  String _formatValue(double cm) {
-    if (widget.unit == HeightUnit.cm) {
-      return cm.toStringAsFixed(0);
-    }
-    return widget.conversion.cmToIn(cm).toStringAsFixed(1);
-  }
-
-  String _unitLabel() => widget.conversion.heightLabel(widget.unit);
-
-  String _spokenValue(double cm) => '${_formatValue(cm)} ${_unitLabel()}';
-
-  Widget _buildNumber() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: <Widget>[
-            Text(
-              _formatValue(_current),
-              style: AppTypography.h1.copyWith(
-                fontSize: 38,
-                color: AppColors.text,
-              ),
-            ),
-            const SizedBox(width: AppSpacing.xs),
-            Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-              child: Text(
-                _unitLabel(),
-                style: AppTypography.body.copyWith(color: AppColors.muted),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        Text(
-          'Drag to adjust',
-          style: AppTypography.caption.copyWith(color: AppColors.muted),
-        ),
-      ],
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      slider: true,
-      value: _spokenValue(_current),
-      increasedValue: _spokenValue(_current + 1),
-      decreasedValue: _spokenValue(_current - 1),
-      onIncrease: () => _emit(_current + 1),
-      onDecrease: () => _emit(_current - 1),
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        dragStartBehavior: DragStartBehavior.down,
-        onVerticalDragStart: (_) => _accumulated = 0,
-        onVerticalDragUpdate: _handleDragUpdate,
-        onTapDown: (details) => _handleTapDown(details, 180),
-        child: SizedBox(
-          height: 180,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              SizedBox(
-                width: 54,
-                height: 176,
-                child: CustomPaint(
-                  painter: _VerticalRulerPainter(
-                    value: _current,
-                    min: widget.minCm,
-                    max: widget.maxCm,
-                    pixelsPerStep: _pixelsPerStep,
-                  ),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.x3l),
-              _buildNumber(),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _VerticalRulerPainter extends CustomPainter {
-  const _VerticalRulerPainter({
-    required this.value,
-    required this.min,
-    required this.max,
-    required this.pixelsPerStep,
-  });
-
-  final double value;
-  final double min;
-  final double max;
-  final double pixelsPerStep;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final rect = RRect.fromRectAndRadius(
-      Offset.zero & size,
-      Radius.circular(size.width / 2),
-    );
-    canvas.drawRRect(rect, Paint()..color = const Color(0xFF131C2E));
-    canvas.drawRRect(
-      rect,
-      Paint()
-        ..color = AppColors.line
-        ..style = PaintingStyle.stroke,
-    );
-
-    final ratio = max == min ? 0.0 : (value - min) / (max - min);
-    final fillHeight = size.height * ratio.clamp(0.0, 1.0);
-    canvas.save();
-    canvas.clipRRect(rect);
-    canvas.drawRect(
-      Rect.fromLTWH(0, size.height - fillHeight, size.width, fillHeight),
-      Paint()
-        ..shader = const LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: <Color>[Color(0x0AB7F24C), Color(0x3DB7F24C)],
-        ).createShader(Offset.zero & size),
-    );
-    canvas.restore();
-
-    final centerY = size.height / 2;
-    final halfSteps = (size.height / 2 / pixelsPerStep).ceil() + 1;
-    final firstStep = ((value - min) / pixelsPerStep).floor() - halfSteps;
-    final lastStep = ((value - min) / pixelsPerStep).ceil() + halfSteps;
-    final tickPaint = Paint()
-      ..color = const Color(0xFF33405C)
-      ..strokeWidth = 1;
-    final majorPaint = Paint()
-      ..color = const Color(0xFF4A5A7C)
-      ..strokeWidth = 1;
-
-    for (var step = firstStep; step <= lastStep; step++) {
-      final tickValue = min + step;
-      if (tickValue < min || tickValue > max) {
-        continue;
-      }
-      final y = centerY - (tickValue - value) * pixelsPerStep;
-      final major = step % 5 == 0;
-      final width = major ? 19.0 : 11.0;
-      canvas.drawLine(
-        Offset(size.width / 2 - width / 2, y),
-        Offset(size.width / 2 + width / 2, y),
-        major ? majorPaint : tickPaint,
-      );
-    }
-
-    canvas.drawLine(
-      Offset(0, centerY),
-      Offset(size.width, centerY),
-      Paint()
-        ..color = AppColors.lime
-        ..strokeWidth = 2,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant _VerticalRulerPainter oldDelegate) {
-    return oldDelegate.value != value ||
-        oldDelegate.min != min ||
-        oldDelegate.max != max ||
-        oldDelegate.pixelsPerStep != pixelsPerStep;
   }
 }

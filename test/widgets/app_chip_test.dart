@@ -57,4 +57,32 @@ void main() {
     await tester.tap(find.text('All'));
     expect(taps, 1);
   });
+
+  testWidgets('chip hugs its label inside a bounded wrap', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.dark,
+        home: Scaffold(
+          body: SizedBox(
+            width: 320,
+            child: Wrap(
+              spacing: 8,
+              children: const <Widget>[
+                AppChip(label: 'Mon'),
+                AppChip(label: 'Tue'),
+                AppChip(label: 'Wed'),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final chip = find.byType(AppChip).first;
+    expect(tester.getSize(chip).width, lessThan(100));
+    expect(
+      tester.getCenter(find.text('Mon')).dy,
+      closeTo(tester.getCenter(chip).dy, 0.5),
+    );
+  });
 }

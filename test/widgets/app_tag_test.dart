@@ -43,4 +43,32 @@ void main() {
     expect(containers[0].color, AppColors.goldSoft);
     expect(containers[1].color, AppColors.limeSoft);
   });
+
+  testWidgets('tag hugs its label inside a bounded wrap', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.dark,
+        home: Scaffold(
+          body: SizedBox(
+            width: 320,
+            child: Wrap(
+              spacing: 8,
+              children: const <Widget>[
+                AppTag(label: 'Chest'),
+                AppTag(label: 'Triceps'),
+                AppTag(label: 'Shoulders'),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final tag = find.byType(AppTag).first;
+    expect(tester.getSize(tag).width, lessThan(100));
+    expect(
+      tester.getCenter(find.text('Chest')).dy,
+      closeTo(tester.getCenter(tag).dy, 0.5),
+    );
+  });
 }

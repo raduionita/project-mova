@@ -38,13 +38,16 @@ class AppStatTile extends StatelessWidget {
             Icon(icon, size: 16, color: AppColors.muted),
             const SizedBox(height: AppSpacing.sm),
           ],
-          Text(
-            value,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: AppTypography.metric.copyWith(
-              color: AppColors.text,
-              fontWeight: FontWeight.w800,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              value,
+              maxLines: 1,
+              style: AppTypography.metric.copyWith(
+                color: AppColors.text,
+                fontWeight: FontWeight.w800,
+              ),
             ),
           ),
           const SizedBox(height: AppSpacing.xxs),

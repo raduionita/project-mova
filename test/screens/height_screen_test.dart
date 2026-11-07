@@ -9,6 +9,7 @@ import 'package:mova/screens/onboarding/height_screen.dart';
 import 'package:mova/services/clock.dart';
 import 'package:mova/services/storage_service.dart';
 import 'package:mova/theme/app_theme.dart';
+import 'package:mova/widgets/app_vertical_ruler_slider.dart';
 import 'package:provider/provider.dart';
 
 final DateTime _fixedNow = DateTime.utc(2026, 11, 5, 12);
@@ -87,7 +88,10 @@ void main() {
 
     await tester.pumpWidget(_wrap(provider, routes.add));
 
-    await tester.drag(find.text('Drag to adjust'), const Offset(0, -20));
+    await tester.drag(
+      find.byType(AppVerticalRulerSlider),
+      const Offset(0, -20),
+    );
     await tester.pumpAndSettle();
 
     expect(find.text('177'), findsOneWidget);
