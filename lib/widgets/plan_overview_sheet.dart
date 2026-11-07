@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../models/plan_day.dart';
 import '../providers/plan_provider.dart';
+import '../providers/profile_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_radii.dart';
 import '../theme/app_spacing.dart';
@@ -140,9 +141,12 @@ class _PlanOverviewSheetState extends State<PlanOverviewSheet> {
       _error = null;
       _notice = null;
     });
+    final profile = context.read<ProfileProvider>().profile;
     final regenerated = await planProvider.updateSchedule(
       daysPerWeek: plan.daysPerWeek,
       trainingDays: plan.trainingDays,
+      availableEquipment:
+          profile?.availableEquipment ?? plan.availableEquipment,
     );
     if (!mounted) {
       return;
@@ -150,7 +154,11 @@ class _PlanOverviewSheetState extends State<PlanOverviewSheet> {
     setState(() {
       _isWorking = false;
       if (regenerated) {
-        _notice = 'Plan regenerated. History and PRs are unchanged.';
+        final warning = planProvider.lastWarning;
+        _notice = warning == null || warning.isEmpty
+            ? 'Plan regenerated with your current equipment. History and PRs '
+                  'are unchanged.'
+            : 'Plan regenerated. $warning History and PRs are unchanged.';
       } else {
         _error = planProvider.error ?? 'Could not regenerate the plan.';
       }

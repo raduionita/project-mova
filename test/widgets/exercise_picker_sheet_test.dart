@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mova/models/equipment_group.dart';
 import 'package:mova/models/exercise.dart';
 import 'package:mova/providers/exercise_provider.dart';
 import 'package:mova/services/seed_data_service.dart';
@@ -185,6 +186,58 @@ void main() {
     await tester.pumpAndSettle();
     expect(result?.exercises.single.id, 'barbell-bench-press');
   });
+
+  testWidgets(
+    'filters by equipment, excludes ids, and falls back from muscle',
+    (tester) async {
+      final exercises = await buildExercises(StorageService.inMemory());
+      final dumbells = library
+          .where((exercise) => exercise.equipment == 'Dumbbell')
+          .toList(growable: false);
+      await tester.pumpWidget(
+        ChangeNotifierProvider<ExerciseProvider>.value(
+          value: exercises,
+          child: MaterialApp(
+            theme: AppTheme.dark,
+            home: Scaffold(
+              body: Builder(
+                builder: (context) {
+                  return Center(
+                    child: TextButton(
+                      onPressed: () async {
+                        await showExercisePicker(
+                          context,
+                          mode: ExercisePickerMode.session,
+                          availableEquipment: const <EquipmentGroup>[
+                            EquipmentGroup.dumbbells,
+                          ],
+                          excludedExerciseIds: const <String>{'dumbbell-fly'},
+                          initialMuscle: 'Calves',
+                          title: 'Swap exercise',
+                        );
+                      },
+                      child: const Text('Open picker'),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('Open picker'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Swap exercise'), findsOneWidget);
+      expect(find.text('${dumbells.length - 1} exercises'), findsOneWidget);
+      expect(find.text('Dumbbell Fly'), findsNothing);
+      expect(
+        find.textContaining('No calves exercises match your equipment.'),
+        findsOneWidget,
+      );
+      expect(find.text(dumbells.first.name), findsOneWidget);
+    },
+  );
 }
 
 /// Serves a preloaded library so widget tests never load assets inside a

@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import '../models/equipment_group.dart';
 import '../models/exercise.dart';
 import '../models/experience_level.dart';
 import '../models/goal.dart';
@@ -34,9 +35,11 @@ class PlanGeneratorService {
     required ExperienceLevel experienceLevel,
     required int daysPerWeek,
     required List<int> trainingDays,
+    List<EquipmentGroup>? availableEquipment,
   }) {
     try {
       lastWarning = null;
+      final equipment = availableEquipment ?? EquipmentGroup.values;
       if (daysPerWeek < 1 || daysPerWeek > 7) {
         throw ArgumentError.value(
           daysPerWeek,
@@ -61,6 +64,7 @@ class PlanGeneratorService {
         trainingDays: normalizedDays,
         templates: split.days,
         splitName: split.name,
+        availableEquipment: equipment,
         isFallback: false,
       );
     } catch (_) {
@@ -69,6 +73,7 @@ class PlanGeneratorService {
         experienceLevel: experienceLevel,
         daysPerWeek: daysPerWeek,
         trainingDays: trainingDays,
+        availableEquipment: availableEquipment,
       );
     }
   }
@@ -79,8 +84,10 @@ class PlanGeneratorService {
     required ExperienceLevel experienceLevel,
     required int daysPerWeek,
     required List<int> trainingDays,
+    List<EquipmentGroup>? availableEquipment,
   }) {
     lastWarning ??= 'Plan generation failed, using the Starter plan.';
+    final equipment = availableEquipment ?? EquipmentGroup.values;
     final normalizedDays = _normalizeDays(
       trainingDays,
       daysPerWeek.clamp(1, 7).toInt(),
@@ -97,6 +104,7 @@ class PlanGeneratorService {
       trainingDays: normalizedDays,
       templates: templates,
       splitName: 'Starter plan',
+      availableEquipment: equipment,
       isFallback: true,
     );
   }
@@ -108,8 +116,11 @@ class PlanGeneratorService {
     required List<int> trainingDays,
     required List<_DayTemplate> templates,
     required String splitName,
+    required List<EquipmentGroup> availableEquipment,
     required bool isFallback,
   }) {
+    final allowedEquipment = EquipmentGroup.expand(availableEquipment);
+    final skippedMuscles = <String>{};
     final planId = _planId(
       goals: goals,
       experienceLevel: experienceLevel,
@@ -126,6 +137,8 @@ class PlanGeneratorService {
               template.muscleGroups,
               primaryGoal,
               experienceLevel,
+              allowedEquipment,
+              skippedMuscles,
             );
       days.add(
         PlanDay(
@@ -141,6 +154,14 @@ class PlanGeneratorService {
       );
     }
 
+    if (skippedMuscles.isNotEmpty) {
+      final labels = skippedMuscles.toList(growable: false)..sort();
+      _appendWarning(
+        'No exercises match your equipment for ${labels.join(', ')}. '
+        'Those muscles were skipped.',
+      );
+    }
+
     return TrainingPlan(
       id: planId,
       goal: primaryGoal,
@@ -151,6 +172,7 @@ class PlanGeneratorService {
       splitName: splitName,
       days: List<PlanDay>.unmodifiable(days),
       generatedAt: _now(),
+      availableEquipment: List<EquipmentGroup>.unmodifiable(availableEquipment),
       isFallback: isFallback,
     );
   }
@@ -159,6 +181,8 @@ class PlanGeneratorService {
     List<String> muscleGroups,
     Goal goal,
     ExperienceLevel experienceLevel,
+    Set<String> allowedEquipment,
+    Set<String> skippedMuscles,
   ) {
     if (muscleGroups.isEmpty) {
       return const <PlanExercise>[];
@@ -166,8 +190,13 @@ class PlanGeneratorService {
     final count = (sessionMinutes / 9).round().clamp(5, 7).toInt();
     final pools = <String, List<Exercise>>{
       for (final group in muscleGroups)
-        group: _pool(group, goal, experienceLevel),
+        group: _pool(group, goal, experienceLevel, allowedEquipment),
     };
+    for (final group in muscleGroups) {
+      if ((pools[group] ?? const <Exercise>[]).isEmpty) {
+        skippedMuscles.add(group);
+      }
+    }
     final selected = <Exercise>[];
     final usedIds = <String>{};
     var groupIndex = 0;
@@ -190,6 +219,40 @@ class PlanGeneratorService {
         misses = 0;
       }
       groupIndex++;
+    }
+
+    if (selected.length < 3) {
+      final fillers =
+          _exercises
+              .where(
+                (exercise) =>
+                    allowedEquipment.contains(exercise.equipment) &&
+                    !usedIds.contains(exercise.id),
+              )
+              .toList()
+            ..sort((a, b) {
+              final rank = _equipmentRank(
+                experienceLevel,
+                a.equipment,
+              ).compareTo(_equipmentRank(experienceLevel, b.equipment));
+              if (rank != 0) {
+                return rank;
+              }
+              final compound = (b.isCompound ? 1 : 0).compareTo(
+                a.isCompound ? 1 : 0,
+              );
+              if (compound != 0) {
+                return compound;
+              }
+              return a.id.compareTo(b.id);
+            });
+      for (final filler in fillers) {
+        if (selected.length >= 3) {
+          break;
+        }
+        selected.add(filler);
+        usedIds.add(filler.id);
+      }
     }
 
     final groupOrder = <String, int>{
@@ -239,10 +302,15 @@ class PlanGeneratorService {
     String muscle,
     Goal goal,
     ExperienceLevel experienceLevel,
+    Set<String> allowedEquipment,
   ) {
     final pool =
         _exercises
-            .where((exercise) => exercise.primaryMuscle == muscle)
+            .where(
+              (exercise) =>
+                  exercise.primaryMuscle == muscle &&
+                  allowedEquipment.contains(exercise.equipment),
+            )
             .toList()
           ..sort((a, b) {
             final equipmentRank = _equipmentRank(
@@ -265,6 +333,13 @@ class PlanGeneratorService {
     }
     final offset = (goal.index + muscle.length) % pool.length;
     return <Exercise>[...pool.skip(offset), ...pool.take(offset)];
+  }
+
+  void _appendWarning(String message) {
+    final existing = lastWarning;
+    lastWarning = existing == null || existing.isEmpty
+        ? message
+        : '$existing $message';
   }
 
   int _equipmentRank(ExperienceLevel level, String equipment) {

@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../common/constants.dart';
+import '../models/equipment_group.dart';
 import '../models/exercise.dart';
 import '../models/experience_level.dart';
 import '../models/goal.dart';
@@ -28,11 +29,13 @@ class PlanProvider extends ChangeNotifier {
   bool _isLoading = false;
   bool _isGenerating = false;
   String? _error;
+  String? _lastWarning;
 
   TrainingPlan? get plan => _plan;
   bool get isLoading => _isLoading;
   bool get isGenerating => _isGenerating;
   String? get error => _error;
+  String? get lastWarning => _lastWarning;
 
   Future<void> load() async {
     _isLoading = true;
@@ -56,9 +59,11 @@ class PlanProvider extends ChangeNotifier {
     required ExperienceLevel experienceLevel,
     required int daysPerWeek,
     required List<int> trainingDays,
+    List<EquipmentGroup>? availableEquipment,
   }) async {
     _isGenerating = true;
     _error = null;
+    _lastWarning = null;
     notifyListeners();
     try {
       final exercises = await loadExercises();
@@ -72,7 +77,9 @@ class PlanProvider extends ChangeNotifier {
         experienceLevel: experienceLevel,
         daysPerWeek: daysPerWeek,
         trainingDays: trainingDays,
+        availableEquipment: availableEquipment ?? _plan?.availableEquipment,
       );
+      _lastWarning = generator.lastWarning;
       return await replacePlan(generated);
     } catch (error) {
       _error = error.toString();
@@ -99,6 +106,7 @@ class PlanProvider extends ChangeNotifier {
   Future<bool> updateSchedule({
     required int daysPerWeek,
     required List<int> trainingDays,
+    List<EquipmentGroup>? availableEquipment,
   }) {
     final current = _plan;
     if (current == null) {
@@ -111,6 +119,7 @@ class PlanProvider extends ChangeNotifier {
       experienceLevel: current.experienceLevel,
       daysPerWeek: daysPerWeek,
       trainingDays: trainingDays,
+      availableEquipment: availableEquipment ?? current.availableEquipment,
     );
   }
 

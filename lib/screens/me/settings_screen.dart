@@ -3,8 +3,10 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/app_settings.dart';
+import '../../models/equipment_group.dart';
 import '../../models/unit_preferences.dart';
 import '../../navigation/routes.dart';
+import '../../providers/profile_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../../providers/social_provider.dart';
 import '../../providers/steps_provider.dart';
@@ -685,6 +687,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final settings = context.watch<SettingsProvider>().settings;
+    final profile = context.watch<ProfileProvider>().profile;
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -713,12 +716,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     const SizedBox(height: AppSpacing.sm),
                     Text(
-                      'Units, reminders, health, privacy, and local data.',
+                      'Units, equipment, reminders, health, privacy, and local '
+                      'data.',
                       style: AppTypography.body.copyWith(
                         color: AppColors.muted,
                       ),
                     ),
                     const SizedBox(height: AppSpacing.x3l),
+                    _buildSection(
+                      title: 'Equipment',
+                      subtitle: 'Used for plans and exercise swaps.',
+                      child: AppCard(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: AppSpacing.xs,
+                        ),
+                        child: SettingsRow(
+                          key: const Key('settings-equipment-row'),
+                          icon: Icons.fitness_center,
+                          label: 'Equipment',
+                          value:
+                              '${profile?.availableEquipment.length ?? EquipmentGroup.values.length} '
+                              'selected',
+                          onTap: () =>
+                              Navigator.of(context)
+                                  .pushNamed(Routes.meEquipment),
+                        ),
+                      ),
+                    ),
                     _buildSection(
                       title: 'Units',
                       subtitle: 'Applies to every weight and body measurement.',

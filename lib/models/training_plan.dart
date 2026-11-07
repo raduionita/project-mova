@@ -1,3 +1,4 @@
+import 'equipment_group.dart';
 import 'experience_level.dart';
 import 'goal.dart';
 import 'plan_day.dart';
@@ -15,6 +16,7 @@ class TrainingPlan {
     required this.splitName,
     required this.days,
     required this.generatedAt,
+    this.availableEquipment = EquipmentGroup.values,
     this.isFallback = false,
   });
 
@@ -28,6 +30,7 @@ class TrainingPlan {
   final String splitName;
   final List<PlanDay> days;
   final DateTime generatedAt;
+  final List<EquipmentGroup> availableEquipment;
   final bool isFallback;
 
   factory TrainingPlan.fromJson(Map<String, dynamic> json) {
@@ -73,6 +76,7 @@ class TrainingPlan {
       generatedAt:
           DateTime.tryParse(json['generatedAt'] as String? ?? '') ??
           DateTime.fromMillisecondsSinceEpoch(0),
+      availableEquipment: EquipmentGroup.fromJson(json['availableEquipment']),
       isFallback: json['isFallback'] as bool? ?? false,
     );
   }
@@ -89,6 +93,7 @@ class TrainingPlan {
       'splitName': splitName,
       'days': days.map((day) => day.toJson()).toList(growable: false),
       'generatedAt': generatedAt.toIso8601String(),
+      'availableEquipment': EquipmentGroup.toJson(availableEquipment),
       'isFallback': isFallback,
     };
   }
@@ -104,6 +109,7 @@ class TrainingPlan {
     String? splitName,
     List<PlanDay>? days,
     DateTime? generatedAt,
+    List<EquipmentGroup>? availableEquipment,
     bool? isFallback,
   }) {
     return TrainingPlan(
@@ -117,6 +123,7 @@ class TrainingPlan {
       splitName: splitName ?? this.splitName,
       days: days ?? this.days,
       generatedAt: generatedAt ?? this.generatedAt,
+      availableEquipment: availableEquipment ?? this.availableEquipment,
       isFallback: isFallback ?? this.isFallback,
     );
   }

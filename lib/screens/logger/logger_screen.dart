@@ -12,6 +12,7 @@ import '../../models/workout_set.dart';
 import '../../navigation/routes.dart';
 import '../../providers/exercise_provider.dart';
 import '../../providers/history_provider.dart';
+import '../../providers/profile_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../../providers/workout_provider.dart';
 import '../../services/clock.dart';
@@ -20,6 +21,7 @@ import '../../services/keep_awake_service.dart';
 import '../../services/unit_conversion_service.dart';
 import '../../services/workout_calculator.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_radii.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
 import '../../widgets/app_button.dart';
@@ -29,6 +31,7 @@ import '../../widgets/app_empty_state.dart';
 import '../../widgets/app_tag.dart';
 import '../../widgets/exercise_picker_sheet.dart';
 import '../../widgets/numeric_input_sheet.dart';
+import '../../widgets/plate_calculator_sheet.dart';
 import '../../widgets/rest_timer_banner.dart';
 import '../../widgets/set_row.dart';
 import '../../widgets/workout_interruption_sheet.dart';
@@ -340,8 +343,9 @@ class _LoggerScreenState extends State<LoggerScreen>
       return;
     }
     final workout = context.read<WorkoutProvider>();
+    final coordinator = context.read<AppCoordinator>();
     for (final exercise in result.exercises) {
-      final added = await workout.addExercise(exercise.id);
+      final added = await coordinator.addExerciseToWorkout(exercise.id);
       if (!added && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(workout.error ?? 'Could not add exercise.')),
@@ -356,6 +360,124 @@ class _LoggerScreenState extends State<LoggerScreen>
     if (session != null && session.exercises.isNotEmpty) {
       setState(() => _selectedIndex = session.exercises.length - 1);
     }
+  }
+
+  Future<void> _swapExercise(SessionExercise exercise) async {
+    final library = context.read<ExerciseProvider>();
+    final current = library.byId(exercise.exerciseId);
+    final result = await showExercisePicker(
+      context,
+      mode: ExercisePickerMode.session,
+      availableEquipment: context
+          .read<ProfileProvider>()
+          .profile
+          ?.availableEquipment,
+      excludedExerciseIds: <String>{exercise.exerciseId},
+      initialMuscle: current?.primaryMuscle,
+      title: 'Swap exercise',
+    );
+    if (result == null || result.exercises.isEmpty || !mounted) {
+      return;
+    }
+    final replacement = result.exercises.first;
+    final completed = exercise.sets.where((set) => set.completed).length;
+    if (completed > 0) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) {
+          return AlertDialog(
+            backgroundColor: AppColors.card,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppRadii.x2l),
+            ),
+            title: Text(
+              'Swap exercise?',
+              style: AppTypography.h2.copyWith(color: AppColors.text),
+            ),
+            content: Text(
+              'Your $completed completed '
+              '${completed == 1 ? 'set' : 'sets'} will reset. '
+              'The new exercise keeps the same number of sets with no weight.',
+              style: AppTypography.body.copyWith(color: AppColors.muted),
+            ),
+            actions: <Widget>[
+              TextButton(
+                key: const Key('swap-cancel'),
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: Text(
+                  'Cancel',
+                  style: AppTypography.label.copyWith(color: AppColors.muted),
+                ),
+              ),
+              TextButton(
+                key: const Key('swap-confirm'),
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                child: Text(
+                  'Replace',
+                  style: AppTypography.label.copyWith(color: AppColors.lime),
+                ),
+              ),
+            ],
+          );
+        },
+      );
+      if (confirmed != true || !mounted) {
+        return;
+      }
+    }
+    final workout = context.read<WorkoutProvider>();
+    final swapped = await workout.replaceExercise(
+      exerciseId: exercise.exerciseId,
+      replacementExerciseId: replacement.id,
+    );
+    if (!swapped && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(workout.error ?? 'Could not swap exercise.')),
+      );
+    }
+  }
+
+  Future<void> _openPlateCalculator(SessionExercise exercise) async {
+    final settings = context.read<SettingsProvider>();
+    final unit = settings.settings.unitPreferences.weightUnit;
+    final session = context.read<WorkoutProvider>().activeSession;
+    final current = session?.exercises
+        .where((item) => item.exerciseId == exercise.exerciseId)
+        .firstOrNull;
+    final ordered = current == null
+        ? const <WorkoutSet>[]
+        : (<WorkoutSet>[...current.sets]
+            ..sort((a, b) => a.index.compareTo(b.index)));
+    final active =
+        ordered.where((set) => !set.completed).firstOrNull ??
+        ordered.lastOrNull;
+    final weightKg = active?.weightKg ?? 0;
+    final target = weightKg > 0 && unit == WeightUnit.lb
+        ? _units.kgToLb(weightKg)
+        : weightKg;
+    final name =
+        context.read<ExerciseProvider>().byId(exercise.exerciseId)?.name ??
+        exercise.exerciseId;
+    await showPlateCalculatorSheet(
+      context,
+      unit: unit,
+      exerciseName: name,
+      targetWeight: target,
+    );
+  }
+
+  String? _progressionLabel(SessionExercise exercise, WeightUnit weightUnit) {
+    final suggestion = exercise.progression;
+    if (suggestion == null) {
+      return null;
+    }
+    if (suggestion.isIncrease) {
+      final difference = suggestion.weightKg - suggestion.previousWeightKg;
+      return 'Progressive overload: +'
+          '${_units.displayWeight(difference, weightUnit)} from last workout';
+    }
+    return 'Repeat last weight: '
+        '${_units.displayWeight(suggestion.weightKg, weightUnit)}';
   }
 
   int _completedSets(WorkoutSession session) {
@@ -537,16 +659,72 @@ class _LoggerScreenState extends State<LoggerScreen>
     final ordered = <WorkoutSet>[...exercise.sets]
       ..sort((a, b) => a.index.compareTo(b.index));
     final activeIndex = ordered.indexWhere((set) => !set.completed);
+    final progression = _progressionLabel(exercise, weightUnit);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        Text(name, style: AppTypography.h1.copyWith(color: AppColors.text)),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Expanded(
+              child: Text(
+                name,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: AppTypography.h1.copyWith(color: AppColors.text),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            IconButton(
+              key: const Key('logger-swap-exercise'),
+              tooltip: 'Swap exercise',
+              onPressed: () => _swapExercise(exercise),
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints.tightFor(
+                width: AppSpacing.x5l,
+                height: AppSpacing.x5l,
+              ),
+              icon: const Icon(
+                Icons.swap_horiz,
+                size: AppSpacing.x3l,
+                color: AppColors.muted,
+              ),
+            ),
+            IconButton(
+              key: const Key('logger-plate-calculator'),
+              tooltip: 'Plate calculator',
+              onPressed: () => _openPlateCalculator(exercise),
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints.tightFor(
+                width: AppSpacing.x5l,
+                height: AppSpacing.x5l,
+              ),
+              icon: const Icon(
+                Icons.calculate_outlined,
+                size: AppSpacing.x3l,
+                color: AppColors.muted,
+              ),
+            ),
+          ],
+        ),
         const SizedBox(height: AppSpacing.xs),
         Text(
           '${selectedIndex + 1} of ${session.exercises.length} · '
           '${ordered.length} sets',
           style: AppTypography.caption.copyWith(color: AppColors.muted),
         ),
+        if (progression != null) ...<Widget>[
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            progression,
+            key: const Key('logger-progression-hint'),
+            style: AppTypography.caption.copyWith(
+              color: exercise.progression?.isIncrease ?? false
+                  ? AppColors.lime
+                  : AppColors.muted,
+            ),
+          ),
+        ],
         const SizedBox(height: AppSpacing.x3l),
         _buildSetHeader(unitLabel),
         const SizedBox(height: AppSpacing.sm),

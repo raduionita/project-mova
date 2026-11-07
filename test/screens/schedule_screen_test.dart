@@ -118,7 +118,7 @@ void main() {
     expect(find.text('Select 1 more day to continue.'), findsOneWidget);
   });
 
-  testWidgets('continue persists the schedule and opens notifications', (
+  testWidgets('continue persists the schedule and opens equipment', (
     tester,
   ) async {
     final storage = StorageService.inMemory();
@@ -138,8 +138,8 @@ void main() {
 
     expect(provider.draft.daysPerWeek, 3);
     expect(provider.draft.trainingDays, <int>[1, 3, 5]);
-    expect(provider.draft.currentStep, OnboardingStep.notifications);
-    expect(routes, <String>[Routes.onboardingNotifications]);
+    expect(provider.draft.currentStep, OnboardingStep.equipment);
+    expect(routes, <String>[Routes.onboardingEquipment]);
 
     final reloaded = await _providerWith(storage);
     expect(reloaded.draft.daysPerWeek, 3);

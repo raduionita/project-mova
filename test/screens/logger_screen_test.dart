@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mova/models/equipment_group.dart';
 import 'package:mova/models/exercise.dart';
+import 'package:mova/models/progression_suggestion.dart';
 import 'package:mova/models/routine.dart';
 import 'package:mova/models/routine_exercise.dart';
 import 'package:mova/models/session_exercise.dart';
 import 'package:mova/models/unit_preferences.dart';
+import 'package:mova/models/user_profile.dart';
 import 'package:mova/models/workout_session.dart';
 import 'package:mova/models/workout_set.dart';
 import 'package:mova/navigation/routes.dart';
 import 'package:mova/providers/exercise_provider.dart';
 import 'package:mova/providers/history_provider.dart';
+import 'package:mova/providers/profile_provider.dart';
 import 'package:mova/providers/settings_provider.dart';
 import 'package:mova/providers/workout_provider.dart';
 import 'package:mova/screens/logger/logger_screen.dart';
@@ -20,7 +24,9 @@ import 'package:mova/services/keep_awake_service.dart';
 import 'package:mova/services/seed_data_service.dart';
 import 'package:mova/services/storage_service.dart';
 import 'package:mova/theme/app_theme.dart';
+import 'package:mova/widgets/app_button.dart';
 import 'package:mova/widgets/app_chip.dart';
+import 'package:mova/widgets/exercise_picker_sheet.dart';
 import 'package:provider/provider.dart';
 
 IdGenerator _sequentialIds() {
@@ -111,6 +117,7 @@ void main() {
     HapticsService? haptics,
     bool reduceMotion = false,
     Clock? clock,
+    List<EquipmentGroup>? equipment,
   }) async {
     final activeClock = clock ?? FakeClock(now);
     final storage = StorageService.inMemory();
@@ -135,6 +142,15 @@ void main() {
     final settings = SettingsProvider(storage);
     await settings.load();
     await settings.setUnitPreferences(UnitPreferences(weightUnit: unit));
+    final profile = ProfileProvider(storage, clock: activeClock);
+    await profile.saveProfile(
+      UserProfile(
+        id: 'profile-1',
+        availableEquipment: equipment ?? EquipmentGroup.values,
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
 
     await tester.pumpWidget(
       MultiProvider(
@@ -143,6 +159,7 @@ void main() {
           ChangeNotifierProvider<HistoryProvider>.value(value: history),
           ChangeNotifierProvider<ExerciseProvider>.value(value: exercises),
           ChangeNotifierProvider<SettingsProvider>.value(value: settings),
+          ChangeNotifierProvider<ProfileProvider>.value(value: profile),
         ],
         child: MaterialApp(
           theme: AppTheme.dark,
@@ -459,6 +476,99 @@ void main() {
     expect(find.text('Empty workout'), findsOneWidget);
     expect(find.text('No exercises yet'), findsOneWidget);
     expect(find.text('Add exercise'), findsOneWidget);
+  });
+
+  testWidgets('shows the progressive overload hint for a prefilled exercise', (
+    tester,
+  ) async {
+    final workout = WorkoutProvider(
+      StorageService.inMemory(),
+      clock: FakeClock(now),
+      idService: IdService(generator: _sequentialIds()),
+    );
+    await workout.startFromRoutine(
+      routine(),
+      suggest: (exerciseId, repsLow, repsHigh) {
+        if (exerciseId != 'barbell-bench-press') {
+          return null;
+        }
+        return const ProgressionSuggestion(
+          exerciseId: 'barbell-bench-press',
+          weightKg: 82.5,
+          reps: 8,
+          previousWeightKg: 80,
+          previousReps: 12,
+          action: ProgressionAction.increase,
+          sourceWorkoutId: 'previous-1',
+          sourceSetId: 'previous-set-1',
+        );
+      },
+    );
+
+    await pumpLogger(tester, workout: workout);
+
+    expect(find.byKey(const Key('logger-progression-hint')), findsOneWidget);
+    expect(
+      find.textContaining('Progressive overload: +2.5 kg'),
+      findsOneWidget,
+    );
+    expect(find.text('82.5'), findsWidgets);
+  });
+
+  testWidgets('swaps an exercise after confirmation and resets its sets', (
+    tester,
+  ) async {
+    final workout = await pumpLogger(
+      tester,
+      equipment: const <EquipmentGroup>[EquipmentGroup.dumbbells],
+    );
+    final original = workout.activeSession!.exercises.first;
+    await workout.completeSet(
+      exerciseId: original.exerciseId,
+      setId: original.sets.first.id,
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('logger-swap-exercise')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ExercisePickerSheet), findsOneWidget);
+    expect(find.text('Swap exercise'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(ExercisePickerSheet),
+        matching: find.text('Barbell Bench Press'),
+      ),
+      findsNothing,
+    );
+    final replacement = find.descendant(
+      of: find.byType(ExercisePickerSheet),
+      matching: find.text('Dumbbell Fly'),
+    );
+    expect(replacement, findsOneWidget);
+
+    await tester.tap(replacement);
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.descendant(
+        of: find.byType(ExercisePickerSheet),
+        matching: find.widgetWithText(AppButton, 'Add to workout'),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Swap exercise?'), findsOneWidget);
+    expect(find.textContaining('1 completed set will reset'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('swap-confirm')));
+    await tester.pumpAndSettle();
+
+    final swapped = workout.activeSession!.exercises.first;
+    expect(swapped.exerciseId, 'dumbbell-fly');
+    expect(swapped.sets, hasLength(original.sets.length));
+    expect(
+      swapped.sets.every((set) => set.weightKg == 0 && !set.completed),
+      isTrue,
+    );
   });
 }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../common/constants.dart';
+import '../models/equipment_group.dart';
 import '../models/user_profile.dart';
 import '../services/clock.dart';
 import '../services/storage_service.dart';
@@ -60,6 +61,26 @@ class ProfileProvider extends ChangeNotifier {
     }
     return saveProfile(
       current.copyWith(bodyWeightKg: bodyWeightKg, updatedAt: _clock.now()),
+    );
+  }
+
+  Future<bool> updateEquipment(List<EquipmentGroup> equipment) async {
+    final current = _profile;
+    if (current == null) {
+      _error = 'No profile to update.';
+      notifyListeners();
+      return false;
+    }
+    if (equipment.isEmpty) {
+      _error = 'Choose at least one equipment option.';
+      notifyListeners();
+      return false;
+    }
+    return saveProfile(
+      current.copyWith(
+        availableEquipment: List<EquipmentGroup>.unmodifiable(equipment),
+        updatedAt: _clock.now(),
+      ),
     );
   }
 }

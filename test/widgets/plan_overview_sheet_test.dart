@@ -10,6 +10,7 @@ import 'package:mova/models/plan_exercise.dart';
 import 'package:mova/models/training_plan.dart';
 import 'package:mova/models/workout_session.dart';
 import 'package:mova/providers/plan_provider.dart';
+import 'package:mova/providers/profile_provider.dart';
 import 'package:mova/services/clock.dart';
 import 'package:mova/services/storage_service.dart';
 import 'package:mova/theme/app_theme.dart';
@@ -103,8 +104,13 @@ class _Launcher extends StatelessWidget {
 }
 
 Widget _wrap(PlanProvider provider) {
-  return ChangeNotifierProvider<PlanProvider>.value(
-    value: provider,
+  return MultiProvider(
+    providers: [
+      ChangeNotifierProvider<PlanProvider>.value(value: provider),
+      ChangeNotifierProvider<ProfileProvider>(
+        create: (_) => ProfileProvider(StorageService.inMemory()),
+      ),
+    ],
     child: MaterialApp(theme: AppTheme.dark, home: const _Launcher()),
   );
 }

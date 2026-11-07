@@ -19,7 +19,7 @@ migrate_working_dir/
 .idea/
 
 .openidea/
-
+.opencode/
 .screens/
 
 # The .vscode folder contains launch configuration and tasks you configure in

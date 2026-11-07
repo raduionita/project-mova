@@ -123,7 +123,7 @@ void main() {
   });
 
   test('onboarding route list covers every step after welcome', () {
-    expect(Routes.onboardingSteps, hasLength(10));
+    expect(Routes.onboardingSteps, hasLength(11));
     expect(Routes.onboardingSteps.first, Routes.onboardingUnits);
     expect(Routes.onboardingSteps.last, Routes.onboardingPlan);
   });

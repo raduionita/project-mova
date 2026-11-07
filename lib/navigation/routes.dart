@@ -11,6 +11,7 @@ class Routes {
   static const String onboardingGoals = '/onboarding/goals';
   static const String onboardingExperience = '/onboarding/experience';
   static const String onboardingSchedule = '/onboarding/schedule';
+  static const String onboardingEquipment = '/onboarding/equipment';
   static const String onboardingNotifications = '/onboarding/notifications';
   static const String onboardingPlan = '/onboarding/plan';
 
@@ -112,6 +113,7 @@ class Routes {
 
   static const String meEdit = '$me/edit';
   static const String meSettings = '$me/settings';
+  static const String meEquipment = '$me/equipment';
 
   /// Legal document routes are `/me/legal/:doc`.
   static const String meLegal = '$me/legal';
@@ -148,6 +150,7 @@ class Routes {
     onboardingGoals,
     onboardingExperience,
     onboardingSchedule,
+    onboardingEquipment,
     onboardingNotifications,
     onboardingPlan,
   ];

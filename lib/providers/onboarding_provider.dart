@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../common/constants.dart';
+import '../models/equipment_group.dart';
 import '../models/experience_level.dart';
 import '../models/gender.dart';
 import '../models/goal.dart';
@@ -90,6 +91,10 @@ class OnboardingProvider extends ChangeNotifier {
     );
   }
 
+  Future<bool> setEquipment(List<EquipmentGroup> equipment) {
+    return _update(_draft.copyWith(availableEquipment: equipment));
+  }
+
   Future<bool> markNotificationsAsked(bool asked) {
     return _update(_draft.copyWith(notificationsAsked: asked));
   }
@@ -111,6 +116,8 @@ class OnboardingProvider extends ChangeNotifier {
         return _draft.goals.isNotEmpty;
       case OnboardingStep.experience:
         return _draft.experienceLevel != null;
+      case OnboardingStep.equipment:
+        return _draft.availableEquipment.isNotEmpty;
       case OnboardingStep.schedule:
         final daysPerWeek = _draft.daysPerWeek;
         return daysPerWeek != null &&

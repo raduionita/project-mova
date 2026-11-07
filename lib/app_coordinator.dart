@@ -1,8 +1,14 @@
 import 'common/formatters.dart';
 import 'models/activity_post.dart';
+import 'models/equipment_group.dart';
+import 'models/exercise.dart';
 import 'models/onboarding_draft.dart';
 import 'models/personal_record.dart';
+import 'models/plan_day.dart';
+import 'models/progression_suggestion.dart';
+import 'models/routine.dart';
 import 'models/user_profile.dart';
+import 'models/unit_preferences.dart';
 import 'models/workout_session.dart';
 import 'providers/exercise_provider.dart';
 import 'providers/history_provider.dart';
@@ -18,7 +24,9 @@ import 'providers/workout_provider.dart';
 import 'services/clock.dart';
 import 'services/id_service.dart';
 import 'services/pr_service.dart';
+import 'services/progression_service.dart';
 import 'services/storage_service.dart';
+import 'services/unit_conversion_service.dart';
 import 'services/workout_calculator.dart';
 
 /// Coordinates transactions that span more than one provider.
@@ -57,6 +65,8 @@ class AppCoordinator {
   final PrService prService;
   final Clock _clock;
   final IdService _idService;
+  final ProgressionService _progressionService = const ProgressionService();
+  final UnitConversionService _conversions = const UnitConversionService();
 
   /// Writes profile, settings, and plan before clearing the draft.
   Future<bool> completeOnboarding(OnboardingDraft draft) async {
@@ -76,6 +86,7 @@ class AppCoordinator {
       goals: draft.goals,
       experienceLevel: experienceLevel,
       bodyWeightKg: draft.bodyWeightKg,
+      availableEquipment: draft.availableEquipment,
       createdAt: now,
       updatedAt: now,
     );
@@ -91,11 +102,106 @@ class AppCoordinator {
       experienceLevel: experienceLevel,
       daysPerWeek: daysPerWeek,
       trainingDays: draft.trainingDays,
+      availableEquipment: draft.availableEquipment,
     )) {
       return false;
     }
     await onboardingProvider.reset();
     return true;
+  }
+
+  /// Starts a generated plan day with progression prefills when available.
+  Future<bool> startPlanDay(PlanDay day) async {
+    final workout = workoutProvider;
+    if (workout == null) {
+      return false;
+    }
+    return workout.startFromPlanDay(day, suggest: suggestionForExercise);
+  }
+
+  /// Starts a routine with progression prefills when available.
+  Future<bool> startRoutine(Routine routine) async {
+    final workout = workoutProvider;
+    if (workout == null) {
+      return false;
+    }
+    return workout.startFromRoutine(routine, suggest: suggestionForExercise);
+  }
+
+  /// Adds an exercise to the active workout with a progression prefill.
+  Future<bool> addExerciseToWorkout(String exerciseId) async {
+    final workout = workoutProvider;
+    if (workout == null) {
+      return false;
+    }
+    return workout.addExercise(
+      exerciseId,
+      suggestion: suggestionForExercise(exerciseId, 8, 12),
+    );
+  }
+
+  /// Adds several exercises to the active workout in order.
+  Future<bool> addExercisesToWorkout(List<Exercise> exercises) async {
+    final workout = workoutProvider;
+    if (workout == null || workout.activeSession == null) {
+      return false;
+    }
+    for (final exercise in exercises) {
+      final added = await addExerciseToWorkout(exercise.id);
+      if (!added) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /// Returns the next weight for an exercise from the most recent history.
+  ProgressionSuggestion? suggestionForExercise(
+    String exerciseId,
+    int repsLow,
+    int repsHigh,
+  ) {
+    final exercise = exerciseProvider?.exercises
+        .where((item) => item.id == exerciseId)
+        .firstOrNull;
+    if (exercise == null) {
+      return null;
+    }
+    final unit = settingsProvider.settings.unitPreferences.weightUnit;
+    final incrementKg = unit == WeightUnit.kg ? 2.5 : _conversions.lbToKg(5);
+    return _progressionService.suggest(
+      exerciseId: exerciseId,
+      equipment: exercise.equipment,
+      targetRepsLow: repsLow,
+      targetRepsHigh: repsHigh,
+      history: historyProvider.workouts,
+      incrementKg: incrementKg,
+    );
+  }
+
+  /// Saves equipment, optionally rebuilding the current plan.
+  Future<bool> updateEquipment(
+    List<EquipmentGroup> equipment, {
+    required bool regeneratePlan,
+  }) async {
+    if (equipment.isEmpty) {
+      return false;
+    }
+    if (!await profileProvider.updateEquipment(equipment)) {
+      return false;
+    }
+    if (!regeneratePlan) {
+      return true;
+    }
+    final plan = planProvider.plan;
+    if (plan == null) {
+      return false;
+    }
+    return planProvider.updateSchedule(
+      daysPerWeek: plan.daysPerWeek,
+      trainingDays: plan.trainingDays,
+      availableEquipment: equipment,
+    );
   }
 
   /// Adds a finished session to history and refreshes derived progress.

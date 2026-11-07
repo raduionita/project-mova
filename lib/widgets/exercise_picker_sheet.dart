@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../app_coordinator.dart';
+import '../models/equipment_group.dart';
 import '../models/exercise.dart';
 import '../providers/exercise_provider.dart';
 import '../providers/workout_provider.dart';
@@ -28,6 +30,10 @@ Future<ExercisePickerResult?> showExercisePicker(
   ExercisePickerMode mode = ExercisePickerMode.browse,
   bool multiSelect = false,
   Set<String> initialExerciseIds = const <String>{},
+  List<EquipmentGroup>? availableEquipment,
+  Set<String> excludedExerciseIds = const <String>{},
+  String? initialMuscle,
+  String? title,
 }) {
   return showModalBottomSheet<ExercisePickerResult>(
     context: context,
@@ -41,6 +47,10 @@ Future<ExercisePickerResult?> showExercisePicker(
       mode: mode,
       multiSelect: multiSelect,
       initialExerciseIds: initialExerciseIds,
+      availableEquipment: availableEquipment,
+      excludedExerciseIds: excludedExerciseIds,
+      initialMuscle: initialMuscle,
+      title: title,
     ),
   );
 }
@@ -55,6 +65,12 @@ Future<bool> addExercisesToWorkout(
     return false;
   }
   final workout = context.read<WorkoutProvider>();
+  AppCoordinator? coordinator;
+  try {
+    coordinator = context.read<AppCoordinator>();
+  } on ProviderNotFoundException {
+    coordinator = null;
+  }
   final messenger = ScaffoldMessenger.of(context);
   if (workout.activeSession == null) {
     messenger.showSnackBar(
@@ -63,7 +79,9 @@ Future<bool> addExercisesToWorkout(
     return false;
   }
   for (final exercise in exercises) {
-    final added = await workout.addExercise(exercise.id);
+    final added = coordinator == null
+        ? await workout.addExercise(exercise.id)
+        : await coordinator.addExerciseToWorkout(exercise.id);
     if (!added) {
       messenger.showSnackBar(
         SnackBar(
@@ -95,11 +113,19 @@ class ExercisePickerSheet extends StatefulWidget {
     this.mode = ExercisePickerMode.browse,
     this.multiSelect = false,
     this.initialExerciseIds = const <String>{},
+    this.availableEquipment,
+    this.excludedExerciseIds = const <String>{},
+    this.initialMuscle,
+    this.title,
   });
 
   final ExercisePickerMode mode;
   final bool multiSelect;
   final Set<String> initialExerciseIds;
+  final List<EquipmentGroup>? availableEquipment;
+  final Set<String> excludedExerciseIds;
+  final String? initialMuscle;
+  final String? title;
 
   @override
   State<ExercisePickerSheet> createState() => _ExercisePickerSheetState();
@@ -115,6 +141,7 @@ class _ExercisePickerSheetState extends State<ExercisePickerSheet> {
   void initState() {
     super.initState();
     _selectedIds.addAll(widget.initialExerciseIds);
+    _muscleFilter = widget.initialMuscle;
     WidgetsBinding.instance.addPostFrameCallback((_) => _load());
   }
 
@@ -134,11 +161,29 @@ class _ExercisePickerSheetState extends State<ExercisePickerSheet> {
     }
   }
 
-  List<Exercise> _filtered(List<Exercise> exercises) {
+  List<Exercise> _compatible(List<Exercise> exercises) {
+    final allowed = widget.availableEquipment == null
+        ? null
+        : EquipmentGroup.expand(widget.availableEquipment!);
+    return exercises
+        .where((exercise) {
+          if (widget.excludedExerciseIds.contains(exercise.id)) {
+            return false;
+          }
+          return allowed == null || allowed.contains(exercise.equipment);
+        })
+        .toList(growable: false);
+  }
+
+  List<Exercise> _filtered(
+    List<Exercise> exercises, {
+    bool ignoreMuscle = false,
+  }) {
     final query = _query.trim().toLowerCase();
     return exercises
         .where((exercise) {
-          if (_muscleFilter != null &&
+          if (!ignoreMuscle &&
+              _muscleFilter != null &&
               exercise.primaryMuscle.toLowerCase() !=
                   _muscleFilter!.toLowerCase()) {
             return false;
@@ -167,6 +212,9 @@ class _ExercisePickerSheetState extends State<ExercisePickerSheet> {
   }
 
   String get _title {
+    if (widget.title != null) {
+      return widget.title!;
+    }
     switch (widget.mode) {
       case ExercisePickerMode.browse:
         return 'Choose exercise';
@@ -317,11 +365,12 @@ class _ExercisePickerSheetState extends State<ExercisePickerSheet> {
     );
   }
 
-  Widget _buildList(List<Exercise> exercises) {
+  Widget _buildList(List<Exercise> exercises, {String? emptyMessage}) {
     if (exercises.isEmpty) {
       return Center(
         child: Text(
-          'No exercises found',
+          emptyMessage ?? 'No exercises found',
+          textAlign: TextAlign.center,
           style: AppTypography.body.copyWith(color: AppColors.muted),
         ),
       );
@@ -345,7 +394,15 @@ class _ExercisePickerSheetState extends State<ExercisePickerSheet> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<ExerciseProvider>();
-    final filtered = _filtered(provider.exercises);
+    final compatible = _compatible(provider.exercises);
+    final muscleFallback =
+        _query.trim().isEmpty &&
+        _muscleFilter != null &&
+        compatible.isNotEmpty &&
+        _filtered(compatible).isEmpty;
+    final filtered = muscleFallback
+        ? _filtered(compatible, ignoreMuscle: true)
+        : _filtered(compatible);
     final viewInsets = MediaQuery.viewInsetsOf(context).bottom;
     final screenHeight = MediaQuery.sizeOf(context).height;
     final height = (screenHeight * 0.85 - viewInsets).clamp(
@@ -365,10 +422,10 @@ class _ExercisePickerSheetState extends State<ExercisePickerSheet> {
               child: _buildSearchField(),
             ),
             const SizedBox(height: AppSpacing.sm),
-            if (provider.exercises.isNotEmpty)
+            if (compatible.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.x2l),
-                child: _buildFilterChips(provider.exercises),
+                child: _buildFilterChips(compatible),
               ),
             Padding(
               padding: const EdgeInsets.fromLTRB(
@@ -377,11 +434,28 @@ class _ExercisePickerSheetState extends State<ExercisePickerSheet> {
                 AppSpacing.x2l,
                 AppSpacing.sm,
               ),
-              child: Text(
-                filtered.length == 1
-                    ? '1 exercise'
-                    : '${filtered.length} exercises',
-                style: AppTypography.caption.copyWith(color: AppColors.muted),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    filtered.length == 1
+                        ? '1 exercise'
+                        : '${filtered.length} exercises',
+                    style: AppTypography.caption.copyWith(
+                      color: AppColors.muted,
+                    ),
+                  ),
+                  if (muscleFallback) ...<Widget>[
+                    const SizedBox(height: AppSpacing.xxs),
+                    Text(
+                      'No ${_muscleFilter!.toLowerCase()} exercises match '
+                      'your equipment. Showing all compatible exercises.',
+                      style: AppTypography.caption.copyWith(
+                        color: AppColors.orange,
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
             Expanded(
@@ -391,7 +465,12 @@ class _ExercisePickerSheetState extends State<ExercisePickerSheet> {
                     ? const Center(
                         child: CircularProgressIndicator(color: AppColors.lime),
                       )
-                    : _buildList(filtered),
+                    : _buildList(
+                        filtered,
+                        emptyMessage: compatible.isEmpty
+                            ? 'No exercises match your equipment.'
+                            : null,
+                      ),
               ),
             ),
             Container(

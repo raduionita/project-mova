@@ -455,7 +455,7 @@ Splash
   |
   +-- First launch --> Welcome --> Units --> Gender --> Birth date --> Weight
   |                     --> Height --> Goals --> Experience --> Schedule
-  |                     --> Notifications --> Plan preview --> Main
+  |                     --> Equipment --> Notifications --> Plan preview --> Main
   |
   +-- Returning user with profile --> Main
   +-- Paused session --> Main / Today with Resume
@@ -487,6 +487,7 @@ Main (5-tab shell)
         |-- Profile edit
         |-- Settings
               |-- Units
+              |-- Equipment
               |-- Reminders
               |-- Integrations
               |-- Privacy and data
@@ -495,7 +496,7 @@ Main (5-tab shell)
               |-- Reset local data
 ```
 
-`MOCK.html` is the canonical visual storyboard. It shows Splash, all 11 onboarding screens (Welcome plus the ten steps), and the five-tab core screens: Today, Live logger, Summary and PR, Progress, Train, Social, and Me. Sub-routes such as profile edit, settings, history detail, routine detail, legal, and licenses reuse the same components and are listed in the route table below.
+`MOCK.html` is the canonical visual storyboard. It shows Splash, all 12 onboarding screens (Welcome plus the eleven steps), and the five-tab core screens: Today, Live logger, Summary and PR, Progress, Train, Social, and Me. Sub-routes such as profile edit, settings, history detail, routine detail, legal, and licenses reuse the same components and are listed in the route table below.
 
 ### 9.2 Route names
 
@@ -511,6 +512,7 @@ Main (5-tab shell)
 | `/onboarding/goals` | Goals | No |
 | `/onboarding/experience` | Experience | No |
 | `/onboarding/schedule` | Schedule | No |
+| `/onboarding/equipment` | Equipment | No |
 | `/onboarding/notifications` | Notification permission | No |
 | `/onboarding/plan` | Plan preview | No |
 | `/today` | Today | Yes |
@@ -527,6 +529,7 @@ Main (5-tab shell)
 | `/me` | Me | Yes |
 | `/me/edit` | Profile edit | No |
 | `/me/settings` | Settings | Yes |
+| `/me/equipment` | Equipment | Yes |
 | `/me/legal/:doc` | Legal document | Yes |
 | `/me/licenses` | Licenses | Yes |
 | `/logger` | Live logger | No |
@@ -577,25 +580,26 @@ All screens use `background`, 16 px horizontal padding, and the `body` type as t
 - **Behavior:** Every step persists the draft before moving forward. Back preserves values. Weight and height can be skipped; gender and birth date are required.
 - **States:** Default, selected, skipped, restored draft, invalid age.
 
-### 10.4 Onboarding: goals, experience, schedule, notifications
+### 10.4 Onboarding: goals, experience, schedule, equipment, notifications
 
-- **Purpose:** Turn the profile into a goal, a training week, and a reminder choice.
-- **Screens:** `/onboarding/goals`, `/onboarding/experience`, `/onboarding/schedule`, `/onboarding/notifications`.
+- **Purpose:** Turn the profile into a goal, a training week, an equipment set, and a reminder choice.
+- **Screens:** `/onboarding/goals`, `/onboarding/experience`, `/onboarding/schedule`, `/onboarding/equipment`, `/onboarding/notifications`.
 - **Goals:** Multi-select cards for build muscle, get stronger, lose weight, and stay healthy. At least one is required. The first selected goal is primary and is labelled as such.
 - **Experience:** Single-select cards for beginner, regular, gym rat, and veteran, each with a one-line description.
 - **Schedule:** Days per week from 1 to 7 and the training weekdays. Default is 3 days on Monday, Wednesday, and Friday. At least one weekday is required and the count must match the selected days per week.
+- **Equipment:** Multi-select cards for bodyweight, dumbbells, barbell and EZ bar, machines, cable station, kettlebells, and accessories. Every group is selected by default so a new user keeps a full-gym plan. At least one group is required. The selection is stored on the profile and every generated plan.
 - **Notifications:** Explain workout reminders. Enable asks for system permission. Deny, Not now, or unavailable continues with reminders off. The choice is stored and can be changed later in Settings.
-- **Components:** `AppMultiSelect`, `AppChoiceCard`, stepper, day selector, step progress, primary Continue.
-- **Behavior:** The schedule feeds the plan generator. The notification choice never blocks progress.
-- **States:** No goal, no day, invalid day count, permission granted, denied, unavailable, skipped.
+- **Components:** `AppMultiSelect`, `AppChoiceCard`, stepper, day selector, equipment cards, step progress, primary Continue.
+- **Behavior:** The schedule and equipment feed the plan generator. The notification choice never blocks progress.
+- **States:** No goal, no day, invalid day count, no equipment, permission granted, denied, unavailable, skipped.
 
 ### 10.5 Plan preview
 
 - **Purpose:** Show the generated week before committing.
 - **Layout:** `h1` "Your Week 1", subtitle with goal and frequency, list of training-day cards, primary "Start using Mova", ghost "Edit schedule".
 - **Components:** Plan day card with day label, workout name, muscle groups, exercise count, estimated duration.
-- **Behavior:** Confirm persists the profile, settings, and plan through `AppCoordinator`, clears the draft, and routes to `/today`. Edit returns to `/onboarding/schedule` with selections preserved.
-- **States:** Generated plan, editing, generation in progress under 500 ms. If generation fails, show a retry card and a fallback full-body plan labelled "Starter plan".
+- **Behavior:** Confirm persists the profile, settings, and plan through `AppCoordinator`, clears the draft, and routes to `/today`. Edit returns to `/onboarding/schedule` with selections preserved. When the selected equipment leaves a muscle group without options, the preview shows a warning that names the skipped muscles and still produces a plan.
+- **States:** Generated plan, editing, generation in progress under 500 ms, skipped-muscle warning. If generation fails, show a retry card and a fallback full-body plan labelled "Starter plan".
 
 ### 10.6 Today
 
@@ -618,9 +622,12 @@ All screens use `background`, 16 px horizontal padding, and the `body` type as t
 - **Purpose:** Log sets faster than any competitor.
 - **Layout:** Top row with close, exercise name, elapsed timer, tag. Set table header. Current exercise set rows. Rest timer when active. Up-next card. Flexible spacer. The active set row is the primary control; "Finish workout" is a secondary action.
 - **Components:** Set row, rest banner, up-next card, finish action, overflow menu.
-- **Actions:** Complete set, edit weight or reps, add or remove a set, skip rest, add exercise, replace exercise, pause, finish, discard.
+- **Actions:** Complete set, edit weight or reps, add or remove a set, skip rest, add exercise, replace exercise, open the plate calculator, pause, finish, discard.
 - **Behavior:**
-  - Prefill weight and reps from the previous session for the same exercise.
+  - Prefill weight and reps from the previous session for the same exercise, then apply the progressive overload suggestion.
+  - The progression hint sits above the set table. It reads `Progressive overload: +<increment>` when every working set of the last session reached the top of the rep range, or `Repeat last weight: <weight>` otherwise. Bodyweight exercises and exercises without history show no hint.
+  - "Replace exercise" opens the picker filtered to the same primary muscle and the profile's equipment, excluding the current exercise. A swap keeps the set count, clears every completed set, zeros the weight, and asks for confirmation when sets are already logged.
+  - The plate calculator opens from the logger toolbar. It is read-only and never changes logged sets.
   - Completing a set starts the default rest timer for the exercise type.
   - Completing the last set of an exercise moves focus to the next exercise with a brief card transition.
   - The keyboard never covers the active set row.
@@ -700,7 +707,7 @@ All screens use `background`, 16 px horizontal padding, and the `body` type as t
 - **Purpose:** Identity, lifetime totals, and settings entry.
 - **Layout:** Profile header with avatar, name, experience tag, three stat tiles, settings list, app version.
 - **Components:** Avatar, name, tag, stat trio, setting rows with icon, label, value, chevron.
-- **Entries:** Edit profile, Units, Workout reminders, Integrations, Privacy and social, Help and support, Reset local data, App version. Privacy policy, Terms of service, and Open-source licenses open from Settings.
+- **Entries:** Edit profile, Units, Workout reminders, Integrations, Equipment, Privacy and social, Help and support, Reset local data, App version. Privacy policy, Terms of service, and Open-source licenses open from Settings.
 - **States:** Default profile, edited name, no PRs.
 - **Rules:** There is no account, sign-in, or log out in v1. Reset local data requires a confirmation and explains what is removed. Legal and license screens live under Settings, not as separate Me rows.
 
@@ -708,6 +715,7 @@ All screens use `background`, 16 px horizontal padding, and the `body` type as t
 
 - **Profile:** Edit name, experience, goals, gender, birth date, height, and body weight on `/me/edit`.
 - **Units:** Weight, distance, and body units. Converts display only. Canonical storage stays kg, km, and cm.
+- **Equipment:** Opens `/me/equipment`. Shows the number of selected groups and reuses the onboarding equipment cards. Saving offers "Save only" or "Save and regenerate". Regeneration rebuilds the current week with the new equipment and keeps history and personal records.
 - **Reminders:** Toggle plus weekday and time picker. Requires notification permission at the moment of enabling.
 - **Integrations:** Apple Health or Health Connect row. Shows connected, not connected, or unavailable. Manual steps fallback is always available.
 - **Privacy and social:** Local-only explanation. Toggle for showing own workouts in the feed.
@@ -720,8 +728,8 @@ All screens use `background`, 16 px horizontal padding, and the `body` type as t
 - **Purpose:** Review and change the weekly schedule without redoing onboarding.
 - **Layout:** Bottom sheet or full screen with seven day rows, current workout per day, and "Edit schedule".
 - **Actions:** Move a whole split day to another weekday, swap two occupied days, regenerate the week.
-- **States:** Rest day, edited week, regeneration confirmation.
-- **Rules:** Editing the plan never deletes completed history. Per-exercise editing is not part of v1.
+- **States:** Rest day, edited week, regeneration confirmation, skipped-muscle warning.
+- **Rules:** Editing the plan never deletes completed history. Regeneration reports that history and PRs are unchanged and appends any equipment warning. Per-exercise editing is not part of v1.
 
 ### 10.18 Permissions
 
@@ -815,7 +823,33 @@ score = round(
 - Manual entries are labeled "Manual" with an edit action.
 - Walks logged in Mova count as activity minutes, not steps.
 
-### 11.8 Empty and missing data
+### 11.8 Progressive overload
+
+```text
+if every completed working set of the newest session reaches reps_high:
+    next_weight = min(last_weight + increment, 500 kg)
+else:
+    next_weight = last_weight
+next_reps = reps_low
+```
+
+- The increment is 2.5 kg in kg mode and 5 lb converted to kg in lb mode.
+- Only completed, non-warm-up sets count. A session with no completed working set is skipped and the next newest session is used.
+- The suggestion pre-fills new sessions only. It never rewrites history.
+- Bodyweight exercises and sets logged at 0 kg produce no suggestion.
+- The logger hint names the change when the suggestion increases the weight and otherwise reads "Repeat last weight".
+
+### 11.9 Plate calculator
+
+- Target weight is the total including the bar.
+- Per side load is `(target - bar) / 2`. A target below the bar is reported as below the bar, not as an error.
+- Plates are chosen greedily from the heaviest available plate per loadout, unlimited per side.
+- kg loadout: bars 20, 15, and 10 kg; plates 25, 20, 15, 10, 5, 2.5, and 1.25 kg.
+- lb loadout: bars 45, 35, and 25 lb; plates 45, 35, 25, 10, 5, and 2.5 lb.
+- When the target is not loadable, show the closest loadable weight and the remainder with one decimal.
+- The calculator is read-only. It never changes logged sets.
+
+### 11.10 Empty and missing data
 
 - Show `-` for a missing value, never `0` when the value is unknown.
 - Show "Not connected" for integrations, not "Off".

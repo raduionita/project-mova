@@ -98,3 +98,17 @@
 2026.11.06 QA-08 Verify streak, Today, and volume rollover under two DST time zones
 2026.11.06 TRN-22 Show the live streak on Today after a workout is saved
 2026.11.07 QA-09 Fix height ruler overflow, stretched chips and tags, ruler tick clipping, stat value truncation, and routine header alignment
+2026.11.08 SMART-01 Add equipment groups with profile, onboarding draft, and plan persistence
+2026.11.08 SMART-02 Filter generated plans by equipment and warn about skipped muscles
+2026.11.08 SMART-03 Add deterministic progressive overload service and suggestion model
+2026.11.08 SMART-04 Add kg and lb plate loadouts with exact, remainder, and below-bar math
+2026.11.08 SMART-05 Add the onboarding equipment step between schedule and notifications
+2026.11.08 SMART-06 Add the Settings equipment screen with Save only and Save and regenerate
+2026.11.08 SMART-07 Surface equipment warnings in the plan preview and regeneration notice
+2026.11.08 SMART-08 Prefill plan and routine starts from the last performance
+2026.11.08 SMART-09 Prefill added exercises and show the progressive overload hint in the logger
+2026.11.08 SMART-10 Add same-muscle equipment-aware exercise swapping in the logger
+2026.11.08 SMART-11 Add the plate calculator sheet and logger entry
+2026.11.08 SMART-12 Verify cross-feature integration and accessibility at 390x844
+2026.11.08 SMART-13 Document equipment, progression, swapping, and plate behavior
+2026.11.08 SMART-14 Pass analyze, 516 tests, debug APK, web release, and Chrome smoke

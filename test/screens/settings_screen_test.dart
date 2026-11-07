@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mova/models/app_settings.dart';
 import 'package:mova/models/unit_preferences.dart';
 import 'package:mova/navigation/routes.dart';
+import 'package:mova/providers/profile_provider.dart';
 import 'package:mova/providers/settings_provider.dart';
 import 'package:mova/providers/social_provider.dart';
 import 'package:mova/providers/steps_provider.dart';
@@ -54,6 +55,7 @@ class _Harness {
       clock: FakeClock(_now),
       healthService: this.health,
     );
+    profile = ProfileProvider(storage, clock: FakeClock(_now));
     social = SocialProvider(storage, SeedDataService(), clock: FakeClock(_now));
   }
 
@@ -61,6 +63,7 @@ class _Harness {
   final _FakeNotifications notifications;
   final HealthService health;
   late final SettingsProvider settings;
+  late final ProfileProvider profile;
   late final StepsProvider steps;
   late final SocialProvider social;
 }
@@ -73,6 +76,7 @@ Widget _app(_Harness harness, {double textScale = 1}) {
   return MultiProvider(
     providers: [
       ChangeNotifierProvider<SettingsProvider>.value(value: harness.settings),
+      ChangeNotifierProvider<ProfileProvider>.value(value: harness.profile),
       ChangeNotifierProvider<StepsProvider>.value(value: harness.steps),
       ChangeNotifierProvider<SocialProvider>.value(value: harness.social),
     ],
@@ -108,6 +112,7 @@ Future<_Harness> _pump(
 }) async {
   final harness = _Harness(notifications: notifications, health: health);
   await harness.settings.load();
+  await harness.profile.load();
   await harness.steps.load();
   if (loadSamples) {
     await harness.social.load();
@@ -178,6 +183,9 @@ void main() {
   ) async {
     final harness = await _pump(tester);
 
+    await tester.ensureVisible(
+      find.byKey(const Key('settings-reminders-switch')),
+    );
     await tester.tap(find.byKey(const Key('settings-reminders-switch')));
     await tester.pumpAndSettle();
 
@@ -185,6 +193,9 @@ void main() {
     expect(harness.notifications.reschedules, 1);
     expect(find.byKey(const Key('settings-reminder-days')), findsOneWidget);
 
+    await tester.ensureVisible(
+      find.byKey(const Key('settings-reminders-switch')),
+    );
     await tester.tap(find.byKey(const Key('settings-reminders-switch')));
     await tester.pumpAndSettle();
 
@@ -197,6 +208,9 @@ void main() {
   ) async {
     await _pump(tester, notifications: _FakeNotifications(granted: false));
 
+    await tester.ensureVisible(
+      find.byKey(const Key('settings-reminders-switch')),
+    );
     await tester.tap(find.byKey(const Key('settings-reminders-switch')));
     await tester.pumpAndSettle();
 

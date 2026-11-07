@@ -1,3 +1,4 @@
+import 'equipment_group.dart';
 import 'experience_level.dart';
 import 'gender.dart';
 import 'goal.dart';
@@ -23,6 +24,7 @@ class UserProfile {
     this.goals = const <Goal>[],
     this.experienceLevel,
     this.bodyWeightKg = 0.0,
+    this.availableEquipment = EquipmentGroup.values,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -36,6 +38,7 @@ class UserProfile {
   final List<Goal> goals;
   final ExperienceLevel? experienceLevel;
   final double bodyWeightKg;
+  final List<EquipmentGroup> availableEquipment;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -73,6 +76,7 @@ class UserProfile {
           .where((level) => level.name == json['experienceLevel'])
           .firstOrNull,
       bodyWeightKg: (json['bodyWeightKg'] as num?)?.toDouble() ?? 0.0,
+      availableEquipment: EquipmentGroup.fromJson(json['availableEquipment']),
       createdAt:
           _parseDate(json['createdAt']) ??
           DateTime.fromMillisecondsSinceEpoch(0),
@@ -93,6 +97,7 @@ class UserProfile {
       'goals': goals.map((goal) => goal.name).toList(growable: false),
       'experienceLevel': experienceLevel?.name,
       'bodyWeightKg': bodyWeightKg,
+      'availableEquipment': EquipmentGroup.toJson(availableEquipment),
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
     };
@@ -108,6 +113,7 @@ class UserProfile {
     List<Goal>? goals,
     Object? experienceLevel = _noChange,
     double? bodyWeightKg,
+    List<EquipmentGroup>? availableEquipment,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -125,6 +131,7 @@ class UserProfile {
           ? this.experienceLevel
           : experienceLevel as ExperienceLevel?,
       bodyWeightKg: bodyWeightKg ?? this.bodyWeightKg,
+      availableEquipment: availableEquipment ?? this.availableEquipment,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

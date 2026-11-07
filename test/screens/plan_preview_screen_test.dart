@@ -173,11 +173,7 @@ class _StaticSeedDataService extends SeedDataService {
   Future<List<Exercise>> loadExercises() async => _exercises;
 }
 
-Widget _wrap(
-  _Setup setup,
-  Widget child, {
-  ExerciseProvider? exercises,
-}) {
+Widget _wrap(_Setup setup, Widget child, {ExerciseProvider? exercises}) {
   return MultiProvider(
     providers: [
       ChangeNotifierProvider<OnboardingProvider>.value(value: setup.onboarding),

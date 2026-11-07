@@ -1,3 +1,4 @@
+import 'equipment_group.dart';
 import 'experience_level.dart';
 import 'gender.dart';
 import 'goal.dart';
@@ -13,6 +14,7 @@ enum OnboardingStep {
   goals,
   experience,
   schedule,
+  equipment,
   notifications,
   plan,
 }
@@ -40,6 +42,7 @@ class OnboardingDraft {
     this.experienceLevel,
     this.daysPerWeek,
     this.trainingDays = const <int>[],
+    this.availableEquipment = EquipmentGroup.values,
     this.notificationsAsked = false,
     required this.updatedAt,
   });
@@ -55,6 +58,7 @@ class OnboardingDraft {
   final ExperienceLevel? experienceLevel;
   final int? daysPerWeek;
   final List<int> trainingDays;
+  final List<EquipmentGroup> availableEquipment;
   final bool notificationsAsked;
   final DateTime updatedAt;
 
@@ -99,6 +103,7 @@ class OnboardingDraft {
                 .map((day) => day.toInt())
                 .toList(growable: false)
           : const <int>[],
+      availableEquipment: EquipmentGroup.fromJson(json['availableEquipment']),
       notificationsAsked: json['notificationsAsked'] as bool? ?? false,
       updatedAt:
           _parseDate(json['updatedAt']) ??
@@ -119,6 +124,7 @@ class OnboardingDraft {
       'experienceLevel': experienceLevel?.name,
       'daysPerWeek': daysPerWeek,
       'trainingDays': trainingDays,
+      'availableEquipment': EquipmentGroup.toJson(availableEquipment),
       'notificationsAsked': notificationsAsked,
       'updatedAt': updatedAt.toIso8601String(),
     };
@@ -136,6 +142,7 @@ class OnboardingDraft {
     Object? experienceLevel = _noChange,
     Object? daysPerWeek = _noChange,
     List<int>? trainingDays,
+    List<EquipmentGroup>? availableEquipment,
     bool? notificationsAsked,
     DateTime? updatedAt,
   }) {
@@ -157,6 +164,7 @@ class OnboardingDraft {
           ? this.daysPerWeek
           : daysPerWeek as int?,
       trainingDays: trainingDays ?? this.trainingDays,
+      availableEquipment: availableEquipment ?? this.availableEquipment,
       notificationsAsked: notificationsAsked ?? this.notificationsAsked,
       updatedAt: updatedAt ?? this.updatedAt,
     );

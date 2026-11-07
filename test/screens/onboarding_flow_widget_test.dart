@@ -22,6 +22,7 @@ import 'package:mova/providers/settings_provider.dart';
 import 'package:mova/providers/steps_provider.dart';
 import 'package:mova/providers/workout_provider.dart';
 import 'package:mova/screens/onboarding/birth_date_screen.dart';
+import 'package:mova/screens/onboarding/equipment_screen.dart';
 import 'package:mova/screens/onboarding/experience_screen.dart';
 import 'package:mova/screens/onboarding/gender_screen.dart';
 import 'package:mova/screens/onboarding/goals_screen.dart';
@@ -172,6 +173,8 @@ Route<dynamic> _generateRoute(RouteSettings settings) {
       screen = const ExperienceScreen();
     case Routes.onboardingSchedule:
       screen = const ScheduleScreen();
+    case Routes.onboardingEquipment:
+      screen = const OnboardingEquipmentScreen();
     case Routes.onboardingNotifications:
       screen = const NotificationsScreen();
     case Routes.onboardingPlan:
@@ -238,6 +241,9 @@ void main() {
     await _tapContinue(tester);
 
     expect(find.text('How often do you train?'), findsOneWidget);
+    await _tapContinue(tester);
+
+    expect(find.text('Your equipment'), findsOneWidget);
     await _tapContinue(tester);
 
     expect(find.text('Stay on schedule'), findsOneWidget);

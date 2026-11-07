@@ -186,7 +186,7 @@ void main() {
     await tester.tap(find.byTooltip('Back'));
     await tester.pumpAndSettle();
 
-    expect(routes, <String>[Routes.onboardingSchedule]);
+    expect(routes, <String>[Routes.onboardingEquipment]);
   });
 
   testWidgets('a plan-step choice returns to the preview', (tester) async {

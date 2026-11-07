@@ -8,14 +8,19 @@ void main() {
     expect(OnboardingFlow.stepForRoute(Routes.onboardingUnits), 1);
     expect(OnboardingFlow.stepForRoute(Routes.onboardingGender), 2);
     expect(OnboardingFlow.stepForRoute(Routes.onboardingBirthDate), 3);
-    expect(OnboardingFlow.stepForRoute(Routes.onboardingPlan), 10);
+    expect(OnboardingFlow.stepForRoute(Routes.onboardingSchedule), 8);
+    expect(OnboardingFlow.stepForRoute(Routes.onboardingEquipment), 9);
+    expect(OnboardingFlow.stepForRoute(Routes.onboardingNotifications), 10);
+    expect(OnboardingFlow.stepForRoute(Routes.onboardingPlan), 11);
     expect(OnboardingFlow.stepForRoute(Routes.welcome), 0);
     expect(OnboardingFlow.stepForRoute(Routes.today), 0);
   });
 
   test('route for step clamps into range', () {
     expect(OnboardingFlow.routeForStep(1), Routes.onboardingUnits);
-    expect(OnboardingFlow.routeForStep(10), Routes.onboardingPlan);
+    expect(OnboardingFlow.routeForStep(9), Routes.onboardingEquipment);
+    expect(OnboardingFlow.routeForStep(10), Routes.onboardingNotifications);
+    expect(OnboardingFlow.routeForStep(11), Routes.onboardingPlan);
     expect(OnboardingFlow.routeForStep(0), Routes.onboardingUnits);
     expect(OnboardingFlow.routeForStep(99), Routes.onboardingPlan);
   });

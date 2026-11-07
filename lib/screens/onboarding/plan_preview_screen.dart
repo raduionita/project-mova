@@ -80,6 +80,7 @@ class _PlanPreviewScreenState extends State<PlanPreviewScreen> {
   bool _confirming = false;
   String? _failure;
   String? _confirmError;
+  String? _warning;
 
   OnboardingDraft get _draft => context.read<OnboardingProvider>().draft;
 
@@ -131,12 +132,15 @@ class _PlanPreviewScreenState extends State<PlanPreviewScreen> {
       now: clock.now,
       sessionMinutes: kDefaultSessionMinutes,
     );
-    return generator.generate(
+    final plan = generator.generate(
       goals: draft.goals,
       experienceLevel: draft.experienceLevel ?? ExperienceLevel.beginner,
       daysPerWeek: draft.daysPerWeek ?? draft.trainingDays.length,
       trainingDays: draft.trainingDays,
+      availableEquipment: draft.availableEquipment,
     );
+    _warning = generator.lastWarning;
+    return plan;
   }
 
   void _go(String route) {
@@ -288,6 +292,14 @@ class _PlanPreviewScreenState extends State<PlanPreviewScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
+        if (_warning != null && _warning!.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.md),
+            child: Text(
+              _warning!,
+              style: AppTypography.caption.copyWith(color: AppColors.orange),
+            ),
+          ),
         if (plan.isFallback)
           Padding(
             padding: const EdgeInsets.only(bottom: AppSpacing.md),
@@ -317,7 +329,7 @@ class _PlanPreviewScreenState extends State<PlanPreviewScreen> {
     return OnboardingScaffold(
       title: 'Your Week 1',
       subtitle: _subtitle(draft),
-      currentStep: 10,
+      currentStep: 11,
       onBack: _back,
       onContinue: _confirm,
       continueEnabled: plan != null && !_loading,

@@ -5,7 +5,7 @@ import 'routes.dart';
 class OnboardingFlow {
   const OnboardingFlow._();
 
-  static const int totalSteps = 10;
+  static const int totalSteps = 11;
 
   static const String firstRoute = Routes.onboardingUnits;
   static const String lastRoute = Routes.onboardingPlan;

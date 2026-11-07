@@ -20,6 +20,7 @@ import 'providers/social_provider.dart';
 import 'providers/steps_provider.dart';
 import 'providers/workout_provider.dart';
 import 'screens/onboarding/birth_date_screen.dart';
+import 'screens/onboarding/equipment_screen.dart';
 import 'screens/onboarding/experience_screen.dart';
 import 'screens/onboarding/gender_screen.dart';
 import 'screens/onboarding/goals_screen.dart';
@@ -30,6 +31,7 @@ import 'screens/onboarding/schedule_screen.dart';
 import 'screens/onboarding/unit_selection_screen.dart';
 import 'screens/onboarding/weight_screen.dart';
 import 'screens/logger/logger_screen.dart';
+import 'screens/me/equipment_screen.dart';
 import 'screens/me/legal_document_screen.dart';
 import 'screens/me/licenses_screen.dart';
 import 'screens/me/me_screen.dart';
@@ -282,6 +284,8 @@ Widget _screenForRoute(String? route, [Object? arguments]) {
       return const ExperienceScreen();
     case Routes.onboardingSchedule:
       return const ScheduleScreen();
+    case Routes.onboardingEquipment:
+      return const OnboardingEquipmentScreen();
     case Routes.onboardingNotifications:
       return const NotificationsScreen();
     case Routes.onboardingPlan:
@@ -306,6 +310,8 @@ Widget _screenForRoute(String? route, [Object? arguments]) {
       return const ProfileEditScreen();
     case Routes.meSettings:
       return const SettingsScreen();
+    case Routes.meEquipment:
+      return const EquipmentSettingsScreen();
     case Routes.meLicenses:
       return const LicensesScreen();
     case Routes.logger:

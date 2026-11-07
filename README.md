@@ -4,7 +4,7 @@
 
 Mova is a mobile fitness app for iOS, Android, and web, built with Flutter. It gives you a plan, makes workout logging fast, and shows honest progress from the data you log.
 
-> Status: pre-implementation. Design and product documentation are complete. The app currently runs the default Flutter scaffold.
+> Status: v1.0 is implemented. The smart-training release adds equipment-aware plans, progressive overload, exercise swapping, and a plate calculator. Analyzer, tests, Android debug build, and web release build pass.
 
 Android and iOS are the primary platforms. Web is a companion build that must compile and pass a manual smoke test; full parity is not required.
 
@@ -28,7 +28,7 @@ The product bet is simple: the workout logger is the feature people touch every 
 |---|---|
 | ![Onboarding, Today, Live logger](resources/mock-01.jpg) | ![Summary, Progress, Social](resources/mock-02.jpg) |
 
-The canonical interactive storyboard is [`MOCK.html`](MOCK.html). Open it in a browser to view all 19 screens in one horizontal flow: Splash, the 11-screen onboarding, and the five-tab core loop.
+The canonical interactive storyboard is [`MOCK.html`](MOCK.html). Open it in a browser to view all 19 screens in one horizontal flow: Splash, the original 11-screen onboarding, and the five-tab core loop. The app adds an equipment step between schedule and notifications, so onboarding is now Welcome plus eleven steps.
 
 ---
 
@@ -38,10 +38,10 @@ The canonical interactive storyboard is [`MOCK.html`](MOCK.html). Open it in a b
 
 | Area | Features |
 |---|---|
-| Onboarding | Splash, welcome, units, gender, birth date, weight, height, goals, experience, weekly schedule, notification permission, plan preview |
+| Onboarding | Splash, welcome, units, gender, birth date, weight, height, goals, experience, weekly schedule, equipment, notification permission, plan preview |
 | Today | Planned workout, start or resume, streak, steps, empty workout, walk, saved routine |
 | Train | Exercise library, search, muscle and equipment filters, exercise details, routine list, routine builder |
-| Logger | Previous values, set logging, weight and reps, rest timer, add or remove sets, up next, pause, resume, discard protection |
+| Logger | Previous values, progressive overload hint, set logging, weight and reps, rest timer, add or remove sets, swap exercise, plate calculator, up next, pause, resume, discard protection |
 | Summary | Duration, volume, sets, PR detection, estimated 1RM, share card, save |
 | Progress | Lifetime totals (workouts, volume, streak), strength score (beta), weekly volume, personal records, workout history, workout detail, body weight entry |
 | Social | Local feed, own workout posts, kudos, PR card preview |
@@ -78,6 +78,9 @@ The canonical interactive storyboard is [`MOCK.html`](MOCK.html). Open it in a b
 - **Honest metrics.** The strength score is labeled beta and does not claim a gym or global ranking, because a local-only app has no comparative dataset.
 - **Local social.** The feed contains sample activity and the user's own workouts. Kudos are stored locally. It is motivation, not a network.
 - **Manual fallback.** Steps can be entered manually when a health integration is unavailable, so Today never depends on a permission.
+- **Equipment-aware plans.** The profile stores equipment groups. The generator only picks exercises the user can perform and warns when a muscle group has no match instead of dropping it silently. The same selection filters the exercise picker and the swap flow.
+- **Deterministic overload.** When every working set of the most recent session reaches the top of the rep range, the next session pre-fills the next load: 2.5 kg in kg mode or 5 lb converted in lb mode. Otherwise it pre-fills the last weight. The app never rewrites logged history.
+- **Read-only plate calculator.** A greedy per-side plate breakdown for standard kg and lb loadouts. It reports exact, closest loadable, and below-bar states and never changes a logged set.
 
 Read the full design system in [`DESIGN.md`](DESIGN.md).
 
@@ -112,7 +115,7 @@ lib/
   navigation/               // Route names and route table
   providers/                // Profile, plan, workout, history, social, settings
   screens/                  // One folder per feature
-  services/                 // Storage, seed data, plan generation, PR, share
+  services/                 // Storage, seed data, plan generation, progression, plate math, PR, share
   theme/                    // Colors, typography, spacing, radii, ThemeData
   widgets/                  // One public widget per file
 assets/
@@ -144,6 +147,8 @@ test/
 - PR: strictly higher estimated 1RM, or higher reps for bodyweight movements, from completed working sets.
 - Streak: consecutive local calendar days with a completed workout or logged walk.
 - Strength score: average of best lift to bodyweight ratios across tracked lifts. Requires at least three sessions and two tracked lifts. Labeled beta and unranked.
+- Progressive overload: newest session with completed working sets; increase only when every working set reaches the top of the rep range.
+- Plate load: `per_side = (target - bar) / 2`, greedy from the heaviest plate, remainder reported, never negative.
 
 ---
 

@@ -1,4 +1,7 @@
+import 'progression_suggestion.dart';
 import 'workout_set.dart';
+
+const Object _noChange = Object();
 
 /// Exercise performed inside a workout session.
 class SessionExercise {
@@ -9,6 +12,7 @@ class SessionExercise {
     required this.order,
     required this.sets,
     this.notes = '',
+    this.progression,
   });
 
   final int schemaVersion;
@@ -17,6 +21,7 @@ class SessionExercise {
   final int order;
   final List<WorkoutSet> sets;
   final String notes;
+  final ProgressionSuggestion? progression;
 
   factory SessionExercise.fromJson(Map<String, dynamic> json) {
     final rawSets = json['sets'];
@@ -32,6 +37,11 @@ class SessionExercise {
                 .toList(growable: false)
           : const <WorkoutSet>[],
       notes: json['notes'] as String? ?? '',
+      progression: json['progression'] is Map<String, dynamic>
+          ? ProgressionSuggestion.fromJson(
+              json['progression'] as Map<String, dynamic>,
+            )
+          : null,
     );
   }
 
@@ -43,6 +53,7 @@ class SessionExercise {
       'order': order,
       'sets': sets.map((set) => set.toJson()).toList(growable: false),
       'notes': notes,
+      'progression': progression?.toJson(),
     };
   }
 
@@ -53,6 +64,7 @@ class SessionExercise {
     int? order,
     List<WorkoutSet>? sets,
     String? notes,
+    Object? progression = _noChange,
   }) {
     return SessionExercise(
       schemaVersion: schemaVersion ?? this.schemaVersion,
@@ -61,6 +73,9 @@ class SessionExercise {
       order: order ?? this.order,
       sets: sets ?? this.sets,
       notes: notes ?? this.notes,
+      progression: identical(progression, _noChange)
+          ? this.progression
+          : progression as ProgressionSuggestion?,
     );
   }
 }

@@ -28,12 +28,14 @@ class AppMultiSelect<T> extends StatelessWidget {
     required this.selected,
     required this.onChanged,
     this.enabled = true,
+    this.showPrimaryTag = true,
   });
 
   final List<AppMultiSelectOption<T>> options;
   final List<T> selected;
   final ValueChanged<List<T>> onChanged;
   final bool enabled;
+  final bool showPrimaryTag;
 
   void _toggle(T value) {
     final next = <T>[...selected];
@@ -58,7 +60,9 @@ class AppMultiSelect<T> extends StatelessWidget {
             selected: selected.contains(options[index].value),
             onTap: enabled ? () => _toggle(options[index].value) : null,
             trailing:
-                selected.isNotEmpty && selected.first == options[index].value
+                showPrimaryTag &&
+                    selected.isNotEmpty &&
+                    selected.first == options[index].value
                 ? const AppTag(label: 'Primary', variant: AppTagVariant.lime)
                 : null,
           ),
