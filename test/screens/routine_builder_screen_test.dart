@@ -7,13 +7,19 @@ import 'package:mova/models/routine_exercise.dart';
 import 'package:mova/providers/exercise_provider.dart';
 import 'package:mova/providers/routine_provider.dart';
 import 'package:mova/screens/train/routine_builder_screen.dart';
+import 'package:mova/widgets/app_icon.dart';
 import 'package:mova/services/id_service.dart';
 import 'package:mova/services/seed_data_service.dart';
 import 'package:mova/services/storage_service.dart';
 import 'package:mova/theme/app_theme.dart';
+import 'package:mova/theme/app_icons.dart';
 import 'package:mova/widgets/app_button.dart';
 import 'package:mova/widgets/exercise_picker_sheet.dart';
 import 'package:provider/provider.dart';
+
+Finder _assetIcon(String asset) => find.byWidgetPredicate(
+  (widget) => widget is AppIcon && widget.asset == asset,
+);
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -200,7 +206,7 @@ void main() {
     final fly = tester.getTopLeft(find.text('Dumbbell Fly')).dy;
     expect(bench, lessThan(fly));
 
-    final handle = find.byIcon(Icons.drag_handle).first;
+    final handle = _assetIcon(AppIcons.drag).first;
     final gesture = await tester.startGesture(tester.getCenter(handle));
     await tester.pump(kLongPressTimeout + kPressTimeout);
     await gesture.moveTo(tester.getCenter(find.text('Dumbbell Fly')));

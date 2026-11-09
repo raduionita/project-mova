@@ -31,12 +31,30 @@ class SplashScreen extends StatelessWidget {
     return Container(
       width: 86,
       height: 86,
+      alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(AppRadii.x3l + AppRadii.xs),
-        border: Border.all(color: AppColors.lime, width: 2),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: <Color>[AppColors.lime, AppColors.limeDeep],
+        ),
+        borderRadius: BorderRadius.circular(AppRadii.x3l + AppSpacing.sm),
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: AppColors.lime.withValues(alpha: 0.25),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
-      child: const Icon(Icons.fitness_center, size: 40, color: AppColors.lime),
+      child: Text(
+        'M',
+        style: AppTypography.displayXL.copyWith(
+          color: AppColors.limeInk,
+          fontSize: 44,
+          height: 1,
+        ),
+      ),
     );
   }
 
@@ -46,8 +64,18 @@ class SplashScreen extends StatelessWidget {
       width: 120,
       height: 4,
       decoration: BoxDecoration(
-        color: AppColors.lime,
+        color: AppColors.stepInactive,
         borderRadius: BorderRadius.circular(2),
+      ),
+      child: FractionallySizedBox(
+        alignment: Alignment.centerLeft,
+        widthFactor: 0.55,
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppColors.lime,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
       ),
     );
   }
@@ -77,7 +105,7 @@ class SplashScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 Text(
-                  'Train with a plan.',
+                  'Move. Log. Progress.',
                   style: AppTypography.caption.copyWith(color: AppColors.muted),
                 ),
                 const SizedBox(height: AppSpacing.x4l),

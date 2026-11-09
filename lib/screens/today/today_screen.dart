@@ -17,12 +17,15 @@ import '../../providers/steps_provider.dart';
 import '../../providers/workout_provider.dart';
 import '../../services/clock.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_icons.dart';
 import '../../theme/app_radii.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_card.dart';
 import '../../widgets/app_empty_state.dart';
+import '../../widgets/app_icon.dart';
+import '../../widgets/app_quick_action.dart';
 import '../../widgets/app_stat_tile.dart';
 import '../../widgets/app_tag.dart';
 import '../../widgets/manual_steps_sheet.dart';
@@ -139,8 +142,8 @@ class _TodayScreenState extends State<TodayScreen> with WidgetsBindingObserver {
                   color: AppColors.limeSoft,
                   borderRadius: BorderRadius.circular(AppSpacing.xl),
                 ),
-                child: const Icon(
-                  Icons.directions_walk,
+                child: const AppIcon(
+                  asset: AppIcons.walk,
                   size: 20,
                   color: AppColors.lime,
                 ),
@@ -183,7 +186,11 @@ class _TodayScreenState extends State<TodayScreen> with WidgetsBindingObserver {
             child: TextButton.icon(
               key: const Key('today-add-steps'),
               onPressed: _addSteps,
-              icon: const Icon(Icons.add, size: 18),
+              icon: const AppIcon(
+                asset: AppIcons.plus,
+                size: 18,
+                color: AppColors.lime,
+              ),
               label: Text(hasSteps ? 'Update steps' : 'Add steps'),
               style: TextButton.styleFrom(
                 minimumSize: const Size(44, 44),
@@ -282,30 +289,30 @@ class _TodayScreenState extends State<TodayScreen> with WidgetsBindingObserver {
   }
 
   Widget _buildQuickActions() {
-    return Wrap(
-      spacing: AppSpacing.md,
-      runSpacing: AppSpacing.sm,
+    return Row(
       children: <Widget>[
-        AppButton(
-          label: 'Empty workout',
-          icon: Icons.add,
-          variant: AppButtonVariant.ghost,
-          fullWidth: false,
-          onPressed: _startEmpty,
+        Expanded(
+          child: AppQuickAction(
+            label: 'Empty workout',
+            assetIcon: AppIcons.plus,
+            onPressed: _startEmpty,
+          ),
         ),
-        AppButton(
-          label: 'Walk',
-          icon: Icons.directions_walk,
-          variant: AppButtonVariant.ghost,
-          fullWidth: false,
-          onPressed: _startWalk,
+        const SizedBox(width: AppSpacing.md),
+        Expanded(
+          child: AppQuickAction(
+            label: 'Walk',
+            assetIcon: AppIcons.walk,
+            onPressed: _startWalk,
+          ),
         ),
-        AppButton(
-          label: 'Routine',
-          icon: Icons.format_list_bulleted,
-          variant: AppButtonVariant.ghost,
-          fullWidth: false,
-          onPressed: () => Navigator.of(context).pushNamed(Routes.routines),
+        const SizedBox(width: AppSpacing.md),
+        Expanded(
+          child: AppQuickAction(
+            label: 'Routine',
+            assetIcon: AppIcons.list,
+            onPressed: () => Navigator.of(context).pushNamed(Routes.routines),
+          ),
         ),
       ],
     );
@@ -343,7 +350,7 @@ class _TodayScreenState extends State<TodayScreen> with WidgetsBindingObserver {
           const SizedBox(height: AppSpacing.lg),
           AppButton(
             label: paused ? 'Resume workout' : 'Continue workout',
-            icon: Icons.play_arrow,
+            assetIcon: AppIcons.play,
             onPressed: _resumeSession,
           ),
         ],
@@ -368,16 +375,18 @@ class _TodayScreenState extends State<TodayScreen> with WidgetsBindingObserver {
           key: const Key('today-reminders'),
           tooltip: 'Workout reminders',
           onPressed: () => Navigator.of(context).pushNamed(Routes.meSettings),
-          icon: const Icon(
-            Icons.notifications_outlined,
+          icon: const AppIcon(
+            asset: AppIcons.bell,
+            size: 20,
             color: AppColors.muted,
           ),
         ),
         IconButton(
           tooltip: 'Edit plan',
           onPressed: () => PlanOverviewSheet.show(context),
-          icon: const Icon(
-            Icons.edit_calendar_outlined,
+          icon: const AppIcon(
+            asset: AppIcons.calendar,
+            size: 20,
             color: AppColors.muted,
           ),
         ),
@@ -400,8 +409,8 @@ class _TodayScreenState extends State<TodayScreen> with WidgetsBindingObserver {
       ),
       child: Row(
         children: <Widget>[
-          const Icon(
-            Icons.warning_amber_rounded,
+          const AppIcon(
+            asset: AppIcons.alert,
             color: AppColors.orange,
             size: 20,
           ),
@@ -416,7 +425,7 @@ class _TodayScreenState extends State<TodayScreen> with WidgetsBindingObserver {
             key: const Key('today-storage-warning-dismiss'),
             tooltip: 'Dismiss warning',
             onPressed: () => setState(() => _warningDismissed = true),
-            icon: const Icon(Icons.close, color: AppColors.muted),
+            icon: const AppIcon(asset: AppIcons.close, color: AppColors.muted),
           ),
         ],
       ),
@@ -455,7 +464,7 @@ class _TodayScreenState extends State<TodayScreen> with WidgetsBindingObserver {
             const SizedBox(height: AppSpacing.lg),
             AppButton(
               label: 'Start workout',
-              icon: Icons.play_arrow,
+              assetIcon: AppIcons.play,
               onPressed: () => _startFromPlan(day),
             ),
           ],
@@ -499,7 +508,7 @@ class _TodayScreenState extends State<TodayScreen> with WidgetsBindingObserver {
           child: AppStatTile(
             value: '${plan.days.length}',
             label: 'training days',
-            icon: Icons.calendar_month_outlined,
+            assetIcon: AppIcons.calendar,
           ),
         ),
         const SizedBox(width: AppSpacing.md),
@@ -507,7 +516,7 @@ class _TodayScreenState extends State<TodayScreen> with WidgetsBindingObserver {
           child: AppStatTile(
             value: plan.isFallback ? 'Starter' : 'Custom',
             label: 'plan',
-            icon: Icons.auto_awesome_outlined,
+            assetIcon: AppIcons.plan,
           ),
         ),
       ],
@@ -598,7 +607,7 @@ class _TodayScreenState extends State<TodayScreen> with WidgetsBindingObserver {
                 _buildStepsCard(),
                 const Expanded(
                   child: AppEmptyState(
-                    icon: Icons.calendar_today_outlined,
+                    assetIcon: AppIcons.calendar,
                     title: 'No plan yet',
                     message:
                         'Finish onboarding to build your weekly training plan.',

@@ -5,10 +5,12 @@ import '../models/plate_loadout.dart';
 import '../models/unit_preferences.dart';
 import '../services/plate_calculator_service.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_icons.dart';
 import '../theme/app_radii.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
 import 'app_chip.dart';
+import 'app_icon.dart';
 
 /// Opens the plate calculator without changing the workout.
 Future<void> showPlateCalculatorSheet(
@@ -144,7 +146,10 @@ class _PlateCalculatorSheetState extends State<PlateCalculatorSheet> {
               IconButton(
                 onPressed: () => Navigator.of(context).pop(),
                 tooltip: 'Close plate calculator',
-                icon: const Icon(Icons.close, color: AppColors.muted),
+                icon: const AppIcon(
+                  asset: AppIcons.close,
+                  color: AppColors.muted,
+                ),
               ),
             ],
           ),

@@ -1,5 +1,4 @@
-import 'package:flutter/material.dart';
-
+import '../theme/app_icons.dart';
 import 'routes.dart';
 
 /// Product phases from the plan. Each tab unlocks with its release phase.
@@ -14,16 +13,16 @@ class AppTabItem {
     required this.tab,
     required this.label,
     required this.route,
-    required this.icon,
-    required this.selectedIcon,
+    required this.iconAsset,
     required this.releasePhase,
   });
 
   final AppTab tab;
   final String label;
   final String route;
-  final IconData icon;
-  final IconData selectedIcon;
+
+  /// SVG asset from `assets/icons/`, tinted at runtime.
+  final String iconAsset;
   final AppPhase releasePhase;
 
   bool isAvailableIn(AppPhase phase) => releasePhase.index <= phase.index;
@@ -42,40 +41,35 @@ class AppNavigation {
       tab: AppTab.today,
       label: 'Today',
       route: Routes.today,
-      icon: Icons.today_outlined,
-      selectedIcon: Icons.today,
+      iconAsset: AppIcons.navToday,
       releasePhase: AppPhase.foundation,
     ),
     AppTabItem(
       tab: AppTab.train,
       label: 'Train',
       route: Routes.train,
-      icon: Icons.fitness_center_outlined,
-      selectedIcon: Icons.fitness_center,
+      iconAsset: AppIcons.navTrain,
       releasePhase: AppPhase.training,
     ),
     AppTabItem(
       tab: AppTab.progress,
       label: 'Progress',
       route: Routes.progress,
-      icon: Icons.insights_outlined,
-      selectedIcon: Icons.insights,
+      iconAsset: AppIcons.navProgress,
       releasePhase: AppPhase.progress,
     ),
     AppTabItem(
       tab: AppTab.social,
       label: 'Social',
       route: Routes.social,
-      icon: Icons.people_outline,
-      selectedIcon: Icons.people,
+      iconAsset: AppIcons.navSocial,
       releasePhase: AppPhase.social,
     ),
     AppTabItem(
       tab: AppTab.me,
       label: 'Me',
       route: Routes.me,
-      icon: Icons.person_outline,
-      selectedIcon: Icons.person,
+      iconAsset: AppIcons.navMe,
       releasePhase: AppPhase.profile,
     ),
   ];

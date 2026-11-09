@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../models/onboarding_draft.dart';
 import '../../navigation/onboarding_flow.dart';
 import '../../navigation/routes.dart';
 import '../../providers/onboarding_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../../services/notification_service.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_icons.dart';
+import '../../theme/app_onboarding_type.dart';
 import '../../theme/app_radii.dart';
 import '../../theme/app_spacing.dart';
-import '../../theme/app_typography.dart';
-import '../../widgets/app_card.dart';
+import '../../widgets/app_icon.dart';
+import '../../widgets/app_toggle.dart';
 import 'onboarding_scaffold.dart';
 
 /// Onboarding step 9: workout reminders. Denied, unavailable, and Not now
@@ -57,7 +58,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     setState(() => _isBusy = true);
     final onboarding = context.read<OnboardingProvider>();
     final settings = context.read<SettingsProvider>();
-    final editingPlan = onboarding.draft.currentStep == OnboardingStep.plan;
+    final editingPlan = onboarding.editingPlan;
 
     var granted = false;
     if (enable) {
@@ -74,19 +75,18 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       minute: 0,
     );
     await onboarding.markNotificationsAsked(true);
-    final advanced = editingPlan ? false : await onboarding.next();
+    final next = editingPlan
+        ? Routes.onboardingPlan
+        : OnboardingFlow.nextRoute(Routes.onboardingNotifications)!;
+    if (editingPlan) {
+      onboarding.endPlanEdit();
+    }
+    onboarding.syncStep(OnboardingFlow.stepFor(next));
     if (!mounted) {
       return;
     }
     setState(() => _isBusy = false);
-    _open(
-      context,
-      editingPlan
-          ? Routes.onboardingPlan
-          : advanced
-          ? OnboardingFlow.nextRoute(Routes.onboardingNotifications)!
-          : Routes.onboardingNotifications,
-    );
+    _open(context, next);
   }
 
   void _back(BuildContext context) {
@@ -99,37 +99,49 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   Widget _buildBell() {
     return Center(
       child: Container(
-        width: 96,
-        height: 96,
+        width: 74,
+        height: 74,
         decoration: BoxDecoration(
-          color: AppColors.limeSoft,
-          borderRadius: BorderRadius.circular(AppRadii.x3l + AppRadii.md),
+          color: AppColors.lime.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: AppColors.lime.withValues(alpha: 0.3)),
         ),
-        child: const Icon(
-          Icons.notifications_active_outlined,
-          size: 44,
-          color: AppColors.lime,
+        child: const Center(
+          child: AppIcon(asset: AppIcons.bell, size: 34, color: AppColors.lime),
         ),
       ),
     );
   }
 
-  Widget _buildInfoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-      child: Row(
-        children: <Widget>[
-          Expanded(
-            child: Text(
-              label,
-              style: AppTypography.body.copyWith(color: AppColors.text),
+  Widget _buildInfoRow(String label, Widget trailing) {
+    return Row(
+      children: <Widget>[
+        Expanded(
+          child: Text(
+            label,
+            style: AppOnboardingType.choiceTitle.copyWith(
+              color: AppColors.text,
             ),
           ),
-          Text(
-            value,
-            style: AppTypography.bodyStrong.copyWith(color: AppColors.muted),
-          ),
-        ],
+        ),
+        trailing,
+      ],
+    );
+  }
+
+  Widget _buildNotifCard(Widget child) {
+    return Material(
+      color: AppColors.card,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadii.xl),
+        side: const BorderSide(color: AppColors.line),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.xl,
+          vertical: AppSpacing.lg + AppSpacing.xxs,
+        ),
+        child: child,
       ),
     );
   }
@@ -151,13 +163,22 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         children: <Widget>[
           _buildBell(),
           const SizedBox(height: AppSpacing.x3l),
-          AppCard(
-            child: Column(
-              children: <Widget>[
-                _buildInfoRow('Workout reminders', 'Off'),
-                const Divider(color: AppColors.line, height: 1),
-                _buildInfoRow('Reminder time', '18:00'),
-              ],
+          _buildNotifCard(
+            _buildInfoRow(
+              'Workout reminders',
+              const AppToggle(value: true, semanticLabel: 'Workout reminders'),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          _buildNotifCard(
+            _buildInfoRow(
+              'Reminder time',
+              Text(
+                '18:00',
+                style: AppOnboardingType.choiceDesc.copyWith(
+                  color: AppColors.muted,
+                ),
+              ),
             ),
           ),
         ],

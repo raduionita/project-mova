@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 
 import '../models/exercise.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_icons.dart';
 import '../theme/app_radii.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
+import 'app_icon.dart';
 
 /// Exercise library row from DESIGN.md section 10.9.
 ///
@@ -39,7 +41,11 @@ class ExerciseRow extends StatelessWidget {
               color: AppColors.limeSoft,
               borderRadius: BorderRadius.circular(AppRadii.sm),
             ),
-            child: const Icon(Icons.add, size: 18, color: AppColors.lime),
+            child: const AppIcon(
+              asset: AppIcons.plus,
+              size: 18,
+              color: AppColors.lime,
+            ),
           ),
         ),
       ),

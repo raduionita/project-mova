@@ -19,6 +19,8 @@ class AppRulerSlider extends StatefulWidget {
     this.unitLabel,
     this.enabled = true,
     this.pixelsPerStep = 12,
+    this.rulerHeight = 40,
+    this.valueStyle,
   });
 
   final double value;
@@ -29,6 +31,10 @@ class AppRulerSlider extends StatefulWidget {
   final String? unitLabel;
   final bool enabled;
   final double pixelsPerStep;
+
+  /// Ruler band thickness. Bumped on onboarding for a heavier control.
+  final double rulerHeight;
+  final TextStyle? valueStyle;
 
   @override
   State<AppRulerSlider> createState() => _AppRulerSliderState();
@@ -101,7 +107,8 @@ class _AppRulerSliderState extends State<AppRulerSlider> {
       children: <Widget>[
         Text(
           _format(_current),
-          style: AppTypography.h1.copyWith(fontSize: 36, color: AppColors.text),
+          style: (widget.valueStyle ?? AppTypography.h1.copyWith(fontSize: 36))
+              .copyWith(color: AppColors.text),
         ),
         if (widget.unitLabel != null) ...<Widget>[
           const SizedBox(width: AppSpacing.xs),
@@ -125,7 +132,7 @@ class _AppRulerSliderState extends State<AppRulerSlider> {
       onHorizontalDragUpdate: _handleDragUpdate,
       onTapDown: (details) => _handleTapDown(details, width),
       child: SizedBox(
-        height: 40,
+        height: widget.rulerHeight,
         width: double.infinity,
         child: CustomPaint(
           painter: _RulerPainter(
@@ -231,7 +238,7 @@ class _RulerPainter extends CustomPainter {
       }
       final x = centerX + (tickValue - value) / step * pixelsPerStep;
       final major = stepIndex % 5 == 0;
-      final height = major ? 19.0 : 11.0;
+      final height = major ? size.height * 0.48 : size.height * 0.28;
       canvas.drawLine(
         Offset(x, size.height / 2 - height / 2),
         Offset(x, size.height / 2 + height / 2),

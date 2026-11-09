@@ -76,7 +76,7 @@ void main() {
     expect(find.text('Primary'), findsOneWidget);
     final primaryCard = find.ancestor(
       of: find.text('Primary'),
-      matching: find.byType(Row),
+      matching: find.byType(Column),
     );
     expect(
       find.descendant(
@@ -104,7 +104,7 @@ void main() {
 
     final primaryCard = find.ancestor(
       of: find.text('Primary'),
-      matching: find.byType(Row),
+      matching: find.byType(Column),
     );
     expect(
       find.descendant(
@@ -128,7 +128,7 @@ void main() {
 
     final primaryCard = find.ancestor(
       of: find.text('Primary'),
-      matching: find.byType(Row),
+      matching: find.byType(Column),
     );
     expect(
       find.descendant(

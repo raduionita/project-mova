@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
+import '../theme/app_icons.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
+import 'app_icon.dart';
 
 /// Compact back bar used by sub-routes from DESIGN.md section 10.10.
 class AppBackBar extends StatelessWidget {
@@ -20,7 +22,11 @@ class AppBackBar extends StatelessWidget {
           IconButton(
             onPressed: onBack ?? () => Navigator.of(context).maybePop(),
             tooltip: 'Back',
-            icon: const Icon(Icons.arrow_back, color: AppColors.text),
+            icon: const AppIcon(
+              asset: AppIcons.chevronLeft,
+              size: 22,
+              color: AppColors.text,
+            ),
           ),
           Text(
             label,

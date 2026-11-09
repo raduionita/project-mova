@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mova/theme/app_theme.dart';
+import 'package:mova/theme/app_icons.dart';
 import 'package:mova/widgets/stepper_row.dart';
+import 'package:mova/widgets/app_icon.dart';
+
+Finder _assetIcon(String asset) => find.byWidgetPredicate(
+  (widget) => widget is AppIcon && widget.asset == asset,
+);
 
 Widget _wrap(Widget child) {
   return MaterialApp(
@@ -32,19 +38,19 @@ void main() {
     );
 
     expect(find.text('1'), findsOneWidget);
-    await tester.tap(find.byIcon(Icons.add));
+    await tester.tap(_assetIcon(AppIcons.plus));
     await tester.pump();
     expect(find.text('2'), findsOneWidget);
 
-    await tester.tap(find.byIcon(Icons.add));
+    await tester.tap(_assetIcon(AppIcons.plus));
     await tester.pump();
     expect(find.text('2'), findsOneWidget);
 
-    await tester.tap(find.byIcon(Icons.remove));
+    await tester.tap(_assetIcon(AppIcons.minus));
     await tester.pump();
-    await tester.tap(find.byIcon(Icons.remove));
+    await tester.tap(_assetIcon(AppIcons.minus));
     await tester.pump();
-    await tester.tap(find.byIcon(Icons.remove));
+    await tester.tap(_assetIcon(AppIcons.minus));
     await tester.pump();
     expect(find.text('0'), findsOneWidget);
   });
@@ -68,7 +74,7 @@ void main() {
     );
 
     final gesture = await tester.startGesture(
-      tester.getCenter(find.byIcon(Icons.add)),
+      tester.getCenter(_assetIcon(AppIcons.plus)),
     );
     await tester.pump(const Duration(milliseconds: 500));
     await tester.pump(const Duration(milliseconds: 450));

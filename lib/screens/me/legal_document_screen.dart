@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../theme/app_colors.dart';
+import '../../theme/app_icons.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
 import '../../widgets/app_back_bar.dart';
+import '../../widgets/app_icon.dart';
 
 /// Renders one bundled legal document from `assets/legal`.
 class LegalDocumentScreen extends StatefulWidget {
@@ -125,8 +127,8 @@ class _LegalDocumentScreenState extends State<LegalDocumentScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            const Icon(
-              Icons.description_outlined,
+            const AppIcon(
+              asset: AppIcons.document,
               size: 32,
               color: AppColors.muted,
             ),

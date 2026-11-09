@@ -24,6 +24,8 @@ import 'package:mova/services/keep_awake_service.dart';
 import 'package:mova/services/seed_data_service.dart';
 import 'package:mova/services/storage_service.dart';
 import 'package:mova/theme/app_theme.dart';
+import 'package:mova/theme/app_icons.dart';
+import 'package:mova/widgets/app_icon.dart';
 import 'package:mova/widgets/app_button.dart';
 import 'package:mova/widgets/app_chip.dart';
 import 'package:mova/widgets/exercise_picker_sheet.dart';
@@ -33,6 +35,10 @@ IdGenerator _sequentialIds() {
   var counter = 0;
   return () => 'id-${++counter}';
 }
+
+Finder _assetIcon(String asset) => find.byWidgetPredicate(
+  (widget) => widget is AppIcon && widget.asset == asset,
+);
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -346,7 +352,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
     expect(workout.activeSession!.exercises.first.sets.first.completed, isTrue);
-    expect(find.byIcon(Icons.check_circle), findsOneWidget);
+    expect(_assetIcon(AppIcons.check), findsOneWidget);
 
     await tester.tap(find.text('Skip'));
     await tester.pump();

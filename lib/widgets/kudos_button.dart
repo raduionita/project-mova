@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
+import '../theme/app_icons.dart';
 import '../theme/app_radii.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
+import 'app_icon.dart';
 
 /// Local-only kudos toggle. The count is never a network value.
 class KudosButton extends StatelessWidget {
@@ -38,24 +40,27 @@ class KudosButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppRadii.pill),
             onTap: onPressed,
             child: ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: 44, minWidth: 64),
+              constraints: const BoxConstraints(minHeight: 32, minWidth: 56),
               child: Padding(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.md,
-                  vertical: AppSpacing.sm,
+                  horizontal: AppSpacing.lg,
+                  vertical: AppSpacing.xs,
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
-                    Icon(
-                      given ? Icons.favorite : Icons.favorite_border,
-                      size: 16,
+                    AppIcon(
+                      asset: given ? AppIcons.heartFilled : AppIcons.heart,
+                      size: 14,
                       color: foreground,
                     ),
                     const SizedBox(width: AppSpacing.xs),
                     Text(
                       '$count',
-                      style: AppTypography.label.copyWith(color: foreground),
+                      style: AppTypography.caption.copyWith(
+                        color: foreground,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ],
                 ),

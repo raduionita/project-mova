@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
+import '../theme/app_icons.dart';
 import '../theme/app_radii.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
+import 'app_icon.dart';
 
 /// Full-width selectable card with an optional icon and description.
 class AppChoiceCard extends StatelessWidget {
@@ -12,16 +14,24 @@ class AppChoiceCard extends StatelessWidget {
     required this.label,
     this.description,
     this.icon,
+    this.assetIcon,
     this.selected = false,
     this.onTap,
     this.trailing,
+    this.labelStyle,
+    this.descriptionStyle,
   });
 
   final String label;
   final String? description;
   final IconData? icon;
+
+  /// SVG asset alternative to [icon], used after the icon migration.
+  final String? assetIcon;
   final bool selected;
   final VoidCallback? onTap;
+  final TextStyle? labelStyle;
+  final TextStyle? descriptionStyle;
 
   /// Replaces the selected check mark, for example with a Primary tag.
   final Widget? trailing;
@@ -33,9 +43,8 @@ class AppChoiceCard extends StatelessWidget {
 
   Widget _buildIcon() {
     final icon = this.icon;
-    if (icon == null) {
-      return const SizedBox.shrink();
-    }
+    final asset = assetIcon;
+    final color = selected ? AppColors.lime : AppColors.muted;
     return Container(
       width: 32,
       height: 32,
@@ -45,11 +54,11 @@ class AppChoiceCard extends StatelessWidget {
             : AppColors.cardElevated,
         borderRadius: BorderRadius.circular(AppRadii.lg - 3),
       ),
-      child: Icon(
-        icon,
-        size: 17,
-        color: selected ? AppColors.lime : AppColors.muted,
-      ),
+      child: asset != null
+          ? Center(
+              child: AppIcon(asset: asset, size: 17, color: color),
+            )
+          : Icon(icon, size: 17, color: color),
     );
   }
 
@@ -60,7 +69,11 @@ class AppChoiceCard extends StatelessWidget {
     if (!selected) {
       return const SizedBox.shrink();
     }
-    return const Icon(Icons.check, size: 16, color: AppColors.lime);
+    return const AppIcon(
+      asset: AppIcons.check,
+      size: 16,
+      color: AppColors.lime,
+    );
   }
 
   @override
@@ -86,7 +99,7 @@ class AppChoiceCard extends StatelessWidget {
             ),
             child: Row(
               children: <Widget>[
-                if (icon != null) ...<Widget>[
+                if (icon != null || assetIcon != null) ...<Widget>[
                   _buildIcon(),
                   const SizedBox(width: AppSpacing.lg + 1),
                 ],
@@ -96,17 +109,15 @@ class AppChoiceCard extends StatelessWidget {
                     children: <Widget>[
                       Text(
                         label,
-                        style: AppTypography.bodyStrong.copyWith(
-                          color: AppColors.text,
-                        ),
+                        style: (labelStyle ?? AppTypography.bodyStrong)
+                            .copyWith(color: AppColors.text),
                       ),
                       if (description != null) ...<Widget>[
                         const SizedBox(height: AppSpacing.xxs),
                         Text(
                           description!,
-                          style: AppTypography.caption.copyWith(
-                            color: AppColors.muted,
-                          ),
+                          style: (descriptionStyle ?? AppTypography.caption)
+                              .copyWith(color: AppColors.muted),
                         ),
                       ],
                     ],

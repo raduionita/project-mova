@@ -21,6 +21,7 @@ import '../../services/keep_awake_service.dart';
 import '../../services/unit_conversion_service.dart';
 import '../../services/workout_calculator.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_icons.dart';
 import '../../theme/app_radii.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
@@ -28,6 +29,7 @@ import '../../widgets/app_button.dart';
 import '../../widgets/app_card.dart';
 import '../../widgets/app_chip.dart';
 import '../../widgets/app_empty_state.dart';
+import '../../widgets/app_icon.dart';
 import '../../widgets/app_tag.dart';
 import '../../widgets/exercise_picker_sheet.dart';
 import '../../widgets/numeric_input_sheet.dart';
@@ -575,8 +577,8 @@ class _LoggerScreenState extends State<LoggerScreen>
             width: AppSpacing.x5l,
             height: AppSpacing.x5l,
           ),
-          icon: const Icon(
-            Icons.close,
+          icon: const AppIcon(
+            asset: AppIcons.close,
             size: AppSpacing.x3l,
             color: AppColors.muted,
           ),
@@ -684,8 +686,8 @@ class _LoggerScreenState extends State<LoggerScreen>
                 width: AppSpacing.x5l,
                 height: AppSpacing.x5l,
               ),
-              icon: const Icon(
-                Icons.swap_horiz,
+              icon: const AppIcon(
+                asset: AppIcons.swap,
                 size: AppSpacing.x3l,
                 color: AppColors.muted,
               ),
@@ -699,8 +701,8 @@ class _LoggerScreenState extends State<LoggerScreen>
                 width: AppSpacing.x5l,
                 height: AppSpacing.x5l,
               ),
-              icon: const Icon(
-                Icons.calculate_outlined,
+              icon: const AppIcon(
+                asset: AppIcons.calculator,
                 size: AppSpacing.x3l,
                 color: AppColors.muted,
               ),
@@ -752,7 +754,7 @@ class _LoggerScreenState extends State<LoggerScreen>
         AppButton(
           label: 'Add set',
           variant: AppButtonVariant.ghost,
-          icon: Icons.add,
+          assetIcon: AppIcons.plus,
           onPressed: () => _addSet(exercise),
         ),
       ],
@@ -798,14 +800,14 @@ class _LoggerScreenState extends State<LoggerScreen>
           _buildHeader(session),
           const Expanded(
             child: AppEmptyState(
-              icon: Icons.fitness_center_outlined,
+              assetIcon: AppIcons.dumbbell,
               title: 'No exercises yet',
               message: 'Add an exercise to start logging sets.',
             ),
           ),
           AppButton(
             label: 'Add exercise',
-            icon: Icons.add,
+            assetIcon: AppIcons.plus,
             onPressed: _addExercises,
           ),
           const SizedBox(height: AppSpacing.sm),
@@ -857,7 +859,7 @@ class _LoggerScreenState extends State<LoggerScreen>
                 AppButton(
                   label: 'Add exercise',
                   variant: AppButtonVariant.ghost,
-                  icon: Icons.add,
+                  assetIcon: AppIcons.plus,
                   onPressed: _addExercises,
                 ),
                 const SizedBox(height: AppSpacing.x3l),
@@ -905,7 +907,7 @@ class _LoggerScreenState extends State<LoggerScreen>
                     children: <Widget>[
                       const Expanded(
                         child: AppEmptyState(
-                          icon: Icons.play_circle_outline,
+                          assetIcon: AppIcons.play,
                           title: 'No active workout',
                           message:
                               'Start a workout from Today or a saved routine.',

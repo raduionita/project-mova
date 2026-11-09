@@ -239,16 +239,18 @@ The HTML mockup uses a system sans at small sizes. Those values describe a 292 p
 
 ### 7.1 Icons
 
-- Use Material Symbols Rounded or the built-in Material Icons set.
+- Icons are SVG files in `assets/icons/`, one icon per file, registered in `pubspec.yaml`.
+- Every icon uses a 24x24 viewBox, no fill, a white 1.7 stroke, and round caps and joins. The runtime `AppIcon` widget tints them with `ColorFilter.srcMode` so one file serves every color.
 - Default size is 22 for navigation, 20 inside cards, 18 for inline metadata.
 - Default color is `muted`. Active navigation and confirmed actions use `lime`.
-- Stroke weight should feel consistent with the 700-weight display type. Prefer filled icons for active states and outlined icons for inactive states.
+- The Today tab uses the calendar glyph; Train, Progress, Social, and Me use the mock set.
 - Icons must have a semantic label unless they are decorative and accompanied by text.
+- Reference paths and asset names live in `AppIcons`.
 
 ### 7.2 Emoji
 
-- Emoji are allowed in onboarding goal and experience cards only.
 - Emoji are allowed inside seeded social content.
+- Onboarding goal tiles use SVG icons, not emoji.
 - Do not use emoji as navigation icons, button labels, or data labels.
 - Do not use emoji in the PR share card.
 
@@ -391,7 +393,8 @@ Each component lives in its own file under `lib/widgets/`. No component file may
 
 - Height 56 plus safe area, background `panel`, top border `line`.
 - Five items: Today, Train, Progress, Social, Me.
-- Icon 22, label `micro` at 10 px, gap 2.
+- Icons are tinted SVGs from `assets/icons/`, 22 px. Today uses a calendar glyph.
+- Label `micro` at 10 px, gap 2.
 - Active: `lime` icon and label. Inactive: `tabInactive`.
 - No badges in v1 except an optional dot on Social for unseen seed content.
 - Hidden entirely in the live logger and PR celebration routes.
@@ -562,8 +565,8 @@ All screens use `background`, 16 px horizontal padding, and the `body` type as t
 ### 10.2 Welcome
 
 - **Purpose:** Introduce the product in one screen and start onboarding.
-- **Layout:** Mark, headline "Train with a plan", three value bullets (plan, logger, progress), primary "Get started". The step progress indicator starts on the next screen.
-- **Components:** Logo, `h1`, three rows with 20 px icons, primary button.
+- **Layout:** 62x62 lime gradient mark with the letter M, headline "Train with a plan", three value bullets (plan, logger, progress), primary "Get started". No wordmark. The step progress indicator starts on the next screen.
+- **Components:** Brand mark, `AppOnboardingType.title`, three rows with 28 px lime-tinted icon boxes and SVG icons, primary button.
 - **Behavior:** "Get started" opens `/onboarding/units`. If a saved draft exists, the primary action becomes "Continue" and resumes at the saved step. "I have a profile" is not shown because local backup and accounts are out of scope in v1.
 - **States:** No loading. The button is disabled only while a draft is being created.
 
@@ -572,10 +575,10 @@ All screens use `background`, 16 px horizontal padding, and the `body` type as t
 - **Purpose:** Capture the measurements that personalise the plan and profile.
 - **Screens:** `/onboarding/units`, `/onboarding/gender`, `/onboarding/birth-date`, `/onboarding/weight`, `/onboarding/height`.
 - **Units:** Three segmented rows for weight (kg or lb), distance (km or mi), and body size (cm or in). Defaults are kg, km, and cm. All three persist before Continue. Distance is stored for future cardio tracking; no distance entry ships in v1.
-- **Gender:** Three full-width `AppChoiceCard` buttons with icon and text for male, female, and other. Selection is required.
+- **Gender:** Three full-width `AppChoiceCard` buttons with an SVG icon and text for male, female, and other. Other uses the combined male-female sign. Selection is required.
 - **Birth date:** Three vertical wheels for month, day, and year. Default is 25 years before today. The date must make the user at least 13 and no more than 120 years old. Leap years are handled.
 - **Weight:** Horizontal ruler slider, 30 to 250 kg in 0.5 kg steps. The displayed value uses the weight unit. The stored value is kg. Skip stores 0.
-- **Height:** Vertical roller, 120 to 230 cm in 1 cm steps. The displayed value uses the body unit. The stored value is cm. Skip stores 0.
+- **Height:** Vertical roller, 120 to 230 cm in 1 cm steps. Limits sit on the left of the track and the value on the right. The displayed value uses the body unit. The stored value is cm. Skip stores 0.
 - **Components:** `AppSegmentedControl`, `AppChoiceCard`, `AppWheelPicker`, `AppRulerSlider`, step progress, primary Continue, ghost Skip where allowed.
 - **Behavior:** Every step persists the draft before moving forward. Back preserves values. Weight and height can be skipped; gender and birth date are required.
 - **States:** Default, selected, skipped, restored draft, invalid age.
@@ -584,12 +587,12 @@ All screens use `background`, 16 px horizontal padding, and the `body` type as t
 
 - **Purpose:** Turn the profile into a goal, a training week, an equipment set, and a reminder choice.
 - **Screens:** `/onboarding/goals`, `/onboarding/experience`, `/onboarding/schedule`, `/onboarding/equipment`, `/onboarding/notifications`.
-- **Goals:** Multi-select cards for build muscle, get stronger, lose weight, and stay healthy. At least one is required. The first selected goal is primary and is labelled as such.
+- **Goals:** 2x2 grid of `AppTileGrid` icon tiles for build muscle, get stronger, lose weight, and stay healthy. At least one is required. The first selected goal is primary and is labelled as such.
 - **Experience:** Single-select cards for beginner, regular, gym rat, and veteran, each with a one-line description.
 - **Schedule:** Days per week from 1 to 7 and the training weekdays. Default is 3 days on Monday, Wednesday, and Friday. At least one weekday is required and the count must match the selected days per week.
 - **Equipment:** Multi-select cards for bodyweight, dumbbells, barbell and EZ bar, machines, cable station, kettlebells, and accessories. Every group is selected by default so a new user keeps a full-gym plan. At least one group is required. The selection is stored on the profile and every generated plan.
 - **Notifications:** Explain workout reminders. Enable asks for system permission. Deny, Not now, or unavailable continues with reminders off. The choice is stored and can be changed later in Settings.
-- **Components:** `AppMultiSelect`, `AppChoiceCard`, stepper, day selector, equipment cards, step progress, primary Continue.
+- **Components:** `AppTileGrid`, `AppMultiSelect`, `AppChoiceCard`, stepper, day selector, equipment cards, step progress, primary Continue.
 - **Behavior:** The schedule and equipment feed the plan generator. The notification choice never blocks progress.
 - **States:** No goal, no day, invalid day count, no equipment, permission granted, denied, unavailable, skipped.
 

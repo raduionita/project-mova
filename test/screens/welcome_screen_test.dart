@@ -7,7 +7,9 @@ import 'package:mova/providers/onboarding_provider.dart';
 import 'package:mova/screens/onboarding/welcome_screen.dart';
 import 'package:mova/services/clock.dart';
 import 'package:mova/services/storage_service.dart';
+import 'package:mova/theme/app_icons.dart';
 import 'package:mova/theme/app_theme.dart';
+import 'package:mova/widgets/app_icon.dart';
 import 'package:provider/provider.dart';
 
 final DateTime _fixedNow = DateTime.utc(2026, 11, 5, 12);
@@ -103,9 +105,13 @@ void main() {
     expect(find.text('A plan for your week'), findsOneWidget);
     expect(find.text('Log every set'), findsOneWidget);
     expect(find.text('See progress'), findsOneWidget);
-    expect(find.byIcon(Icons.calendar_month_outlined), findsOneWidget);
-    expect(find.byIcon(Icons.play_circle_outline), findsOneWidget);
-    expect(find.byIcon(Icons.insights_outlined), findsOneWidget);
+    expect(find.text('Mova'), findsNothing);
+    expect(
+      tester
+          .widgetList<AppIcon>(find.byType(AppIcon))
+          .map((icon) => icon.asset),
+      <String>[AppIcons.plan, AppIcons.clock, AppIcons.trendUp],
+    );
   });
 
   test('hasDraft tracks saved progress and reset', () async {

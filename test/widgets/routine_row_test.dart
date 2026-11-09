@@ -3,7 +3,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mova/models/routine.dart';
 import 'package:mova/models/routine_exercise.dart';
 import 'package:mova/theme/app_theme.dart';
+import 'package:mova/theme/app_icons.dart';
 import 'package:mova/widgets/routine_row.dart';
+import 'package:mova/widgets/app_icon.dart';
+
+Finder _assetIcon(String asset) => find.byWidgetPredicate(
+  (widget) => widget is AppIcon && widget.asset == asset,
+);
 
 void main() {
   final now = DateTime.utc(2026, 11, 6, 12);
@@ -44,7 +50,7 @@ void main() {
 
     expect(find.text('Push day'), findsOneWidget);
     expect(find.text('2 exercises'), findsOneWidget);
-    expect(find.byIcon(Icons.chevron_right), findsOneWidget);
+    expect(_assetIcon(AppIcons.chevronRight), findsOneWidget);
   });
 
   testWidgets('uses the singular count and invokes the tap callback', (

@@ -12,10 +12,12 @@ import '../../providers/social_provider.dart';
 import '../../providers/steps_provider.dart';
 import '../../services/health_service.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_icons.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
 import '../../widgets/app_back_bar.dart';
 import '../../widgets/app_card.dart';
+import '../../widgets/app_icon.dart';
 import '../../widgets/app_segmented_control.dart';
 import '../../widgets/app_tag.dart';
 import '../../widgets/day_selector.dart';
@@ -415,7 +417,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         children: <Widget>[
           SettingsRow(
             key: const Key('settings-reminders-row'),
-            icon: Icons.notifications_none,
+            assetIcon: AppIcons.bell,
             label: 'Workout reminders',
             value: _savingReminders ? 'Saving...' : _reminderSummary(settings),
             showChevron: false,
@@ -462,7 +464,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             SettingsRow(
               key: const Key('settings-reminder-time'),
-              icon: Icons.schedule,
+              assetIcon: AppIcons.clock,
               label: 'Reminder time',
               value: _reminderTimeLabel(settings),
               onTap: _pickReminderTime,
@@ -495,7 +497,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         children: <Widget>[
           SettingsRow(
             key: const Key('settings-health-row'),
-            icon: Icons.monitor_heart_outlined,
+            assetIcon: AppIcons.link,
             label: _healthLabel(settings.healthProvider),
             value: connected
                 ? 'Reading steps on this device'
@@ -545,7 +547,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                const Icon(Icons.lock_outline, size: 20, color: AppColors.lime),
+                const AppIcon(
+                  asset: AppIcons.lock,
+                  size: 20,
+                  color: AppColors.lime,
+                ),
                 const SizedBox(width: AppSpacing.xl),
                 Expanded(
                   child: Text(
@@ -567,7 +573,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           SettingsRow(
             key: const Key('settings-share-workouts'),
-            icon: Icons.people_outline,
+            assetIcon: AppIcons.navSocial,
             label: 'Post workouts to feed',
             value: settings.postWorkoutsToFeed
                 ? 'Own posts appear in Social'
@@ -590,7 +596,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             SettingsRow(
               key: const Key('settings-hide-samples'),
-              icon: Icons.visibility_off_outlined,
+              assetIcon: AppIcons.eyeOff,
               label: 'Hide sample posts',
               value: 'Remove the three labeled samples',
               onTap: _hideSamples,
@@ -608,7 +614,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         children: <Widget>[
           SettingsRow(
             key: const Key('settings-privacy'),
-            icon: Icons.privacy_tip_outlined,
+            assetIcon: AppIcons.shield,
             label: 'Privacy policy',
             onTap: () =>
                 Navigator.of(context)
@@ -622,7 +628,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           SettingsRow(
             key: const Key('settings-terms'),
-            icon: Icons.description_outlined,
+            assetIcon: AppIcons.document,
             label: 'Terms of use',
             onTap: () =>
                 Navigator.of(context).pushNamed(Routes.legalDocument('terms')),
@@ -635,7 +641,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           SettingsRow(
             key: const Key('settings-licenses'),
-            icon: Icons.code,
+            assetIcon: AppIcons.code,
             label: 'Open-source licenses',
             onTap: () => Navigator.of(context).pushNamed(Routes.meLicenses),
           ),
@@ -647,7 +653,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           SettingsRow(
             key: const Key('settings-help'),
-            icon: Icons.help_outline,
+            assetIcon: AppIcons.help,
             label: 'Help and support',
             onTap: () =>
                 Navigator.of(context).pushNamed(Routes.legalDocument('help')),
@@ -662,7 +668,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
       child: SettingsRow(
         key: const Key('settings-reset'),
-        icon: Icons.restart_alt,
+        assetIcon: AppIcons.refresh,
         label: 'Reset local data',
         value: 'Delete everything and start fresh',
         isDestructive: true,
@@ -675,7 +681,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return AppCard(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
       child: SettingsRow(
-        icon: Icons.info_outline,
+        assetIcon: AppIcons.info,
         label: 'Mova version',
         value: _version,
         showChevron: false,
@@ -732,7 +738,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                         child: SettingsRow(
                           key: const Key('settings-equipment-row'),
-                          icon: Icons.fitness_center,
+                          assetIcon: AppIcons.dumbbell,
                           label: 'Equipment',
                           value:
                               '${profile?.availableEquipment.length ?? EquipmentGroup.values.length} '

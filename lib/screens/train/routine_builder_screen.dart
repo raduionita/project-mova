@@ -7,12 +7,14 @@ import '../../providers/exercise_provider.dart';
 import '../../providers/routine_provider.dart';
 import '../../services/id_service.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_icons.dart';
 import '../../theme/app_radii.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
 import '../../widgets/app_back_bar.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_empty_state.dart';
+import '../../widgets/app_icon.dart';
 import '../../widgets/exercise_picker_sheet.dart';
 
 /// Creates a routine or edits an existing one at `/train/routines/new` and
@@ -303,7 +305,7 @@ class _RoutineBuilderScreenState extends State<RoutineBuilderScreen> {
 
   Widget _buildEmptyExercises() {
     return AppEmptyState(
-      icon: Icons.format_list_bulleted,
+      assetIcon: AppIcons.list,
       title: 'No exercises yet',
       message: 'Add exercises to build this routine.',
     );
@@ -330,8 +332,8 @@ class _RoutineBuilderScreenState extends State<RoutineBuilderScreen> {
                 index: index,
                 child: const Padding(
                   padding: EdgeInsets.all(AppSpacing.xs),
-                  child: Icon(
-                    Icons.drag_handle,
+                  child: AppIcon(
+                    asset: AppIcons.drag,
                     size: 20,
                     color: AppColors.muted,
                   ),
@@ -365,8 +367,8 @@ class _RoutineBuilderScreenState extends State<RoutineBuilderScreen> {
                 onPressed: () => _removeExercise(index),
                 tooltip: 'Remove $name',
                 visualDensity: VisualDensity.compact,
-                icon: const Icon(
-                  Icons.delete_outline,
+                icon: const AppIcon(
+                  asset: AppIcons.trash,
                   size: 20,
                   color: AppColors.muted,
                 ),
@@ -449,7 +451,7 @@ class _RoutineBuilderScreenState extends State<RoutineBuilderScreen> {
           child: Row(
             children: <Widget>[
               _buildStepButton(
-                icon: Icons.remove,
+                asset: AppIcons.minus,
                 semanticLabel: 'Decrease $label',
                 onPressed: value > min ? () => onChanged(value - 1) : null,
               ),
@@ -462,7 +464,7 @@ class _RoutineBuilderScreenState extends State<RoutineBuilderScreen> {
                 ),
               ),
               _buildStepButton(
-                icon: Icons.add,
+                asset: AppIcons.plus,
                 semanticLabel: 'Increase $label',
                 onPressed: value < max ? () => onChanged(value + 1) : null,
               ),
@@ -474,7 +476,7 @@ class _RoutineBuilderScreenState extends State<RoutineBuilderScreen> {
   }
 
   Widget _buildStepButton({
-    required IconData icon,
+    required String asset,
     required String semanticLabel,
     required VoidCallback? onPressed,
   }) {
@@ -487,8 +489,8 @@ class _RoutineBuilderScreenState extends State<RoutineBuilderScreen> {
         height: AppSpacing.x5l,
       ),
       iconSize: 16,
-      icon: Icon(
-        icon,
+      icon: AppIcon(
+        asset: asset,
         color: onPressed == null ? AppColors.line : AppColors.muted,
       ),
     );
@@ -523,7 +525,7 @@ class _RoutineBuilderScreenState extends State<RoutineBuilderScreen> {
         const SizedBox(height: AppSpacing.xl),
         AppButton(
           label: 'Add exercise',
-          icon: Icons.add,
+          assetIcon: AppIcons.plus,
           variant: AppButtonVariant.ghost,
           onPressed: _exercises.length >= _maxExercises ? null : _addExercises,
         ),
@@ -585,7 +587,7 @@ class _RoutineBuilderScreenState extends State<RoutineBuilderScreen> {
             AppBackBar(label: 'Routines', onBack: _requestClose),
             Expanded(
               child: AppEmptyState(
-                icon: Icons.search_off,
+                assetIcon: AppIcons.search,
                 title: 'Routine not found',
                 message: 'This routine is no longer saved on this device.',
                 actionLabel: 'Back to routines',

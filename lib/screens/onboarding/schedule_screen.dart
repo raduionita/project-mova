@@ -2,13 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../common/constants.dart';
-import '../../models/onboarding_draft.dart';
 import '../../navigation/onboarding_flow.dart';
 import '../../navigation/routes.dart';
 import '../../providers/onboarding_provider.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_onboarding_type.dart';
 import '../../theme/app_spacing.dart';
-import '../../theme/app_typography.dart';
 import '../../widgets/app_card.dart';
 import '../../widgets/day_selector.dart';
 import '../../widgets/stepper_row.dart';
@@ -100,29 +99,32 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     }
     setState(() => _isBusy = true);
     final onboarding = context.read<OnboardingProvider>();
-    final editingPlan = onboarding.draft.currentStep == OnboardingStep.plan;
+    final editingPlan = onboarding.editingPlan;
 
     await onboarding.setSchedule(
       daysPerWeek: _daysPerWeek,
       trainingDays: _days,
     );
-    final advanced = editingPlan ? false : await onboarding.next();
+    final next = editingPlan
+        ? Routes.onboardingPlan
+        : OnboardingFlow.nextRoute(Routes.onboardingSchedule)!;
+    if (editingPlan) {
+      onboarding.endPlanEdit();
+    }
+    onboarding.syncStep(OnboardingFlow.stepFor(next));
     if (!mounted) {
       return;
     }
     setState(() => _isBusy = false);
-    _open(
-      context,
-      editingPlan
-          ? Routes.onboardingPlan
-          : advanced
-          ? OnboardingFlow.nextRoute(Routes.onboardingSchedule)!
-          : Routes.onboardingSchedule,
-    );
+    _open(context, next);
   }
 
   void _back(BuildContext context) {
-    _open(context, OnboardingFlow.previousRoute(Routes.onboardingSchedule)!);
+    final onboarding = context.read<OnboardingProvider>();
+    onboarding.endPlanEdit();
+    final previous = OnboardingFlow.previousRoute(Routes.onboardingSchedule)!;
+    onboarding.syncStep(OnboardingFlow.stepFor(previous));
+    _open(context, previous);
   }
 
   String get _helper {
@@ -137,26 +139,31 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   }
 
   Widget _buildScheduleCard() {
-    return AppCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          StepperRow(
-            label: 'Days / week',
-            value: _daysPerWeek,
-            min: kMinTrainingDays,
-            max: kMaxTrainingDays,
-            onChanged: _setDaysPerWeek,
-          ),
-          const SizedBox(height: AppSpacing.x2l),
-          DaySelector(selectedDays: _days, onChanged: _setDays),
-          const SizedBox(height: AppSpacing.x2l),
-          Text(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        StepperRow(
+          label: 'Days / week',
+          value: _daysPerWeek,
+          min: kMinTrainingDays,
+          max: kMaxTrainingDays,
+          labelStyle: AppOnboardingType.caption,
+          onChanged: _setDaysPerWeek,
+        ),
+        const SizedBox(height: AppSpacing.x2l),
+        DaySelector(
+          selectedDays: _days,
+          textStyle: AppOnboardingType.micro,
+          onChanged: _setDays,
+        ),
+        const SizedBox(height: AppSpacing.x2l),
+        AppCard(
+          child: Text(
             _helper,
-            style: AppTypography.caption.copyWith(color: AppColors.muted),
+            style: AppOnboardingType.caption.copyWith(color: AppColors.muted),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 

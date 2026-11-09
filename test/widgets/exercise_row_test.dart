@@ -2,7 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mova/models/exercise.dart';
 import 'package:mova/theme/app_theme.dart';
+import 'package:mova/theme/app_icons.dart';
 import 'package:mova/widgets/exercise_row.dart';
+import 'package:mova/widgets/app_icon.dart';
+
+Finder _assetIcon(String asset) => find.byWidgetPredicate(
+  (widget) => widget is AppIcon && widget.asset == asset,
+);
 
 Exercise _exercise() {
   return const Exercise(
@@ -30,7 +36,7 @@ void main() {
 
     expect(find.text('Barbell Bench Press'), findsOneWidget);
     expect(find.text('Chest · Barbell'), findsOneWidget);
-    expect(find.byIcon(Icons.add), findsOneWidget);
+    expect(_assetIcon(AppIcons.plus), findsOneWidget);
     expect(find.byTooltip('Add Barbell Bench Press'), findsOneWidget);
   });
 
@@ -40,7 +46,7 @@ void main() {
       _wrap(ExerciseRow(exercise: _exercise(), onAdd: () => adds++)),
     );
 
-    await tester.tap(find.byIcon(Icons.add));
+    await tester.tap(_assetIcon(AppIcons.plus));
 
     expect(adds, 1);
   });

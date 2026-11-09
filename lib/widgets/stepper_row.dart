@@ -3,9 +3,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
+import '../theme/app_icons.dart';
 import '../theme/app_radii.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
+import 'app_icon.dart';
 
 /// Bounded plus and minus row from DESIGN.md section 8.5.
 class StepperRow extends StatefulWidget {
@@ -17,6 +19,7 @@ class StepperRow extends StatefulWidget {
     required this.max,
     this.onChanged,
     this.unitLabel,
+    this.labelStyle,
   });
 
   final String label;
@@ -25,6 +28,7 @@ class StepperRow extends StatefulWidget {
   final int max;
   final ValueChanged<int>? onChanged;
   final String? unitLabel;
+  final TextStyle? labelStyle;
 
   @override
   State<StepperRow> createState() => _StepperRowState();
@@ -68,7 +72,7 @@ class _StepperRowState extends State<StepperRow> {
   }
 
   Widget _buildStepButton({
-    required IconData icon,
+    required String asset,
     required String semanticLabel,
     required bool enabled,
     required VoidCallback onTap,
@@ -96,8 +100,8 @@ class _StepperRowState extends State<StepperRow> {
               child: SizedBox(
                 width: 32,
                 height: 32,
-                child: Icon(
-                  icon,
+                child: AppIcon(
+                  asset: asset,
                   size: 18,
                   color: enabled ? AppColors.text : AppColors.textDisabled,
                 ),
@@ -130,11 +134,13 @@ class _StepperRowState extends State<StepperRow> {
               widget.label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: AppTypography.caption.copyWith(color: AppColors.muted),
+              style: (widget.labelStyle ?? AppTypography.caption).copyWith(
+                color: AppColors.muted,
+              ),
             ),
           ),
           _buildStepButton(
-            icon: Icons.remove,
+            asset: AppIcons.minus,
             semanticLabel: 'Decrease ${widget.label}',
             enabled: _canDecrease,
             onTap: () => _change(-1),
@@ -153,7 +159,7 @@ class _StepperRowState extends State<StepperRow> {
             ),
           ),
           _buildStepButton(
-            icon: Icons.add,
+            asset: AppIcons.plus,
             semanticLabel: 'Increase ${widget.label}',
             enabled: _canIncrease,
             onTap: () => _change(1),

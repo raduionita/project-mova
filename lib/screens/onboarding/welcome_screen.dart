@@ -5,10 +5,13 @@ import '../../navigation/onboarding_flow.dart';
 import '../../navigation/routes.dart';
 import '../../providers/onboarding_provider.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_icons.dart';
+import '../../theme/app_onboarding_type.dart';
 import '../../theme/app_radii.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
 import '../../widgets/app_button.dart';
+import '../../widgets/app_icon.dart';
 
 /// First screen of onboarding. Starts a new draft or resumes a saved one.
 class WelcomeScreen extends StatelessWidget {
@@ -41,39 +44,71 @@ class WelcomeScreen extends StatelessWidget {
 
   Widget _buildMark() {
     return Container(
-      width: 86,
-      height: 86,
+      width: 62,
+      height: 62,
       decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(AppRadii.x3l + AppRadii.xs),
-        border: Border.all(color: AppColors.lime, width: 2),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: <Color>[AppColors.lime, Color(0xFF7FC93A)],
+        ),
+        borderRadius: BorderRadius.circular(AppRadii.x3l),
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: AppColors.lime.withValues(alpha: 0.28),
+            blurRadius: 30,
+            offset: const Offset(0, 12),
+          ),
+        ],
       ),
-      child: const Icon(Icons.fitness_center, size: 40, color: AppColors.lime),
+      child: Center(
+        child: Text(
+          'M',
+          style: AppTypography.displayXL.copyWith(
+            fontSize: 32,
+            height: 1,
+            color: AppColors.limeInk,
+          ),
+        ),
+      ),
     );
   }
 
-  Widget _buildValueRow(IconData icon, String title, String detail) {
+  Widget _buildValueRow(String asset, String title, String detail) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Icon(icon, size: 20, color: AppColors.lime),
-          const SizedBox(width: AppSpacing.xl),
+          Container(
+            width: 28,
+            height: 28,
+            decoration: BoxDecoration(
+              color: AppColors.lime.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(AppRadii.sm + 1),
+            ),
+            child: Center(
+              child: AppIcon(asset: asset, size: 15, color: AppColors.lime),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.lg),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Text(
                   title,
-                  style: AppTypography.bodyStrong.copyWith(
+                  style: AppOnboardingType.label.copyWith(
+                    fontWeight: FontWeight.w700,
                     color: AppColors.text,
                   ),
                 ),
                 const SizedBox(height: AppSpacing.xxs),
                 Text(
                   detail,
-                  style: AppTypography.caption.copyWith(color: AppColors.muted),
+                  style: AppOnboardingType.caption.copyWith(
+                    color: AppColors.muted,
+                  ),
                 ),
               ],
             ),
@@ -100,35 +135,31 @@ class WelcomeScreen extends StatelessWidget {
               Center(child: _buildMark()),
               const SizedBox(height: AppSpacing.x3l),
               Text(
-                'Mova',
+                'Train with a plan',
                 textAlign: TextAlign.center,
-                style: AppTypography.displayXL.copyWith(color: AppColors.text),
+                style: AppOnboardingType.title.copyWith(color: AppColors.text),
               ),
               const SizedBox(height: AppSpacing.md),
               Text(
-                'Train with a plan',
-                textAlign: TextAlign.center,
-                style: AppTypography.h1.copyWith(color: AppColors.text),
-              ),
-              const SizedBox(height: AppSpacing.x2l),
-              Text(
                 'A weekly plan, a live logger, and progress you can see.',
                 textAlign: TextAlign.center,
-                style: AppTypography.body.copyWith(color: AppColors.muted),
+                style: AppOnboardingType.subtitle.copyWith(
+                  color: AppColors.muted,
+                ),
               ),
               const SizedBox(height: AppSpacing.x4l),
               _buildValueRow(
-                Icons.calendar_month_outlined,
+                AppIcons.plan,
                 'A plan for your week',
                 'Generated from your goals, level, and schedule.',
               ),
               _buildValueRow(
-                Icons.play_circle_outline,
+                AppIcons.clock,
                 'Log every set',
                 'Weights, reps, and rest tracked while you train.',
               ),
               _buildValueRow(
-                Icons.insights_outlined,
+                AppIcons.trendUp,
                 'See progress',
                 'History, streaks, and personal records in one place.',
               ),

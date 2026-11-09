@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
+import '../theme/app_icons.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
+import 'app_icon.dart';
 
 /// One tappable row in the Me and Settings lists.
 class SettingsRow extends StatelessWidget {
   const SettingsRow({
     super.key,
-    required this.icon,
+    this.icon,
+    this.assetIcon,
     required this.label,
     this.value,
     this.onTap,
@@ -18,7 +21,10 @@ class SettingsRow extends StatelessWidget {
     this.semanticLabel,
   });
 
-  final IconData icon;
+  final IconData? icon;
+
+  /// SVG asset alternative to [icon], used after the icon migration.
+  final String? assetIcon;
   final String label;
   final String? value;
   final VoidCallback? onTap;
@@ -26,6 +32,15 @@ class SettingsRow extends StatelessWidget {
   final bool showChevron;
   final bool isDestructive;
   final String? semanticLabel;
+
+  Widget _buildIcon() {
+    final iconColor = isDestructive ? AppColors.orange : AppColors.muted;
+    final asset = assetIcon;
+    if (asset != null) {
+      return AppIcon(asset: asset, size: 20, color: iconColor);
+    }
+    return Icon(icon, size: 20, color: iconColor);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,11 +64,7 @@ class SettingsRow extends StatelessWidget {
                 ),
                 child: Row(
                   children: <Widget>[
-                    Icon(
-                      icon,
-                      size: 20,
-                      color: isDestructive ? AppColors.orange : AppColors.muted,
-                    ),
+                    _buildIcon(),
                     const SizedBox(width: AppSpacing.xl),
                     Expanded(
                       child: Column(
@@ -82,8 +93,8 @@ class SettingsRow extends StatelessWidget {
                     ),
                     ?trailing,
                     if (trailing == null && showChevron && onTap != null)
-                      const Icon(
-                        Icons.chevron_right,
+                      const AppIcon(
+                        asset: AppIcons.chevronRight,
                         size: 20,
                         color: AppColors.textDisabled,
                       ),

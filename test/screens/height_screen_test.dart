@@ -52,7 +52,7 @@ void main() {
     expect(find.text('Your height'), findsOneWidget);
     expect(find.text('175'), findsOneWidget);
     expect(find.text('cm'), findsOneWidget);
-    expect(find.text('Drag to adjust'), findsOneWidget);
+    expect(find.text('Drag to adjust'), findsNothing);
     expect(find.text('Skip for now'), findsOneWidget);
   });
 

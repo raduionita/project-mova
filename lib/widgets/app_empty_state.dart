@@ -4,23 +4,36 @@ import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
 import 'app_button.dart';
+import 'app_icon.dart';
 
 /// Centered empty state from DESIGN.md section 8.16.
 class AppEmptyState extends StatelessWidget {
   const AppEmptyState({
     super.key,
-    required this.icon,
+    this.icon,
+    this.assetIcon,
     required this.title,
     required this.message,
     this.actionLabel,
     this.onAction,
-  });
+  }) : assert(icon != null || assetIcon != null);
 
-  final IconData icon;
+  final IconData? icon;
+
+  /// SVG asset alternative to [icon], used after the icon migration.
+  final String? assetIcon;
   final String title;
   final String message;
   final String? actionLabel;
   final VoidCallback? onAction;
+
+  Widget _buildIcon() {
+    final asset = assetIcon;
+    if (asset != null) {
+      return AppIcon(asset: asset, size: 48, color: AppColors.muted);
+    }
+    return Icon(icon, size: 48, color: AppColors.muted);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +54,7 @@ class AppEmptyState extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
-                    Icon(icon, size: 48, color: AppColors.muted),
+                    _buildIcon(),
                     const SizedBox(height: AppSpacing.xl),
                     Text(
                       title,

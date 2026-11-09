@@ -11,6 +11,7 @@ import '../../providers/settings_provider.dart';
 import '../../providers/workout_provider.dart';
 import '../../services/unit_conversion_service.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_icons.dart';
 import '../../theme/app_radii.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
@@ -256,7 +257,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                             ),
                           )
                         : const AppEmptyState(
-                            icon: Icons.fitness_center_outlined,
+                            assetIcon: AppIcons.dumbbell,
                             title: 'Exercise not found',
                             message:
                                 'This exercise is no longer in the local '

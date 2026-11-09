@@ -45,7 +45,7 @@ Future<BuildContext> _pumpApp(
     ),
   );
   await tester.pumpAndSettle();
-  return tester.element(find.text('Mova'));
+  return tester.element(find.byType(Scaffold).first);
 }
 
 void main() {

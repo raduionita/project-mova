@@ -9,10 +9,12 @@ import '../providers/exercise_provider.dart';
 import '../providers/settings_provider.dart';
 import '../services/share_card_service.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_icons.dart';
 import '../theme/app_radii.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
 import 'app_button.dart';
+import 'app_icon.dart';
 
 /// Bottom sheet that renders the PR card, previews it, and shares it.
 class ShareCardSheet extends StatefulWidget {
@@ -214,7 +216,10 @@ class _ShareCardSheetState extends State<ShareCardSheet> {
               ),
               IconButton(
                 tooltip: 'Close',
-                icon: const Icon(Icons.close, color: AppColors.muted),
+                icon: const AppIcon(
+                  asset: AppIcons.close,
+                  color: AppColors.muted,
+                ),
                 onPressed: () => Navigator.of(context).pop(),
               ),
             ],
@@ -225,7 +230,7 @@ class _ShareCardSheetState extends State<ShareCardSheet> {
           AppButton(
             key: _shareButtonKey,
             label: 'Share',
-            icon: Icons.ios_share,
+            assetIcon: AppIcons.share,
             isLoading: _isSharing,
             onPressed: canShare ? _share : null,
           ),

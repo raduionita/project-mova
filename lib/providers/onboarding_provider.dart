@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import '../common/constants.dart';
@@ -23,6 +25,7 @@ class OnboardingProvider extends ChangeNotifier {
   late OnboardingDraft _draft;
   bool _isLoading = false;
   bool _hasDraft = false;
+  bool _editingPlan = false;
   String? _error;
 
   OnboardingDraft get draft => _draft;
@@ -31,6 +34,18 @@ class OnboardingProvider extends ChangeNotifier {
   bool get hasDraft => _hasDraft;
   bool get isLoading => _isLoading;
   String? get error => _error;
+
+  /// True while the user is editing the schedule from the plan preview, so
+  /// the schedule step returns to the plan instead of moving forward.
+  bool get editingPlan => _editingPlan;
+
+  void beginPlanEdit() {
+    _editingPlan = true;
+  }
+
+  void endPlanEdit() {
+    _editingPlan = false;
+  }
 
   Future<void> load() async {
     _isLoading = true;
@@ -124,6 +139,29 @@ class OnboardingProvider extends ChangeNotifier {
             daysPerWeek >= kMinTrainingDays &&
             daysPerWeek <= kMaxTrainingDays &&
             _draft.trainingDays.length == daysPerWeek;
+    }
+  }
+
+  /// Mirrors the visible onboarding route into the draft. Screens call this on
+  /// every forward and backward jump so the draft step can never drift ahead of
+  /// the screen. The in-memory step updates immediately and the write follows.
+  void syncStep(OnboardingStep step) {
+    if (_draft.currentStep == step) {
+      return;
+    }
+    _draft = _draft.copyWith(currentStep: step);
+    _hasDraft = step != OnboardingStep.welcome;
+    _error = null;
+    notifyListeners();
+    unawaited(_persistStep(_draft));
+  }
+
+  Future<void> _persistStep(OnboardingDraft draft) async {
+    final stamped = draft.copyWith(updatedAt: _clock.now());
+    final saved = await _storage.writeObject(kOnboardingKey, stamped.toJson());
+    if (!saved) {
+      _error = 'Could not save onboarding draft.';
+      notifyListeners();
     }
   }
 

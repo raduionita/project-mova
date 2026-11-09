@@ -5,6 +5,8 @@ import '../../models/gender.dart';
 import '../../navigation/onboarding_flow.dart';
 import '../../navigation/routes.dart';
 import '../../providers/onboarding_provider.dart';
+import '../../theme/app_icons.dart';
+import '../../theme/app_onboarding_type.dart';
 import '../../theme/app_spacing.dart';
 import '../../widgets/app_choice_card.dart';
 import 'onboarding_scaffold.dart';
@@ -48,35 +50,37 @@ class _GenderScreenState extends State<GenderScreen> {
     setState(() => _isBusy = true);
     final onboarding = context.read<OnboardingProvider>();
     await onboarding.setGender(gender);
-    final advanced = await onboarding.next();
+    final next = OnboardingFlow.nextRoute(Routes.onboardingGender)!;
+    onboarding.syncStep(OnboardingFlow.stepFor(next));
     if (!mounted) {
       return;
     }
     setState(() => _isBusy = false);
-    _open(
-      context,
-      advanced
-          ? OnboardingFlow.nextRoute(Routes.onboardingGender)!
-          : Routes.onboardingGender,
-    );
+    _open(context, next);
   }
 
   void _back(BuildContext context) {
-    _open(context, OnboardingFlow.previousRoute(Routes.onboardingGender)!);
+    final previous = OnboardingFlow.previousRoute(Routes.onboardingGender)!;
+    context.read<OnboardingProvider>().syncStep(
+      OnboardingFlow.stepFor(previous),
+    );
+    _open(context, previous);
   }
 
   Widget _buildOption({
     required Gender gender,
     required String label,
     required String description,
-    required IconData icon,
+    required String assetIcon,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.md),
       child: AppChoiceCard(
         label: label,
         description: description,
-        icon: icon,
+        assetIcon: assetIcon,
+        labelStyle: AppOnboardingType.choiceTitle,
+        descriptionStyle: AppOnboardingType.choiceDesc,
         selected: _gender == gender,
         onTap: () => setState(() => _gender = gender),
       ),
@@ -100,19 +104,19 @@ class _GenderScreenState extends State<GenderScreen> {
             gender: Gender.male,
             label: 'Male',
             description: 'Use male reference values.',
-            icon: Icons.male,
+            assetIcon: AppIcons.male,
           ),
           _buildOption(
             gender: Gender.female,
             label: 'Female',
             description: 'Use female reference values.',
-            icon: Icons.female,
+            assetIcon: AppIcons.female,
           ),
           _buildOption(
             gender: Gender.other,
             label: 'Other',
             description: 'Skip the reference adjustment.',
-            icon: Icons.person_outline,
+            assetIcon: AppIcons.other,
           ),
         ],
       ),

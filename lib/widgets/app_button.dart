@@ -4,6 +4,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_radii.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
+import 'app_icon.dart';
 
 enum AppButtonVariant { primary, ghost, destructive }
 
@@ -17,6 +18,7 @@ class AppButton extends StatefulWidget {
     this.variant = AppButtonVariant.primary,
     this.isLoading = false,
     this.icon,
+    this.assetIcon,
     this.fullWidth = true,
   });
 
@@ -25,6 +27,9 @@ class AppButton extends StatefulWidget {
   final AppButtonVariant variant;
   final bool isLoading;
   final IconData? icon;
+
+  /// SVG asset alternative to [icon], used after the icon migration.
+  final String? assetIcon;
   final bool fullWidth;
 
   @override
@@ -92,7 +97,10 @@ class _AppButtonState extends State<AppButton> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        if (widget.icon != null) ...<Widget>[
+        if (widget.assetIcon != null) ...<Widget>[
+          AppIcon(asset: widget.assetIcon!, size: 18, color: _foreground),
+          const SizedBox(width: AppSpacing.md),
+        ] else if (widget.icon != null) ...<Widget>[
           Icon(widget.icon, size: 18, color: _foreground),
           const SizedBox(width: AppSpacing.md),
         ],

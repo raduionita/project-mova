@@ -7,11 +7,13 @@ import '../../providers/exercise_provider.dart';
 import '../../providers/routine_provider.dart';
 import '../../providers/workout_provider.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_icons.dart';
 import '../../theme/app_radii.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
 import '../../widgets/app_chip.dart';
 import '../../widgets/app_empty_state.dart';
+import '../../widgets/app_icon.dart';
 import '../../widgets/exercise_row.dart';
 import '../../widgets/routine_row.dart';
 
@@ -106,13 +108,21 @@ class _TrainScreenState extends State<TrainScreen> {
       decoration: InputDecoration(
         hintText: 'Search exercises, muscles, equipment',
         hintStyle: AppTypography.body.copyWith(color: AppColors.muted),
-        prefixIcon: const Icon(Icons.search, size: 20, color: AppColors.muted),
+        prefixIcon: const AppIcon(
+          asset: AppIcons.search,
+          size: 20,
+          color: AppColors.muted,
+        ),
         suffixIcon: _searchController.text.isEmpty
             ? null
             : IconButton(
                 onPressed: _clearSearch,
                 tooltip: 'Clear search',
-                icon: const Icon(Icons.close, size: 18, color: AppColors.muted),
+                icon: const AppIcon(
+                  asset: AppIcons.close,
+                  size: 18,
+                  color: AppColors.muted,
+                ),
               ),
         filled: true,
         fillColor: AppColors.surfaceAlt,
@@ -245,7 +255,7 @@ class _TrainScreenState extends State<TrainScreen> {
     }
     if (provider.error != null && provider.exercises.isEmpty) {
       return AppEmptyState(
-        icon: Icons.error_outline,
+        assetIcon: AppIcons.alert,
         title: 'Could not load exercises',
         message: 'The local exercise library could not be read.',
         actionLabel: 'Try again',
@@ -254,7 +264,7 @@ class _TrainScreenState extends State<TrainScreen> {
     }
     if (provider.exercises.isEmpty) {
       return AppEmptyState(
-        icon: Icons.fitness_center_outlined,
+        assetIcon: AppIcons.dumbbell,
         title: 'No exercises yet',
         message: 'The local exercise library is empty.',
         actionLabel: 'Reload library',
@@ -263,7 +273,7 @@ class _TrainScreenState extends State<TrainScreen> {
     }
     if (provider.filtered.isEmpty) {
       return AppEmptyState(
-        icon: Icons.search_off,
+        assetIcon: AppIcons.search,
         title: 'No exercises found',
         message: 'Try a different search or muscle filter.',
         actionLabel: 'Clear filters',

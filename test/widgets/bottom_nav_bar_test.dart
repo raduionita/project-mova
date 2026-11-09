@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mova/navigation/app_navigation.dart';
 import 'package:mova/theme/app_colors.dart';
+import 'package:mova/theme/app_icons.dart';
 import 'package:mova/theme/app_theme.dart';
+import 'package:mova/widgets/app_icon.dart';
 import 'package:mova/widgets/bottom_nav_bar.dart';
 
 Widget _wrap(Widget child) {
@@ -10,6 +12,10 @@ Widget _wrap(Widget child) {
     theme: AppTheme.dark,
     home: Scaffold(bottomNavigationBar: child),
   );
+}
+
+Finder _tabIcon(AppTab tab) {
+  return find.byKey(ValueKey<String>('tab-icon-${tab.name}'));
 }
 
 void main() {
@@ -29,7 +35,11 @@ void main() {
     expect(find.text('Progress'), findsNothing);
     expect(find.text('Social'), findsNothing);
     expect(find.text('Me'), findsNothing);
-    expect(find.byIcon(Icons.today), findsOneWidget);
+    expect(_tabIcon(AppTab.today), findsOneWidget);
+    expect(
+      tester.widget<AppIcon>(_tabIcon(AppTab.today)).asset,
+      AppIcons.navToday,
+    );
   });
 
   testWidgets('phase 5 renders all five destinations', (tester) async {
@@ -48,8 +58,13 @@ void main() {
     expect(find.text('Progress'), findsOneWidget);
     expect(find.text('Social'), findsOneWidget);
     expect(find.text('Me'), findsOneWidget);
-    expect(find.byIcon(Icons.people), findsOneWidget);
-    expect(find.byIcon(Icons.today_outlined), findsOneWidget);
+    for (final tab in AppTab.values) {
+      expect(_tabIcon(tab), findsOneWidget);
+    }
+    expect(
+      tester.widget<AppIcon>(_tabIcon(AppTab.social)).asset,
+      AppIcons.navSocial,
+    );
   });
 
   testWidgets('tapping a tab reports the tab', (tester) async {
@@ -81,10 +96,8 @@ void main() {
       ),
     );
 
-    final selected = tester.widget<Icon>(find.byIcon(Icons.today));
-    final inactive = tester.widget<Icon>(
-      find.byIcon(Icons.fitness_center_outlined),
-    );
+    final selected = tester.widget<AppIcon>(_tabIcon(AppTab.today));
+    final inactive = tester.widget<AppIcon>(_tabIcon(AppTab.train));
     final selectedLabel = tester.widget<Text>(find.text('Today'));
     final inactiveLabel = tester.widget<Text>(find.text('Train'));
 

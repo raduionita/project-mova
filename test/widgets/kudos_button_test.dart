@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mova/theme/app_icons.dart';
 import 'package:mova/theme/app_theme.dart';
+import 'package:mova/widgets/app_icon.dart';
 import 'package:mova/widgets/kudos_button.dart';
 
 Widget _wrap(Widget child) {
@@ -15,16 +17,17 @@ void main() {
     await tester.pumpWidget(_wrap(const KudosButton(count: 12, given: false)));
 
     expect(find.text('12'), findsOneWidget);
-    expect(find.byIcon(Icons.favorite_border), findsOneWidget);
-    expect(find.byIcon(Icons.favorite), findsNothing);
+    expect(tester.widget<AppIcon>(find.byType(AppIcon)).asset, AppIcons.heart);
   });
 
   testWidgets('a given kudos uses the filled heart', (tester) async {
     await tester.pumpWidget(_wrap(const KudosButton(count: 13, given: true)));
 
     expect(find.text('13'), findsOneWidget);
-    expect(find.byIcon(Icons.favorite), findsOneWidget);
-    expect(find.byIcon(Icons.favorite_border), findsNothing);
+    expect(
+      tester.widget<AppIcon>(find.byType(AppIcon)).asset,
+      AppIcons.heartFilled,
+    );
   });
 
   testWidgets('tapping reports the toggle', (tester) async {

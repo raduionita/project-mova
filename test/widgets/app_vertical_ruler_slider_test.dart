@@ -36,6 +36,26 @@ void main() {
     expect(find.text('Drag to adjust'), findsOneWidget);
   });
 
+  testWidgets('the track and value slot keep their position as digits change', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_wrap(value: 175));
+    final track = find.descendant(
+      of: find.byType(AppVerticalRulerSlider),
+      matching: find.byType(CustomPaint),
+    );
+    final trackOrigin = tester.getTopLeft(track);
+    final sliderSize = tester.getSize(find.byType(AppVerticalRulerSlider));
+
+    await tester.pumpWidget(_wrap(value: 100));
+    expect(tester.getTopLeft(track), trackOrigin);
+    expect(tester.getSize(find.byType(AppVerticalRulerSlider)), sliderSize);
+
+    await tester.pumpWidget(_wrap(value: 230));
+    expect(tester.getTopLeft(track), trackOrigin);
+    expect(tester.getSize(find.byType(AppVerticalRulerSlider)), sliderSize);
+  });
+
   testWidgets('dragging up increases the value in one cm steps', (
     tester,
   ) async {

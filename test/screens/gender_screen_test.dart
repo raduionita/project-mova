@@ -8,7 +8,9 @@ import 'package:mova/providers/onboarding_provider.dart';
 import 'package:mova/screens/onboarding/gender_screen.dart';
 import 'package:mova/services/clock.dart';
 import 'package:mova/services/storage_service.dart';
+import 'package:mova/theme/app_icons.dart';
 import 'package:mova/theme/app_theme.dart';
+import 'package:mova/widgets/app_icon.dart';
 import 'package:mova/widgets/app_choice_card.dart';
 import 'package:provider/provider.dart';
 
@@ -37,6 +39,10 @@ Future<OnboardingProvider> _providerAtGender(StorageService storage) async {
   return provider;
 }
 
+Finder _assetIcon(String asset) => find.byWidgetPredicate(
+  (widget) => widget is AppIcon && widget.asset == asset,
+);
+
 void main() {
   testWidgets('renders three options with icons and text', (tester) async {
     final provider = await _providerAtGender(StorageService.inMemory());
@@ -46,9 +52,12 @@ void main() {
     expect(find.text('Male'), findsOneWidget);
     expect(find.text('Female'), findsOneWidget);
     expect(find.text('Other'), findsOneWidget);
-    expect(find.byIcon(Icons.male), findsOneWidget);
-    expect(find.byIcon(Icons.female), findsOneWidget);
-    expect(find.byIcon(Icons.person_outline), findsOneWidget);
+    expect(
+      tester
+          .widgetList<AppIcon>(find.byType(AppIcon))
+          .map((icon) => icon.asset),
+      containsAll(<String>[AppIcons.male, AppIcons.female, AppIcons.other]),
+    );
   });
 
   testWidgets('continue is disabled until a gender is chosen', (tester) async {
@@ -90,7 +99,7 @@ void main() {
     final selected = cards.where((card) => card.selected);
     expect(selected, hasLength(1));
     expect(selected.single.label, 'Other');
-    expect(find.byIcon(Icons.check), findsOneWidget);
+    expect(_assetIcon(AppIcons.check), findsOneWidget);
   });
 
   testWidgets('back returns to units', (tester) async {

@@ -14,6 +14,7 @@ class DaySelector extends StatelessWidget {
     required this.selectedDays,
     this.onChanged,
     this.enabled = true,
+    this.textStyle,
   });
 
   static const List<String> _labels = <String>[
@@ -39,6 +40,7 @@ class DaySelector extends StatelessWidget {
   final List<int> selectedDays;
   final ValueChanged<List<int>>? onChanged;
   final bool enabled;
+  final TextStyle? textStyle;
 
   bool _isSelected(int day) => selectedDays.contains(day);
 
@@ -88,7 +90,7 @@ class DaySelector extends StatelessWidget {
                 child: Center(
                   child: Text(
                     _labels[day - 1],
-                    style: AppTypography.micro.copyWith(
+                    style: (textStyle ?? AppTypography.micro).copyWith(
                       color: foreground,
                       fontWeight: FontWeight.w700,
                     ),

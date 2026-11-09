@@ -7,8 +7,9 @@ import '../../navigation/routes.dart';
 import '../../providers/onboarding_provider.dart';
 import '../../services/clock.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_onboarding_type.dart';
 import '../../theme/app_spacing.dart';
-import '../../theme/app_typography.dart';
+import '../../widgets/app_card.dart';
 import '../../widgets/app_wheel_picker.dart';
 import 'onboarding_scaffold.dart';
 
@@ -135,21 +136,21 @@ class _BirthDateScreenState extends State<BirthDateScreen> {
     setState(() => _isBusy = true);
     final onboarding = context.read<OnboardingProvider>();
     await onboarding.setBirthDate(_birthDate);
-    final advanced = await onboarding.next();
+    final next = OnboardingFlow.nextRoute(Routes.onboardingBirthDate)!;
+    onboarding.syncStep(OnboardingFlow.stepFor(next));
     if (!mounted) {
       return;
     }
     setState(() => _isBusy = false);
-    _open(
-      context,
-      advanced
-          ? OnboardingFlow.nextRoute(Routes.onboardingBirthDate)!
-          : Routes.onboardingBirthDate,
-    );
+    _open(context, next);
   }
 
   void _back(BuildContext context) {
-    _open(context, OnboardingFlow.previousRoute(Routes.onboardingBirthDate)!);
+    final previous = OnboardingFlow.previousRoute(Routes.onboardingBirthDate)!;
+    context.read<OnboardingProvider>().syncStep(
+      OnboardingFlow.stepFor(previous),
+    );
+    _open(context, previous);
   }
 
   Widget _buildWheelColumn(String label, Widget wheel) {
@@ -158,7 +159,7 @@ class _BirthDateScreenState extends State<BirthDateScreen> {
         children: <Widget>[
           Text(
             label,
-            style: AppTypography.caption.copyWith(color: AppColors.muted),
+            style: AppOnboardingType.micro.copyWith(color: AppColors.muted),
           ),
           const SizedBox(height: AppSpacing.md),
           wheel,
@@ -213,9 +214,17 @@ class _BirthDateScreenState extends State<BirthDateScreen> {
           Text(
             error,
             textAlign: TextAlign.center,
-            style: AppTypography.caption.copyWith(color: AppColors.orange),
+            style: AppOnboardingType.caption.copyWith(color: AppColors.orange),
           ),
         ],
+        const SizedBox(height: AppSpacing.x3l),
+        AppCard(
+          child: Text(
+            'Must be at least 13 and no more than 120 years old. '
+            'Leap years are handled.',
+            style: AppOnboardingType.caption.copyWith(color: AppColors.muted),
+          ),
+        ),
       ],
     );
   }
@@ -230,6 +239,7 @@ class _BirthDateScreenState extends State<BirthDateScreen> {
       onContinue: _continue,
       continueEnabled: _isValidAge,
       isBusy: _isBusy,
+      centerContent: true,
       child: _buildWheels(),
     );
   }

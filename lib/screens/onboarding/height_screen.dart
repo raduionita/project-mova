@@ -6,6 +6,7 @@ import '../../navigation/onboarding_flow.dart';
 import '../../navigation/routes.dart';
 import '../../providers/onboarding_provider.dart';
 import '../../services/unit_conversion_service.dart';
+import '../../theme/app_onboarding_type.dart';
 import '../../widgets/app_vertical_ruler_slider.dart';
 import 'onboarding_scaffold.dart';
 
@@ -63,21 +64,21 @@ class _HeightScreenState extends State<HeightScreen> {
     final onboarding = context.read<OnboardingProvider>();
 
     await onboarding.setHeightCm(skip ? 0 : _cm.toDouble());
-    final advanced = await onboarding.next();
+    final next = OnboardingFlow.nextRoute(Routes.onboardingHeight)!;
+    onboarding.syncStep(OnboardingFlow.stepFor(next));
     if (!mounted) {
       return;
     }
     setState(() => _isBusy = false);
-    _open(
-      context,
-      advanced
-          ? OnboardingFlow.nextRoute(Routes.onboardingHeight)!
-          : Routes.onboardingHeight,
-    );
+    _open(context, next);
   }
 
   void _back(BuildContext context) {
-    _open(context, OnboardingFlow.previousRoute(Routes.onboardingHeight)!);
+    final previous = OnboardingFlow.previousRoute(Routes.onboardingHeight)!;
+    context.read<OnboardingProvider>().syncStep(
+      OnboardingFlow.stepFor(previous),
+    );
+    _open(context, previous);
   }
 
   String _formatHeight(double cm) {
@@ -102,6 +103,7 @@ class _HeightScreenState extends State<HeightScreen> {
       isBusy: _isBusy,
       onSkip: _isBusy ? null : () => _continue(skip: true),
       skipLabel: 'Skip for now',
+      centerContent: true,
       child: AppVerticalRulerSlider(
         value: _cm.toDouble(),
         min: _minCm.toDouble(),
@@ -111,7 +113,9 @@ class _HeightScreenState extends State<HeightScreen> {
         valueLabel: _formatHeight(_cm.toDouble()),
         minLabel: _rangeLabel(_minCm.toDouble()),
         maxLabel: _rangeLabel(_maxCm.toDouble()),
-        hint: 'Drag to adjust',
+        trackWidth: 68,
+        height: 340,
+        valueStyle: AppOnboardingType.value,
         onChanged: _handleChanged,
       ),
     );

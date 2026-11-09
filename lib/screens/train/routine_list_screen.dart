@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../navigation/routes.dart';
 import '../../providers/routine_provider.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_icons.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
 import '../../widgets/app_back_bar.dart';
@@ -80,7 +81,7 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
     }
     if (provider.error != null && provider.routines.isEmpty) {
       return AppEmptyState(
-        icon: Icons.error_outline,
+        assetIcon: AppIcons.alert,
         title: 'Could not load routines',
         message: 'Your saved routines could not be read.',
         actionLabel: 'Try again',
@@ -89,7 +90,7 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
     }
     if (provider.routines.isEmpty) {
       return AppEmptyState(
-        icon: Icons.repeat,
+        assetIcon: AppIcons.repeat,
         title: 'No routines yet',
         message: 'Saved routines will appear here for one-tap starts.',
         actionLabel: 'Create routine',

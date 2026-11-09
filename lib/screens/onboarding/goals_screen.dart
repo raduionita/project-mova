@@ -5,7 +5,8 @@ import '../../models/goal.dart';
 import '../../navigation/onboarding_flow.dart';
 import '../../navigation/routes.dart';
 import '../../providers/onboarding_provider.dart';
-import '../../widgets/app_multi_select.dart';
+import '../../theme/app_icons.dart';
+import '../../widgets/app_tile_grid.dart';
 import 'onboarding_scaffold.dart';
 
 /// Onboarding step 6: training goals. Selection order decides the primary
@@ -22,33 +23,28 @@ class GoalsScreen extends StatefulWidget {
 }
 
 class _GoalsScreenState extends State<GoalsScreen> {
-  static const List<AppMultiSelectOption<Goal>> _options =
-      <AppMultiSelectOption<Goal>>[
-        AppMultiSelectOption<Goal>(
-          value: Goal.buildMuscle,
-          label: 'Build muscle',
-          description: 'Add size with steady volume.',
-          icon: Icons.fitness_center,
-        ),
-        AppMultiSelectOption<Goal>(
-          value: Goal.getStronger,
-          label: 'Get stronger',
-          description: 'Lift heavier with lower reps.',
-          icon: Icons.trending_up,
-        ),
-        AppMultiSelectOption<Goal>(
-          value: Goal.loseWeight,
-          label: 'Lose weight',
-          description: 'Burn energy with higher reps.',
-          icon: Icons.local_fire_department,
-        ),
-        AppMultiSelectOption<Goal>(
-          value: Goal.stayHealthy,
-          label: 'Stay healthy',
-          description: 'Train consistently without burnout.',
-          icon: Icons.favorite_outline,
-        ),
-      ];
+  static const List<AppTileOption<Goal>> _options = <AppTileOption<Goal>>[
+    AppTileOption<Goal>(
+      value: Goal.buildMuscle,
+      label: 'Build muscle',
+      assetIcon: AppIcons.dumbbell,
+    ),
+    AppTileOption<Goal>(
+      value: Goal.getStronger,
+      label: 'Get stronger',
+      assetIcon: AppIcons.trophy,
+    ),
+    AppTileOption<Goal>(
+      value: Goal.loseWeight,
+      label: 'Lose weight',
+      assetIcon: AppIcons.flame,
+    ),
+    AppTileOption<Goal>(
+      value: Goal.stayHealthy,
+      label: 'Stay healthy',
+      assetIcon: AppIcons.heart,
+    ),
+  ];
 
   late List<Goal> _goals;
   bool _isBusy = false;
@@ -76,21 +72,21 @@ class _GoalsScreenState extends State<GoalsScreen> {
     final onboarding = context.read<OnboardingProvider>();
 
     await onboarding.setGoals(_goals);
-    final advanced = await onboarding.next();
+    final next = OnboardingFlow.nextRoute(Routes.onboardingGoals)!;
+    onboarding.syncStep(OnboardingFlow.stepFor(next));
     if (!mounted) {
       return;
     }
     setState(() => _isBusy = false);
-    _open(
-      context,
-      advanced
-          ? OnboardingFlow.nextRoute(Routes.onboardingGoals)!
-          : Routes.onboardingGoals,
-    );
+    _open(context, next);
   }
 
   void _back(BuildContext context) {
-    _open(context, OnboardingFlow.previousRoute(Routes.onboardingGoals)!);
+    final previous = OnboardingFlow.previousRoute(Routes.onboardingGoals)!;
+    context.read<OnboardingProvider>().syncStep(
+      OnboardingFlow.stepFor(previous),
+    );
+    _open(context, previous);
   }
 
   @override
@@ -103,7 +99,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
       onContinue: _goals.isEmpty ? null : _continue,
       continueEnabled: _goals.isNotEmpty,
       isBusy: _isBusy,
-      child: AppMultiSelect<Goal>(
+      child: AppTileGrid<Goal>(
         options: _options,
         selected: _goals,
         onChanged: (goals) => setState(() => _goals = goals),

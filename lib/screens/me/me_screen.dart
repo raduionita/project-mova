@@ -12,6 +12,8 @@ import '../../providers/progress_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../../services/unit_conversion_service.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_icons.dart';
+import '../../widgets/app_icon.dart';
 import '../../theme/app_radii.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
@@ -106,15 +108,11 @@ class _MeScreenState extends State<MeScreen> {
       width: 64,
       height: 64,
       alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: AppColors.limeSoft,
-        shape: BoxShape.circle,
-        border: Border.all(color: AppColors.limeBorder45),
-      ),
+      decoration: BoxDecoration(color: AppColors.lime, shape: BoxShape.circle),
       child: Text(
         initial.toUpperCase(),
         semanticsLabel: '',
-        style: AppTypography.display.copyWith(color: AppColors.lime),
+        style: AppTypography.display.copyWith(color: AppColors.limeInk),
       ),
     );
   }
@@ -172,7 +170,11 @@ class _MeScreenState extends State<MeScreen> {
           OutlinedButton.icon(
             key: const Key('me-edit-profile'),
             onPressed: () => _push(Routes.meEdit),
-            icon: const Icon(Icons.edit_outlined, size: 18),
+            icon: const AppIcon(
+              asset: AppIcons.edit,
+              size: 18,
+              color: AppColors.lime,
+            ),
             label: const Text('Edit profile'),
             style: OutlinedButton.styleFrom(
               minimumSize: const Size.fromHeight(48),
@@ -201,7 +203,7 @@ class _MeScreenState extends State<MeScreen> {
           child: AppStatTile(
             value: '${progress.totalWorkouts}',
             label: 'workouts',
-            icon: Icons.fitness_center,
+            assetIcon: AppIcons.dumbbell,
           ),
         ),
         const SizedBox(width: AppSpacing.md),
@@ -209,7 +211,7 @@ class _MeScreenState extends State<MeScreen> {
           child: AppStatTile(
             value: formatVolume(progress.totalVolumeKg, unit: unit),
             label: 'volume',
-            icon: Icons.scale_outlined,
+            assetIcon: AppIcons.scale,
           ),
         ),
         const SizedBox(width: AppSpacing.md),
@@ -217,7 +219,7 @@ class _MeScreenState extends State<MeScreen> {
           child: AppStatTile(
             value: '${progress.streak}',
             label: 'day streak',
-            icon: Icons.local_fire_department_outlined,
+            assetIcon: AppIcons.flame,
           ),
         ),
       ],
@@ -230,14 +232,14 @@ class _MeScreenState extends State<MeScreen> {
     final rows = <Widget>[
       SettingsRow(
         key: const Key('me-edit-profile-row'),
-        icon: Icons.person_outline,
+        assetIcon: AppIcons.navMe,
         label: 'Edit profile',
         value: 'Name, body, goals',
         onTap: () => _push(Routes.meEdit),
       ),
       SettingsRow(
         key: const Key('me-units-row'),
-        icon: Icons.straighten,
+        assetIcon: AppIcons.ruler,
         label: 'Units',
         value:
             '${_units.weightLabel(units.weightUnit)} · '
@@ -247,35 +249,35 @@ class _MeScreenState extends State<MeScreen> {
       ),
       SettingsRow(
         key: const Key('me-reminders-row'),
-        icon: Icons.notifications_none,
+        assetIcon: AppIcons.bell,
         label: 'Workout reminders',
         value: _reminderLabel(settings),
         onTap: () => _push(Routes.meSettings),
       ),
       SettingsRow(
         key: const Key('me-integrations-row'),
-        icon: Icons.monitor_heart_outlined,
+        assetIcon: AppIcons.link,
         label: 'Integrations',
         value: _healthLabel(settings.healthProvider),
         onTap: () => _push(Routes.meSettings),
       ),
       SettingsRow(
         key: const Key('me-privacy-row'),
-        icon: Icons.shield_outlined,
+        assetIcon: AppIcons.shield,
         label: 'Privacy and social',
         value: 'Your data stays on this device',
         onTap: () => _push(Routes.meSettings),
       ),
       SettingsRow(
         key: const Key('me-help-row'),
-        icon: Icons.help_outline,
+        assetIcon: AppIcons.help,
         label: 'Help and support',
         value: 'FAQ and contact',
         onTap: () => _push(Routes.legalDocument('help')),
       ),
       SettingsRow(
         key: const Key('me-reset-row'),
-        icon: Icons.restart_alt,
+        assetIcon: AppIcons.refresh,
         label: 'Reset local data',
         value: 'Remove everything on this device',
         isDestructive: true,
@@ -305,7 +307,7 @@ class _MeScreenState extends State<MeScreen> {
     return AppCard(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
       child: SettingsRow(
-        icon: Icons.info_outline,
+        assetIcon: AppIcons.info,
         label: 'Mova version',
         value: _version,
         onTap: null,

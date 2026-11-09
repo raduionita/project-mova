@@ -7,8 +7,8 @@ import '../../navigation/routes.dart';
 import '../../providers/onboarding_provider.dart';
 import '../../services/unit_conversion_service.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_onboarding_type.dart';
 import '../../theme/app_spacing.dart';
-import '../../theme/app_typography.dart';
 import '../../widgets/app_ruler_slider.dart';
 import 'onboarding_scaffold.dart';
 
@@ -90,21 +90,21 @@ class _WeightScreenState extends State<WeightScreen> {
     final onboarding = context.read<OnboardingProvider>();
 
     await onboarding.setBodyWeightKg(skip ? 0 : _kg);
-    final advanced = await onboarding.next();
+    final next = OnboardingFlow.nextRoute(Routes.onboardingWeight)!;
+    onboarding.syncStep(OnboardingFlow.stepFor(next));
     if (!mounted) {
       return;
     }
     setState(() => _isBusy = false);
-    _open(
-      context,
-      advanced
-          ? OnboardingFlow.nextRoute(Routes.onboardingWeight)!
-          : Routes.onboardingWeight,
-    );
+    _open(context, next);
   }
 
   void _back(BuildContext context) {
-    _open(context, OnboardingFlow.previousRoute(Routes.onboardingWeight)!);
+    final previous = OnboardingFlow.previousRoute(Routes.onboardingWeight)!;
+    context.read<OnboardingProvider>().syncStep(
+      OnboardingFlow.stepFor(previous),
+    );
+    _open(context, previous);
   }
 
   String _formatDisplay(double value) {
@@ -123,11 +123,11 @@ class _WeightScreenState extends State<WeightScreen> {
         children: <Widget>[
           Text(
             '${_formatDisplay(_displayMin)} $label',
-            style: AppTypography.caption.copyWith(color: AppColors.muted),
+            style: AppOnboardingType.caption.copyWith(color: AppColors.muted),
           ),
           Text(
             '${_formatDisplay(_displayMax)} $label',
-            style: AppTypography.caption.copyWith(color: AppColors.muted),
+            style: AppOnboardingType.caption.copyWith(color: AppColors.muted),
           ),
         ],
       ),
@@ -145,6 +145,7 @@ class _WeightScreenState extends State<WeightScreen> {
       isBusy: _isBusy,
       onSkip: _isBusy ? null : () => _continue(skip: true),
       skipLabel: 'Skip for now',
+      centerContent: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
@@ -154,6 +155,8 @@ class _WeightScreenState extends State<WeightScreen> {
             max: _displayMax,
             step: _displayStep,
             unitLabel: _conversion.weightLabel(_unit),
+            rulerHeight: 56,
+            valueStyle: AppOnboardingType.value,
             onChanged: _handleChanged,
           ),
           _buildRangeRow(),

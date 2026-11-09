@@ -11,16 +11,19 @@ Widget _wrap(Widget child) {
   );
 }
 
-Color? _segmentColor(WidgetTester tester, int index) {
-  final container = tester.widget<Container>(
+AnimatedContainer _segment(WidgetTester tester, int index) {
+  return tester.widget<AnimatedContainer>(
     find.byKey(ValueKey<String>('step-segment-$index')),
   );
-  final decoration = container.decoration;
+}
+
+Color? _segmentColor(WidgetTester tester, int index) {
+  final decoration = _segment(tester, index).decoration;
   return decoration is BoxDecoration ? decoration.color : null;
 }
 
 void main() {
-  testWidgets('renders ten segments with the current step filled', (
+  testWidgets('renders ten dots with only the current step highlighted', (
     tester,
   ) async {
     await tester.pumpWidget(_wrap(const AppStepProgress(currentStep: 3)));
@@ -32,18 +35,22 @@ void main() {
       );
       expect(
         _segmentColor(tester, index),
-        index < 3 ? AppColors.lime : AppColors.line,
+        index == 2 ? AppColors.lime : AppColors.stepInactive,
         reason: 'segment $index',
       );
     }
+    expect(_segment(tester, 2).constraints?.maxWidth, 18);
+    expect(_segment(tester, 0).constraints?.maxWidth, 6);
   });
 
   testWidgets('clamps step counts outside the range', (tester) async {
     await tester.pumpWidget(_wrap(const AppStepProgress(currentStep: 0)));
-    expect(_segmentColor(tester, 0), AppColors.line);
+    expect(_segmentColor(tester, 0), AppColors.stepInactive);
 
     await tester.pumpWidget(_wrap(const AppStepProgress(currentStep: 20)));
     expect(_segmentColor(tester, 9), AppColors.lime);
+
+    await tester.pumpAndSettle();
   });
 
   testWidgets('exposes a step label for accessibility', (tester) async {
@@ -66,6 +73,6 @@ void main() {
     );
     expect(find.byKey(const ValueKey<String>('step-segment-5')), findsNothing);
     expect(_segmentColor(tester, 1), AppColors.lime);
-    expect(_segmentColor(tester, 2), AppColors.line);
+    expect(_segmentColor(tester, 2), AppColors.stepInactive);
   });
 }

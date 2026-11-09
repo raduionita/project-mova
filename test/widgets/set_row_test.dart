@@ -2,7 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mova/models/workout_set.dart';
 import 'package:mova/theme/app_theme.dart';
+import 'package:mova/theme/app_icons.dart';
 import 'package:mova/widgets/set_row.dart';
+import 'package:mova/widgets/app_icon.dart';
+
+Finder _assetIcon(String asset) => find.byWidgetPredicate(
+  (widget) => widget is AppIcon && widget.asset == asset,
+);
 
 WorkoutSet _set({
   int index = 0,
@@ -108,7 +114,7 @@ void main() {
       ),
     );
 
-    expect(find.byIcon(Icons.check_circle), findsOneWidget);
+    expect(_assetIcon(AppIcons.check), findsOneWidget);
     final semantics = tester.getSemantics(
       find
           .byWidgetPredicate(

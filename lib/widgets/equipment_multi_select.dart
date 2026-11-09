@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/equipment_group.dart';
+import '../theme/app_icons.dart';
 import 'app_multi_select.dart';
 
 /// Equipment selection list shared by onboarding and Settings.
@@ -22,43 +23,43 @@ class EquipmentMultiSelect extends StatelessWidget {
           value: EquipmentGroup.bodyweight,
           label: 'Bodyweight',
           description: 'No equipment needed',
-          icon: Icons.accessibility_new,
+          assetIcon: AppIcons.bodyweight,
         ),
         AppMultiSelectOption<EquipmentGroup>(
           value: EquipmentGroup.dumbbells,
           label: 'Dumbbells',
           description: 'Fixed or adjustable dumbbells',
-          icon: Icons.fitness_center,
+          assetIcon: AppIcons.dumbbell,
         ),
         AppMultiSelectOption<EquipmentGroup>(
           value: EquipmentGroup.barbell,
           label: 'Barbell and EZ bar',
           description: 'Barbell, rack, and EZ bar',
-          icon: Icons.sports_gymnastics,
+          assetIcon: AppIcons.barbell,
         ),
         AppMultiSelectOption<EquipmentGroup>(
           value: EquipmentGroup.machines,
           label: 'Machines',
           description: 'Selectorized and plate-loaded machines',
-          icon: Icons.precision_manufacturing_outlined,
+          assetIcon: AppIcons.gear,
         ),
         AppMultiSelectOption<EquipmentGroup>(
           value: EquipmentGroup.cables,
           label: 'Cable station',
           description: 'Pulleys and cable stacks',
-          icon: Icons.cable,
+          assetIcon: AppIcons.link,
         ),
         AppMultiSelectOption<EquipmentGroup>(
           value: EquipmentGroup.kettlebells,
           label: 'Kettlebells',
           description: 'One or more kettlebells',
-          icon: Icons.sports_mma,
+          assetIcon: AppIcons.kettlebell,
         ),
         AppMultiSelectOption<EquipmentGroup>(
           value: EquipmentGroup.accessories,
           label: 'Accessories',
           description: 'Ab wheel, medicine ball, and sled',
-          icon: Icons.sports_handball,
+          assetIcon: AppIcons.band,
         ),
       ];
 

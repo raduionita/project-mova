@@ -47,21 +47,21 @@ class _OnboardingEquipmentScreenState extends State<OnboardingEquipmentScreen> {
     setState(() => _isBusy = true);
     final onboarding = context.read<OnboardingProvider>();
     await onboarding.setEquipment(_equipment);
-    final advanced = await onboarding.next();
+    final next = OnboardingFlow.nextRoute(Routes.onboardingEquipment)!;
+    onboarding.syncStep(OnboardingFlow.stepFor(next));
     if (!mounted) {
       return;
     }
     setState(() => _isBusy = false);
-    _open(
-      context,
-      advanced
-          ? OnboardingFlow.nextRoute(Routes.onboardingEquipment)!
-          : Routes.onboardingEquipment,
-    );
+    _open(context, next);
   }
 
   void _back(BuildContext context) {
-    _open(context, OnboardingFlow.previousRoute(Routes.onboardingEquipment)!);
+    final previous = OnboardingFlow.previousRoute(Routes.onboardingEquipment)!;
+    context.read<OnboardingProvider>().syncStep(
+      OnboardingFlow.stepFor(previous),
+    );
+    _open(context, previous);
   }
 
   @override

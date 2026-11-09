@@ -12,10 +12,12 @@ import '../../providers/social_provider.dart';
 import '../../services/clock.dart';
 import '../../services/share_card_service.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_icons.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
 import '../../widgets/app_card.dart';
 import '../../widgets/app_empty_state.dart';
+import '../../widgets/app_icon.dart';
 import '../../widgets/app_tag.dart';
 import '../../widgets/kudos_button.dart';
 import '../../widgets/share_card_sheet.dart';
@@ -148,7 +150,7 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
   Widget _buildLocalNotice() {
     return Row(
       children: <Widget>[
-        const Icon(Icons.lock_outline, size: 14, color: AppColors.muted),
+        const AppIcon(asset: AppIcons.lock, size: 14, color: AppColors.muted),
         const SizedBox(width: AppSpacing.sm),
         Expanded(
           child: Text(
@@ -234,6 +236,13 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
                     ],
                   ),
                 ),
+                const SizedBox(width: AppSpacing.sm),
+                KudosButton(
+                  key: Key('kudos-${post.id}'),
+                  count: post.kudos,
+                  given: post.kudosGiven,
+                  onPressed: () => _toggleKudos(post),
+                ),
               ],
             ),
             const SizedBox(height: AppSpacing.md),
@@ -241,17 +250,11 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
               post.text,
               style: AppTypography.body.copyWith(color: AppColors.text),
             ),
-            const SizedBox(height: AppSpacing.md),
-            Row(
-              children: <Widget>[
-                KudosButton(
-                  key: Key('kudos-${post.id}'),
-                  count: post.kudos,
-                  given: post.kudosGiven,
-                  onPressed: () => _toggleKudos(post),
-                ),
-                const Spacer(),
-                if (canOpen)
+            if (canOpen) ...<Widget>[
+              const SizedBox(height: AppSpacing.sm),
+              Row(
+                children: <Widget>[
+                  const Spacer(),
                   TextButton(
                     onPressed: () => _openPost(post),
                     child: Text(
@@ -261,19 +264,19 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
                       ),
                     ),
                   ),
-                if (canOpen)
                   IconButton(
                     key: Key('share-post-${post.id}'),
                     tooltip: 'Share card',
-                    icon: const Icon(
-                      Icons.ios_share,
+                    icon: const AppIcon(
+                      asset: AppIcons.share,
                       size: 18,
                       color: AppColors.lime,
                     ),
                     onPressed: () => _sharePost(post),
                   ),
-              ],
-            ),
+                ],
+              ),
+            ],
           ],
         ),
       ),
@@ -282,7 +285,7 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
 
   Widget _buildEmptyState() {
     return AppEmptyState(
-      icon: Icons.people_outline,
+      assetIcon: AppIcons.navSocial,
       title: 'Your feed is quiet',
       message: 'Finish a workout to share your first post.',
       actionLabel: 'Start a workout',

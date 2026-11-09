@@ -7,8 +7,9 @@ import '../../navigation/routes.dart';
 import '../../providers/onboarding_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_onboarding_type.dart';
 import '../../theme/app_spacing.dart';
-import '../../theme/app_typography.dart';
+import '../../widgets/app_card.dart';
 import '../../widgets/app_segmented_control.dart';
 import 'onboarding_scaffold.dart';
 
@@ -53,21 +54,21 @@ class _UnitSelectionScreenState extends State<UnitSelectionScreen> {
 
     await onboarding.setUnits(_units);
     await settings.setUnitPreferences(_units);
-    final advanced = await onboarding.next();
+    final next = OnboardingFlow.nextRoute(Routes.onboardingUnits)!;
+    onboarding.syncStep(OnboardingFlow.stepFor(next));
     if (!mounted) {
       return;
     }
     setState(() => _isBusy = false);
-    _open(
-      context,
-      advanced
-          ? OnboardingFlow.nextRoute(Routes.onboardingUnits)!
-          : Routes.onboardingUnits,
-    );
+    _open(context, next);
   }
 
   void _back(BuildContext context) {
-    _open(context, OnboardingFlow.previousRoute(Routes.onboardingUnits)!);
+    final previous = OnboardingFlow.previousRoute(Routes.onboardingUnits)!;
+    context.read<OnboardingProvider>().syncStep(
+      OnboardingFlow.stepFor(previous),
+    );
+    _open(context, previous);
   }
 
   Widget _buildUnitRow(String label, Widget control) {
@@ -78,7 +79,7 @@ class _UnitSelectionScreenState extends State<UnitSelectionScreen> {
         children: <Widget>[
           Text(
             label,
-            style: AppTypography.bodyStrong.copyWith(color: AppColors.text),
+            style: AppOnboardingType.label.copyWith(color: AppColors.text),
           ),
           const SizedBox(height: AppSpacing.md),
           control,
@@ -107,6 +108,8 @@ class _UnitSelectionScreenState extends State<UnitSelectionScreen> {
                 AppSegmentOption<WeightUnit>(value: WeightUnit.lb, label: 'lb'),
               ],
               selected: _units.weightUnit,
+              labelStyle: AppOnboardingType.control,
+              itemPadding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
               onChanged: (unit) =>
                   setState(() => _units = _units.copyWith(weightUnit: unit)),
             ),
@@ -125,6 +128,8 @@ class _UnitSelectionScreenState extends State<UnitSelectionScreen> {
                 ),
               ],
               selected: _units.distanceUnit,
+              labelStyle: AppOnboardingType.control,
+              itemPadding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
               onChanged: (unit) =>
                   setState(() => _units = _units.copyWith(distanceUnit: unit)),
             ),
@@ -140,8 +145,17 @@ class _UnitSelectionScreenState extends State<UnitSelectionScreen> {
                 ),
               ],
               selected: _units.heightUnit,
+              labelStyle: AppOnboardingType.control,
+              itemPadding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
               onChanged: (unit) =>
                   setState(() => _units = _units.copyWith(heightUnit: unit)),
+            ),
+          ),
+          AppCard(
+            child: Text(
+              'Distance is saved for later cardio tracking. '
+              'No distance entry ships in v1.',
+              style: AppOnboardingType.caption.copyWith(color: AppColors.muted),
             ),
           ),
         ],

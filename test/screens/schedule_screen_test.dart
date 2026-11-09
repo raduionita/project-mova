@@ -8,7 +8,9 @@ import 'package:mova/screens/onboarding/schedule_screen.dart';
 import 'package:mova/services/clock.dart';
 import 'package:mova/services/storage_service.dart';
 import 'package:mova/theme/app_theme.dart';
+import 'package:mova/theme/app_icons.dart';
 import 'package:mova/widgets/app_button.dart';
+import 'package:mova/widgets/app_icon.dart';
 import 'package:mova/widgets/day_selector.dart';
 import 'package:mova/widgets/stepper_row.dart';
 import 'package:provider/provider.dart';
@@ -44,6 +46,10 @@ bool _canContinue(WidgetTester tester) {
   return tester.widget<AppButton>(find.byType(AppButton)).onPressed != null;
 }
 
+Finder _assetIcon(String asset) => find.byWidgetPredicate(
+  (widget) => widget is AppIcon && widget.asset == asset,
+);
+
 void main() {
   testWidgets('defaults to 3 days on Monday, Wednesday, and Friday', (
     tester,
@@ -70,7 +76,7 @@ void main() {
     await tester.pump();
     expect(_selectedDays(tester), <int>[1, 3, 5]);
 
-    await tester.tap(find.byIcon(Icons.add));
+    await tester.tap(_assetIcon(AppIcons.plus));
     await tester.pump();
     expect(_selectedDays(tester), <int>[1, 2, 3, 5]);
 
@@ -78,7 +84,7 @@ void main() {
     await tester.pump();
     expect(_selectedDays(tester), <int>[1, 2, 3, 5]);
 
-    await tester.tap(find.byIcon(Icons.add));
+    await tester.tap(_assetIcon(AppIcons.plus));
     await tester.pump();
     expect(_selectedDays(tester), <int>[1, 2, 3, 4, 5]);
 
@@ -94,9 +100,9 @@ void main() {
 
     await tester.pumpWidget(_wrap(provider, (_) {}));
 
-    await tester.tap(find.byIcon(Icons.remove));
+    await tester.tap(_assetIcon(AppIcons.minus));
     await tester.pump();
-    await tester.tap(find.byIcon(Icons.remove));
+    await tester.tap(_assetIcon(AppIcons.minus));
     await tester.pump();
 
     expect(tester.widget<StepperRow>(find.byType(StepperRow)).value, 1);
@@ -192,6 +198,7 @@ void main() {
       final provider = await _providerWith(storage);
       final routes = <String>[];
 
+      provider.beginPlanEdit();
       await tester.pumpWidget(_wrap(provider, routes.add));
       expect(_selectedDays(tester), <int>[1, 2, 3, 5]);
 

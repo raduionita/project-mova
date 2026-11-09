@@ -14,8 +14,8 @@ void main() {
     await tester.pumpWidget(_wrap(const SplashScreen()));
 
     expect(find.text('mova'), findsOneWidget);
-    expect(find.text('Train with a plan.'), findsOneWidget);
-    expect(find.byIcon(Icons.fitness_center), findsOneWidget);
+    expect(find.text('Move. Log. Progress.'), findsOneWidget);
+    expect(find.text('M'), findsOneWidget);
     expect(
       find.byKey(const ValueKey<String>('splash-loading-bar')),
       findsOneWidget,

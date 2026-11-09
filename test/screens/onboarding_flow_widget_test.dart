@@ -302,4 +302,97 @@ void main() {
     expect(find.text('Your weight'), findsOneWidget);
     expect(find.text('Choose your units'), findsNothing);
   });
+
+  testWidgets('back and forward keep every step reachable', (tester) async {
+    tester.view.physicalSize = const Size(430, 932);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    final harness = _FlowHarness(StorageService.inMemory());
+    await harness.load();
+
+    await tester.pumpWidget(harness.build());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Get started'));
+    await tester.pumpAndSettle();
+    await _tapContinue(tester);
+    await tester.tap(find.text('Male'));
+    await tester.pumpAndSettle();
+    await _tapContinue(tester);
+    await _tapContinue(tester);
+    await _tapContinue(tester);
+    await _tapContinue(tester);
+    expect(find.text('What are you training for?'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Back'));
+    await tester.pumpAndSettle();
+    expect(find.text('Your height'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Back'));
+    await tester.pumpAndSettle();
+    expect(find.text('Your weight'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Back'));
+    await tester.pumpAndSettle();
+    expect(find.text('When were you born?'), findsOneWidget);
+    expect(harness.onboarding.draft.currentStep, OnboardingStep.birthDate);
+
+    await _tapContinue(tester);
+    expect(find.text('Your weight'), findsOneWidget);
+    await _tapContinue(tester);
+    expect(find.text('Your height'), findsOneWidget);
+    await _tapContinue(tester);
+    expect(find.text('What are you training for?'), findsOneWidget);
+
+    await tester.tap(find.text('Build muscle'));
+    await tester.pumpAndSettle();
+    await _tapContinue(tester);
+    expect(find.text('How much experience?'), findsOneWidget);
+
+    await tester.tap(find.text('Regular'));
+    await tester.pumpAndSettle();
+    await _tapContinue(tester);
+    expect(find.text('How often do you train?'), findsOneWidget);
+
+    await _tapContinue(tester);
+    expect(find.text('Your equipment'), findsOneWidget);
+    await _tapContinue(tester);
+    expect(find.text('Stay on schedule'), findsOneWidget);
+
+    await tester.tap(find.text('Not now'));
+    await tester.pumpAndSettle();
+    expect(find.text('Your Week 1'), findsOneWidget);
+    expect(harness.onboarding.draft.currentStep, OnboardingStep.plan);
+  });
+
+  testWidgets('editing the schedule from plan returns to the preview', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(430, 932);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    final harness = _FlowHarness(StorageService.inMemory());
+    await harness.load();
+
+    await tester.pumpWidget(harness.build());
+    await tester.pumpAndSettle();
+
+    tester
+        .state<NavigatorState>(find.byType(Navigator))
+        .pushNamed(Routes.onboardingPlan);
+    await tester.pumpAndSettle();
+    expect(find.text('Your Week 1'), findsOneWidget);
+
+    await tester.tap(find.text('Edit schedule'));
+    await tester.pumpAndSettle();
+    expect(find.text('How often do you train?'), findsOneWidget);
+    expect(harness.onboarding.editingPlan, isTrue);
+
+    await _tapContinue(tester);
+    expect(find.text('Your Week 1'), findsOneWidget);
+    expect(harness.onboarding.editingPlan, isFalse);
+    expect(harness.onboarding.draft.currentStep, OnboardingStep.plan);
+  });
 }

@@ -8,6 +8,7 @@ import '../../providers/exercise_provider.dart';
 import '../../providers/routine_provider.dart';
 import '../../providers/workout_provider.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_icons.dart';
 import '../../theme/app_radii.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
@@ -174,7 +175,7 @@ class _RoutineDetailScreenState extends State<RoutineDetailScreen> {
   ) {
     if (exercises.isEmpty) {
       return const AppEmptyState(
-        icon: Icons.fitness_center_outlined,
+        assetIcon: AppIcons.dumbbell,
         title: 'No exercises yet',
         message: 'Edit this routine to add exercises.',
       );
@@ -274,7 +275,7 @@ class _RoutineDetailScreenState extends State<RoutineDetailScreen> {
                               ),
                             )
                           : const AppEmptyState(
-                              icon: Icons.search_off,
+                              assetIcon: AppIcons.search,
                               title: 'Routine not found',
                               message: 'This routine is no longer saved on this device.',
                             ))

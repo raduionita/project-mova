@@ -11,12 +11,14 @@ class AppMultiSelectOption<T> {
     required this.label,
     this.description,
     this.icon,
+    this.assetIcon,
   });
 
   final T value;
   final String label;
   final String? description;
   final IconData? icon;
+  final String? assetIcon;
 }
 
 /// Ordered multi-select list. The first selected option is the primary one
@@ -57,6 +59,7 @@ class AppMultiSelect<T> extends StatelessWidget {
             label: options[index].label,
             description: options[index].description,
             icon: options[index].icon,
+            assetIcon: options[index].assetIcon,
             selected: selected.contains(options[index].value),
             onTap: enabled ? () => _toggle(options[index].value) : null,
             trailing:

@@ -7,11 +7,13 @@ import 'package:mova/providers/exercise_provider.dart';
 import 'package:mova/providers/routine_provider.dart';
 import 'package:mova/providers/workout_provider.dart';
 import 'package:mova/screens/train/train_screen.dart';
+import 'package:mova/widgets/app_icon.dart';
 import 'package:mova/services/clock.dart';
 import 'package:mova/services/id_service.dart';
 import 'package:mova/services/seed_data_service.dart';
 import 'package:mova/services/storage_service.dart';
 import 'package:mova/theme/app_theme.dart';
+import 'package:mova/theme/app_icons.dart';
 import 'package:mova/widgets/exercise_row.dart';
 import 'package:provider/provider.dart';
 
@@ -55,6 +57,10 @@ Widget _wrap(
   );
 }
 
+Finder _assetIcon(String asset) => find.byWidgetPredicate(
+  (widget) => widget is AppIcon && widget.asset == asset,
+);
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -96,7 +102,7 @@ void main() {
       findsOneWidget,
     );
     expect(find.byType(ExerciseRow), findsWidgets);
-    expect(find.byIcon(Icons.add), findsWidgets);
+    expect(_assetIcon(AppIcons.plus), findsWidgets);
   });
 
   testWidgets('add without an active workout explains how to start', (
@@ -120,7 +126,7 @@ void main() {
     await tester.tap(
       find.descendant(
         of: find.byType(ExerciseRow).first,
-        matching: find.byIcon(Icons.add),
+        matching: _assetIcon(AppIcons.plus),
       ),
     );
     await tester.pump();
@@ -153,7 +159,7 @@ void main() {
     await tester.tap(
       find.descendant(
         of: find.byType(ExerciseRow).first,
-        matching: find.byIcon(Icons.add),
+        matching: _assetIcon(AppIcons.plus),
       ),
     );
     await tester.pump();

@@ -7,11 +7,13 @@ import '../models/exercise.dart';
 import '../providers/exercise_provider.dart';
 import '../providers/workout_provider.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_icons.dart';
 import '../theme/app_radii.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
 import '../widgets/app_button.dart';
 import '../widgets/app_chip.dart';
+import '../widgets/app_icon.dart';
 
 /// Where the exercise picker was opened from. The mode changes only the primary
 /// action; callers own what happens with the returned selection.
@@ -287,7 +289,10 @@ class _ExercisePickerSheetState extends State<ExercisePickerSheet> {
               IconButton(
                 onPressed: () => Navigator.of(context).pop(),
                 tooltip: 'Close',
-                icon: const Icon(Icons.close, color: AppColors.muted),
+                icon: const AppIcon(
+                  asset: AppIcons.close,
+                  color: AppColors.muted,
+                ),
               ),
             ],
           ),
@@ -310,7 +315,11 @@ class _ExercisePickerSheetState extends State<ExercisePickerSheet> {
       decoration: InputDecoration(
         hintText: 'Search exercises, muscles, equipment',
         hintStyle: AppTypography.body.copyWith(color: AppColors.muted),
-        prefixIcon: const Icon(Icons.search, size: 20, color: AppColors.muted),
+        prefixIcon: const AppIcon(
+          asset: AppIcons.search,
+          size: 20,
+          color: AppColors.muted,
+        ),
         suffixIcon: _query.isEmpty
             ? null
             : IconButton(
@@ -319,7 +328,11 @@ class _ExercisePickerSheetState extends State<ExercisePickerSheet> {
                   setState(() => _query = '');
                 },
                 tooltip: 'Clear search',
-                icon: const Icon(Icons.close, size: 18, color: AppColors.muted),
+                icon: const AppIcon(
+                  asset: AppIcons.close,
+                  size: 18,
+                  color: AppColors.muted,
+                ),
               ),
         filled: true,
         fillColor: AppColors.surfaceAlt,
@@ -513,9 +526,7 @@ class _PickerRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final radius = BorderRadius.circular(AppRadii.md);
-    final icon = selected
-        ? Icons.check_circle
-        : (multiSelect ? Icons.check_box_outline_blank : Icons.circle_outlined);
+    final iconAsset = selected ? AppIcons.check : AppIcons.circle;
     return Semantics(
       button: true,
       selected: selected,
@@ -564,8 +575,8 @@ class _PickerRow extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: AppSpacing.md),
-                Icon(
-                  icon,
+                AppIcon(
+                  asset: iconAsset,
                   size: 20,
                   color: selected ? AppColors.lime : AppColors.muted,
                 ),

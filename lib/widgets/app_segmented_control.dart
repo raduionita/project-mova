@@ -21,12 +21,18 @@ class AppSegmentedControl<T> extends StatelessWidget {
     required this.selected,
     required this.onChanged,
     this.enabled = true,
+    this.labelStyle,
+    this.itemPadding = const EdgeInsets.symmetric(vertical: AppSpacing.md),
   });
 
   final List<AppSegmentOption<T>> options;
   final T selected;
   final ValueChanged<T> onChanged;
   final bool enabled;
+
+  /// Overrides the segment label style, for example on onboarding.
+  final TextStyle? labelStyle;
+  final EdgeInsetsGeometry itemPadding;
 
   Widget _buildSegment(AppSegmentOption<T> option) {
     final isSelected = option.value == selected;
@@ -49,11 +55,11 @@ class AppSegmentedControl<T> extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppRadii.sm),
             onTap: enabled ? () => onChanged(option.value) : null,
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+              padding: itemPadding,
               child: Text(
                 option.label,
                 textAlign: TextAlign.center,
-                style: AppTypography.label.copyWith(
+                style: (labelStyle ?? AppTypography.label).copyWith(
                   color: foreground,
                   fontWeight: FontWeight.w600,
                 ),

@@ -16,6 +16,7 @@ import '../../services/share_card_service.dart';
 import '../../services/unit_conversion_service.dart';
 import '../../services/workout_calculator.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_icons.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
 import '../../widgets/app_button.dart';
@@ -185,7 +186,7 @@ class _SummaryScreenState extends State<SummaryScreen> {
           child: AppStatTile(
             value: formatDuration(seconds),
             label: 'Time',
-            icon: Icons.timer_outlined,
+            assetIcon: AppIcons.clock,
           ),
         ),
         const SizedBox(width: AppSpacing.md),
@@ -193,7 +194,7 @@ class _SummaryScreenState extends State<SummaryScreen> {
           child: AppStatTile(
             value: formatVolume(volume, unit: unit),
             label: 'Volume',
-            icon: Icons.fitness_center,
+            assetIcon: AppIcons.dumbbell,
           ),
         ),
         const SizedBox(width: AppSpacing.md),
@@ -201,7 +202,7 @@ class _SummaryScreenState extends State<SummaryScreen> {
           child: AppStatTile(
             value: '$sets',
             label: 'Sets',
-            icon: Icons.check_circle_outline,
+            assetIcon: AppIcons.check,
           ),
         ),
       ],

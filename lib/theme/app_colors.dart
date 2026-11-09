@@ -11,6 +11,7 @@ class AppColors {
   static const Color text = Color(0xFFE9EEF6);
   static const Color muted = Color(0xFF8D97AB);
   static const Color lime = Color(0xFFB7F24C);
+  static const Color limeDeep = Color(0xFF7FC93A);
   static const Color limeInk = Color(0xFF131A04);
   static const Color orange = Color(0xFFFF8A4C);
   static const Color gold = Color(0xFFFFD166);
@@ -28,6 +29,8 @@ class AppColors {
   static const Color tabInactive = Color(0xFF66718A);
   static const Color featuredBorder = Color(0xFF2B3A58);
   static const Color dayCell = Color(0xFF182134);
+  static const Color stepInactive = Color(0xFF2C374D);
+  static const Color quickBorder = Color(0xFF33405C);
   static const Color pressedSurface = Color(0xFF2A3548);
   static const Color previousText = Color(0xFF67748E);
   static const Color restBorder = Color(0xFF28406B);

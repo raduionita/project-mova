@@ -13,6 +13,7 @@ import '../../providers/settings_provider.dart';
 import '../../services/clock.dart';
 import '../../services/unit_conversion_service.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_icons.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
 import '../../widgets/app_back_bar.dart';
@@ -38,28 +39,28 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   static const UnitConversionService _units = UnitConversionService();
 
   static const List<
-    ({ExperienceLevel level, IconData icon, String description})
+    ({ExperienceLevel level, String assetIcon, String description})
   >
   _experienceOptions =
-      <({ExperienceLevel level, IconData icon, String description})>[
+      <({ExperienceLevel level, String assetIcon, String description})>[
         (
           level: ExperienceLevel.beginner,
-          icon: Icons.eco_outlined,
+          assetIcon: AppIcons.seedling,
           description: 'New to training or returning after a break.',
         ),
         (
           level: ExperienceLevel.regular,
-          icon: Icons.fitness_center,
+          assetIcon: AppIcons.dumbbell,
           description: 'Training consistently for under a year.',
         ),
         (
           level: ExperienceLevel.gymRat,
-          icon: Icons.local_fire_department,
+          assetIcon: AppIcons.flame,
           description: 'Years of structured training.',
         ),
         (
           level: ExperienceLevel.veteran,
-          icon: Icons.emoji_events_outlined,
+          assetIcon: AppIcons.trophy,
           description: 'Advanced, competition-minded.',
         ),
       ];
@@ -70,25 +71,25 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           value: Goal.buildMuscle,
           label: 'Build muscle',
           description: 'Add size with steady volume.',
-          icon: Icons.fitness_center,
+          assetIcon: AppIcons.dumbbell,
         ),
         AppMultiSelectOption<Goal>(
           value: Goal.getStronger,
           label: 'Get stronger',
           description: 'Lift heavier with lower reps.',
-          icon: Icons.trending_up,
+          assetIcon: AppIcons.trendUp,
         ),
         AppMultiSelectOption<Goal>(
           value: Goal.loseWeight,
           label: 'Lose weight',
           description: 'Burn energy with higher reps.',
-          icon: Icons.local_fire_department,
+          assetIcon: AppIcons.flame,
         ),
         AppMultiSelectOption<Goal>(
           value: Goal.stayHealthy,
           label: 'Stay healthy',
           description: 'Train consistently without burnout.',
-          icon: Icons.favorite_outline,
+          assetIcon: AppIcons.heart,
         ),
       ];
 
@@ -387,7 +388,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
             child: AppChoiceCard(
               label: _experienceLabel(option.level),
               description: option.description,
-              icon: option.icon,
+              assetIcon: option.assetIcon,
               selected: _experience == option.level,
               onTap: _isSaving
                   ? null
@@ -411,10 +412,10 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                 Gender.female => 'Use female reference values.',
                 Gender.other => 'Skip the reference adjustment.',
               },
-              icon: switch (gender) {
-                Gender.male => Icons.male,
-                Gender.female => Icons.female,
-                Gender.other => Icons.person_outline,
+              assetIcon: switch (gender) {
+                Gender.male => AppIcons.male,
+                Gender.female => AppIcons.female,
+                Gender.other => AppIcons.other,
               },
               selected: _gender == gender,
               onTap: _isSaving ? null : () => setState(() => _gender = gender),
@@ -431,7 +432,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         children: <Widget>[
           SettingsRow(
             key: const Key('profile-birth-row'),
-            icon: Icons.cake_outlined,
+            assetIcon: AppIcons.cake,
             label: 'Date of birth',
             value: _dateLabel(),
             onTap: _isSaving ? null : _pickBirthDate,
@@ -444,7 +445,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           ),
           SettingsRow(
             key: const Key('profile-height-row'),
-            icon: Icons.height,
+            assetIcon: AppIcons.ruler,
             label: 'Height',
             value: _heightLabel(),
             onTap: _isSaving ? null : _pickHeight,
@@ -457,7 +458,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           ),
           SettingsRow(
             key: const Key('profile-weight-row'),
-            icon: Icons.monitor_weight_outlined,
+            assetIcon: AppIcons.scale,
             label: 'Body weight',
             value: _weightLabel(),
             onTap: _isSaving ? null : _pickWeight,

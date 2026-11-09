@@ -17,6 +17,18 @@ class OnboardingFlow {
     return index == -1 ? 0 : index + 1;
   }
 
+  /// The draft step for [route]. Routes outside onboarding map to welcome.
+  static OnboardingStep stepFor(String route) {
+    if (route == Routes.welcome) {
+      return OnboardingStep.welcome;
+    }
+    final index = Routes.onboardingSteps.indexOf(route);
+    if (index == -1) {
+      return OnboardingStep.welcome;
+    }
+    return OnboardingStep.values[index + 1];
+  }
+
   /// Route for a 1-based [step], clamped into the valid range.
   static String routeForStep(int step) {
     final index = step.clamp(1, totalSteps) - 1;

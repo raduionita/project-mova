@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 
 import '../services/app_settings_launcher.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_icons.dart';
 import '../theme/app_radii.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
 import 'app_button.dart';
+import 'app_icon.dart';
 
 /// The permission being explained by [PermissionsSheet].
 enum PermissionKind { notifications, health }
@@ -78,13 +80,13 @@ class PermissionsSheet extends StatelessWidget {
               'data stays on this device and is never transmitted.';
   }
 
-  IconData get _icon {
+  String get _iconAsset {
     if (unavailable) {
-      return Icons.block_outlined;
+      return AppIcons.alert;
     }
     return kind == PermissionKind.notifications
-        ? Icons.notifications_off_outlined
-        : Icons.monitor_heart_outlined;
+        ? AppIcons.bellOff
+        : AppIcons.heart;
   }
 
   Future<void> _openSettings(BuildContext context) async {
@@ -111,7 +113,7 @@ class PermissionsSheet extends StatelessWidget {
           color: AppColors.limeSoft,
           borderRadius: BorderRadius.circular(AppRadii.x3l),
         ),
-        child: Icon(_icon, size: 34, color: AppColors.lime),
+        child: AppIcon(asset: _iconAsset, size: 34, color: AppColors.lime),
       ),
     );
   }
@@ -159,7 +161,7 @@ class PermissionsSheet extends StatelessWidget {
             AppButton(
               key: const Key('permissions-open-settings'),
               label: 'Open settings',
-              icon: Icons.settings_outlined,
+              assetIcon: AppIcons.gear,
               onPressed: () => _openSettings(context),
             ),
           if (showSettings) const SizedBox(height: AppSpacing.sm),

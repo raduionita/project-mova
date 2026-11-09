@@ -12,6 +12,7 @@ import '../../providers/settings_provider.dart';
 import '../../services/clock.dart';
 import '../../services/workout_calculator.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_icons.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
 import '../../widgets/app_back_bar.dart';
@@ -165,7 +166,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
       );
     } else if (workouts.isEmpty) {
       body = AppEmptyState(
-        icon: Icons.history,
+        assetIcon: AppIcons.history,
         title: 'No workouts yet',
         message: 'Finish a workout to see it here.',
         actionLabel: 'Start your first workout',

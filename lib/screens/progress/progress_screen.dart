@@ -12,11 +12,13 @@ import '../../providers/settings_provider.dart';
 import '../../services/clock.dart';
 import '../../services/unit_conversion_service.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_icons.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_card.dart';
 import '../../widgets/app_empty_state.dart';
+import '../../widgets/app_icon.dart';
 import '../../widgets/app_stat_tile.dart';
 import '../../widgets/app_tag.dart';
 import '../../widgets/body_weight_sheet.dart';
@@ -132,7 +134,7 @@ class _ProgressScreenState extends State<ProgressScreen>
           child: AppStatTile(
             value: '${progress.totalWorkouts}',
             label: 'workouts',
-            icon: Icons.fitness_center,
+            assetIcon: AppIcons.dumbbell,
           ),
         ),
         const SizedBox(width: AppSpacing.md),
@@ -140,7 +142,7 @@ class _ProgressScreenState extends State<ProgressScreen>
           child: AppStatTile(
             value: formatVolume(progress.totalVolumeKg, unit: unit),
             label: 'volume',
-            icon: Icons.scale_outlined,
+            assetIcon: AppIcons.scale,
           ),
         ),
         const SizedBox(width: AppSpacing.md),
@@ -148,7 +150,7 @@ class _ProgressScreenState extends State<ProgressScreen>
           child: AppStatTile(
             value: '${progress.streak}',
             label: 'day streak',
-            icon: Icons.local_fire_department_outlined,
+            assetIcon: AppIcons.flame,
           ),
         ),
       ],
@@ -198,7 +200,7 @@ class _ProgressScreenState extends State<ProgressScreen>
                   AppButton(
                     key: const Key('add-body-weight'),
                     label: 'Add body weight',
-                    icon: Icons.monitor_weight_outlined,
+                    assetIcon: AppIcons.scale,
                     variant: AppButtonVariant.ghost,
                     fullWidth: false,
                     onPressed: _addBodyWeight,
@@ -336,7 +338,11 @@ class _ProgressScreenState extends State<ProgressScreen>
       onTap: () => Navigator.of(context).pushNamed(Routes.progressHistory),
       child: Row(
         children: <Widget>[
-          const Icon(Icons.history, color: AppColors.lime),
+          const AppIcon(
+            asset: AppIcons.history,
+            size: 22,
+            color: AppColors.lime,
+          ),
           const SizedBox(width: AppSpacing.xl),
           Expanded(
             child: Column(
@@ -358,7 +364,11 @@ class _ProgressScreenState extends State<ProgressScreen>
               ],
             ),
           ),
-          const Icon(Icons.chevron_right, color: AppColors.muted),
+          const AppIcon(
+            asset: AppIcons.chevronRight,
+            size: 20,
+            color: AppColors.muted,
+          ),
         ],
       ),
     );
@@ -366,7 +376,7 @@ class _ProgressScreenState extends State<ProgressScreen>
 
   Widget _buildEmptyState() {
     return AppEmptyState(
-      icon: Icons.insights_outlined,
+      assetIcon: AppIcons.trendUp,
       title: 'No workouts yet',
       message: 'Finish a workout to see your progress here.',
       actionLabel: 'Start your first workout',
@@ -417,7 +427,7 @@ class _ProgressScreenState extends State<ProgressScreen>
       );
     } else if (progress.error != null && progress.totalWorkouts == 0) {
       body = AppEmptyState(
-        icon: Icons.error_outline,
+        assetIcon: AppIcons.alert,
         title: 'Could not load progress',
         message: 'Your local history could not be read.',
         actionLabel: 'Try again',

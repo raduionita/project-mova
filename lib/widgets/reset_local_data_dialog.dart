@@ -3,8 +3,10 @@ import 'package:provider/provider.dart';
 
 import '../app_coordinator.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_icons.dart';
 import '../theme/app_radii.dart';
 import '../theme/app_spacing.dart';
+import 'app_icon.dart';
 import '../theme/app_typography.dart';
 import 'app_button.dart';
 
@@ -77,8 +79,8 @@ class _ResetLocalDataDialogState extends State<ResetLocalDataDialog> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          const Icon(
-            Icons.warning_amber_rounded,
+          const AppIcon(
+            asset: AppIcons.alert,
             size: 20,
             color: AppColors.orange,
           ),
@@ -122,8 +124,8 @@ class _ResetLocalDataDialogState extends State<ResetLocalDataDialog> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    const Icon(
-                      Icons.remove_circle_outline,
+                    const AppIcon(
+                      asset: AppIcons.minus,
                       size: 16,
                       color: AppColors.muted,
                     ),

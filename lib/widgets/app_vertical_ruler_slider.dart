@@ -23,6 +23,8 @@ class AppVerticalRulerSlider extends StatefulWidget {
     this.enabled = true,
     this.pixelsPerStep = 10,
     this.height = 260,
+    this.trackWidth = 56,
+    this.valueStyle,
   });
 
   final double value;
@@ -39,11 +41,18 @@ class AppVerticalRulerSlider extends StatefulWidget {
   final double pixelsPerStep;
   final double height;
 
+  /// Ruler track thickness. Bumped on onboarding for a heavier control.
+  final double trackWidth;
+  final TextStyle? valueStyle;
+
   @override
   State<AppVerticalRulerSlider> createState() => _AppVerticalRulerSliderState();
 }
 
 class _AppVerticalRulerSliderState extends State<AppVerticalRulerSlider> {
+  static const double _limitsWidth = 82;
+  static const double _valueWidth = 132;
+
   final GlobalKey _rulerKey = GlobalKey();
 
   late double _current;
@@ -120,12 +129,13 @@ class _AppVerticalRulerSliderState extends State<AppVerticalRulerSlider> {
 
   Widget _buildValue() {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.end,
       children: <Widget>[
         Text(
           widget.valueLabel ?? _format(_current),
-          style: AppTypography.h1.copyWith(fontSize: 38, color: AppColors.text),
+          style: (widget.valueStyle ?? AppTypography.h1.copyWith(fontSize: 38))
+              .copyWith(color: AppColors.text),
         ),
         if (widget.unitLabel != null) ...<Widget>[
           const SizedBox(width: AppSpacing.xs),
@@ -157,11 +167,24 @@ class _AppVerticalRulerSliderState extends State<AppVerticalRulerSlider> {
         widget.maxLabel ??
         (unit == null ? _format(widget.max) : '${_format(widget.max)} $unit');
     return Row(
-      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
         SizedBox(
+          width: _limitsWidth,
+          height: widget.height,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: <Widget>[
+              _buildRangeLabel(maxLabel),
+              _buildRangeLabel(minLabel),
+            ],
+          ),
+        ),
+        const SizedBox(width: AppSpacing.xl),
+        SizedBox(
           key: _rulerKey,
-          width: 56,
+          width: widget.trackWidth,
           height: widget.height,
           child: CustomPaint(
             painter: _VerticalRulerPainter(
@@ -175,13 +198,26 @@ class _AppVerticalRulerSliderState extends State<AppVerticalRulerSlider> {
         ),
         const SizedBox(width: AppSpacing.xl),
         SizedBox(
+          width: _valueWidth,
           height: widget.height,
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              _buildRangeLabel(maxLabel),
-              _buildRangeLabel(minLabel),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: _buildValue(),
+              ),
+              if (widget.hint != null) ...<Widget>[
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  widget.hint!,
+                  maxLines: 1,
+                  softWrap: false,
+                  style: AppTypography.caption.copyWith(color: AppColors.muted),
+                ),
+              ],
             ],
           ),
         ),
@@ -212,20 +248,7 @@ class _AppVerticalRulerSliderState extends State<AppVerticalRulerSlider> {
             onTapDown: _handleTapDown,
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                _buildValue(),
-                const SizedBox(height: AppSpacing.xl),
-                _buildRuler(),
-                if (widget.hint != null) ...<Widget>[
-                  const SizedBox(height: AppSpacing.md),
-                  Text(
-                    widget.hint!,
-                    style: AppTypography.caption.copyWith(
-                      color: AppColors.muted,
-                    ),
-                  ),
-                ],
-              ],
+              children: <Widget>[_buildRuler()],
             ),
           ),
         ),
@@ -288,7 +311,7 @@ class _VerticalRulerPainter extends CustomPainter {
       }
       final y = centerY + (value - tickValue) / step * pixelsPerStep;
       final major = stepIndex % 5 == 0;
-      final width = major ? 19.0 : 11.0;
+      final width = major ? size.width * 0.35 : size.width * 0.2;
       canvas.drawLine(
         Offset(size.width / 2 - width / 2, y),
         Offset(size.width / 2 + width / 2, y),

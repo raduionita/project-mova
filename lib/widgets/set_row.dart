@@ -4,9 +4,11 @@ import '../models/unit_preferences.dart';
 import '../models/workout_set.dart';
 import '../services/unit_conversion_service.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_icons.dart';
 import '../theme/app_radii.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
+import 'app_icon.dart';
 
 /// One row in the live logger set table from DESIGN.md section 8.8.
 class SetRow extends StatelessWidget {
@@ -192,8 +194,8 @@ class SetRow extends StatelessWidget {
         width: AppSpacing.x5l - AppSpacing.xs,
         height: AppSpacing.x5l - AppSpacing.xs,
       ),
-      icon: Icon(
-        set.completed ? Icons.check_circle : Icons.radio_button_unchecked,
+      icon: AppIcon(
+        asset: set.completed ? AppIcons.check : AppIcons.circle,
         size: AppSpacing.x2l + AppSpacing.xs,
         color: set.completed ? AppColors.lime : AppColors.muted,
       ),
@@ -209,8 +211,8 @@ class SetRow extends StatelessWidget {
         width: AppSpacing.x4l,
         height: AppSpacing.x5l - AppSpacing.xs,
       ),
-      icon: const Icon(
-        Icons.close,
+      icon: const AppIcon(
+        asset: AppIcons.close,
         size: AppSpacing.x2l,
         color: AppColors.textDisabled,
       ),

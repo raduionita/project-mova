@@ -112,3 +112,21 @@
 2026.11.08 SMART-12 Verify cross-feature integration and accessibility at 390x844
 2026.11.08 SMART-13 Document equipment, progression, swapping, and plate behavior
 2026.11.08 SMART-14 Pass analyze, 516 tests, debug APK, web release, and Chrome smoke
+2026.11.08 UI-01 Add flutter_svg, the SVG icon set, and the runtime-tinted AppIcon widget
+2026.11.08 UI-02 Render the bottom navigation from SVG assets and use a calendar for Today
+2026.11.08 UI-03 Rebuild welcome with the lime M mark and larger value rows
+2026.11.08 UI-04 Add the onboarding step counter and the onboarding-only type scale
+2026.11.08 UI-05 Enlarge the unit segmented controls and add the distance note
+2026.11.08 UI-06 Use SVG gender icons, including the combined sign for Other
+2026.11.08 UI-07 Center the birth date wheels and add the age note
+2026.11.08 UI-08 Center the weight ruler and thicken the ruler band
+2026.11.08 UI-09 Put height limits on the left, the value on the right, and thicken the track
+2026.11.08 UI-10 Replace the goals list with a 2x2 icon tile grid
+2026.11.08 UI-11 Unbundle the schedule controls and align spacing with the mock
+2026.11.08 UI-12 Rebuild the notifications step with the bell box and toggle rows
+2026.11.08 UI-13 Document the SVG icon set and onboarding type scale
+2026.11.08 UI-14 Keep the onboarding step in sync with the visible screen
+2026.11.08 UI-15 Stabilize the height ruler layout while dragging
+2026.11.09 UI-16 Align Mova with the mockup using SVG icons, dot step progress, dashed quick actions, and day badges
+2026.11.09 UI-17 Put the onboarding progress dots on the back and step row
+2026.11.09 UI-18 Enlarge the height ruler and drop the drag hint

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../navigation/app_navigation.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
+import 'app_icon.dart';
 
 /// Phase-aware bottom navigation bar from DESIGN.md section 8.12.
 ///
@@ -63,8 +64,9 @@ class BottomNavBar extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Icon(
-              selected ? item.selectedIcon : item.icon,
+            AppIcon(
+              key: ValueKey<String>('tab-icon-${item.tab.name}'),
+              asset: item.iconAsset,
               size: _iconSize,
               color: color,
             ),

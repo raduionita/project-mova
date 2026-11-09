@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../models/routine.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_icons.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
+import 'app_icon.dart';
 import 'app_card.dart';
 
 /// Saved routine summary row from DESIGN.md section 10.9.
@@ -42,7 +44,11 @@ class RoutineRow extends StatelessWidget {
               ],
             ),
           ),
-          const Icon(Icons.chevron_right, size: 20, color: AppColors.muted),
+          const AppIcon(
+            asset: AppIcons.chevronRight,
+            size: 20,
+            color: AppColors.muted,
+          ),
         ],
       ),
     );

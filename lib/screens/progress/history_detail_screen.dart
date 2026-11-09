@@ -17,6 +17,7 @@ import '../../services/share_card_service.dart';
 import '../../services/unit_conversion_service.dart';
 import '../../services/workout_calculator.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_icons.dart';
 import '../../theme/app_radii.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
@@ -258,7 +259,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
                       child: AppStatTile(
                         value: formatDuration(duration),
                         label: 'time',
-                        icon: Icons.timer_outlined,
+                        assetIcon: AppIcons.clock,
                       ),
                     ),
                     const SizedBox(width: AppSpacing.md),
@@ -266,7 +267,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
                       child: AppStatTile(
                         value: formatVolume(volume, unit: unit),
                         label: 'volume',
-                        icon: Icons.scale_outlined,
+                        assetIcon: AppIcons.scale,
                       ),
                     ),
                     const SizedBox(width: AppSpacing.md),
@@ -274,7 +275,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
                       child: AppStatTile(
                         value: '$sets',
                         label: 'sets',
-                        icon: Icons.check_circle_outline,
+                        assetIcon: AppIcons.check,
                       ),
                     ),
                   ],
@@ -361,7 +362,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
                               ),
                             )
                           : const AppEmptyState(
-                              icon: Icons.search_off,
+                              assetIcon: AppIcons.search,
                               title: 'Workout not found',
                               message:
                                   'This workout was deleted or is no longer '

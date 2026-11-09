@@ -16,6 +16,7 @@ import '../../providers/onboarding_provider.dart';
 import '../../services/clock.dart';
 import '../../services/plan_generator_service.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_radii.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
 import '../../widgets/app_button.dart';
@@ -174,11 +175,19 @@ class _PlanPreviewScreenState extends State<PlanPreviewScreen> {
   }
 
   void _editSchedule() {
+    final onboarding = context.read<OnboardingProvider>();
+    onboarding.beginPlanEdit();
+    onboarding.syncStep(OnboardingFlow.stepFor(Routes.onboardingSchedule));
     _go(Routes.onboardingSchedule);
   }
 
   void _back() {
-    _go(OnboardingFlow.previousRoute(Routes.onboardingPlan) ?? Routes.welcome);
+    final previous =
+        OnboardingFlow.previousRoute(Routes.onboardingPlan) ?? Routes.welcome;
+    context.read<OnboardingProvider>().syncStep(
+      OnboardingFlow.stepFor(previous),
+    );
+    _go(previous);
   }
 
   String _subtitle(OnboardingDraft draft) {
@@ -214,13 +223,20 @@ class _PlanPreviewScreenState extends State<PlanPreviewScreen> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
-            SizedBox(
-              width: 44,
+            Container(
+              width: 40,
+              height: 40,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: AppColors.cardElevated,
+                borderRadius: BorderRadius.circular(AppRadii.md),
+              ),
               child: Text(
                 label,
                 style: AppTypography.micro.copyWith(color: AppColors.lime),
               ),
             ),
+            const SizedBox(width: AppSpacing.xl),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

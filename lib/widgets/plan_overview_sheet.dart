@@ -5,10 +5,12 @@ import '../models/plan_day.dart';
 import '../providers/plan_provider.dart';
 import '../providers/profile_provider.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_icons.dart';
 import '../theme/app_radii.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
 import 'app_button.dart';
+import 'app_icon.dart';
 import 'app_chip.dart';
 
 const List<String> _weekdayNames = <String>[
@@ -318,7 +320,10 @@ class _PlanOverviewSheetState extends State<PlanOverviewSheet> {
                 IconButton(
                   tooltip: 'Close plan',
                   onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.close, color: AppColors.muted),
+                  icon: const AppIcon(
+                    asset: AppIcons.close,
+                    color: AppColors.muted,
+                  ),
                 ),
               ],
             ),

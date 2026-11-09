@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../theme/app_colors.dart';
+import '../../theme/app_icons.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
 import '../../widgets/app_back_bar.dart';
@@ -81,7 +82,7 @@ class _LicensesScreenState extends State<LicensesScreen> {
     final grouped = _group(entries);
     if (grouped.isEmpty) {
       return const AppEmptyState(
-        icon: Icons.code,
+        assetIcon: AppIcons.code,
         title: 'No licenses found',
         message: 'Package licenses appear here after a release build.',
       );
