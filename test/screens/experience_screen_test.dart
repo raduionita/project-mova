@@ -56,6 +56,21 @@ void main() {
     expect(provider.draft.experienceLevel, isNull);
   });
 
+  testWidgets('uses a larger icon and roomier padding on the cards', (
+    tester,
+  ) async {
+    final provider = await _providerWith(StorageService.inMemory());
+
+    await tester.pumpWidget(_wrap(provider, (_) {}));
+
+    final cards = tester.widgetList<AppChoiceCard>(find.byType(AppChoiceCard));
+    expect(cards, hasLength(4));
+    for (final card in cards) {
+      expect(card.iconSize, 22);
+      expect(card.iconBoxSize, 40);
+    }
+  });
+
   testWidgets('selection persists and routes to the schedule step', (
     tester,
   ) async {

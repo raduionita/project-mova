@@ -19,7 +19,7 @@ class AppTileOption<T> {
   final String assetIcon;
 }
 
-/// Grid of icon tiles used for onboarding goals.
+/// Grid of square icon tiles used for onboarding goals.
 ///
 /// The first selected option is the primary one, matching the ordered
 /// multi-select behaviour of [AppMultiSelect].
@@ -39,6 +39,10 @@ class AppTileGrid<T> extends StatelessWidget {
   final bool enabled;
   final int columns;
 
+  /// Largest width the grid may take. Keeps the square tiles from growing
+  /// without bound on tablets and wide web windows.
+  static const double _maxGridWidth = 400;
+
   void _toggle(T value) {
     final next = <T>[...selected];
     if (next.contains(value)) {
@@ -49,7 +53,7 @@ class AppTileGrid<T> extends StatelessWidget {
     onChanged(next);
   }
 
-  Widget _buildTile(AppTileOption<T> option) {
+  Widget _buildTile(AppTileOption<T> option, double size) {
     final isSelected = selected.contains(option.value);
     final isPrimary = isSelected && selected.first == option.value;
     final foreground = isSelected ? AppColors.lime : AppColors.text;
@@ -71,7 +75,7 @@ class AppTileGrid<T> extends StatelessWidget {
           borderRadius: radius,
           onTap: enabled ? () => _toggle(option.value) : null,
           child: SizedBox(
-            height: 108,
+            height: size,
             child: Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.lg,
@@ -80,7 +84,7 @@ class AppTileGrid<T> extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  AppIcon(asset: option.assetIcon, size: 22, color: foreground),
+                  AppIcon(asset: option.assetIcon, size: 32, color: foreground),
                   const SizedBox(height: AppSpacing.md),
                   Text(
                     option.label,
@@ -112,14 +116,14 @@ class AppTileGrid<T> extends StatelessWidget {
     );
   }
 
-  Widget _buildRow(int row) {
+  Widget _buildRow(int row, double tileSize) {
     return Row(
       children: <Widget>[
         for (var column = 0; column < columns; column++) ...<Widget>[
           if (column > 0) const SizedBox(width: AppSpacing.md),
           Expanded(
             child: row * columns + column < options.length
-                ? _buildTile(options[row * columns + column])
+                ? _buildTile(options[row * columns + column], tileSize)
                 : const SizedBox.shrink(),
           ),
         ],
@@ -130,13 +134,26 @@ class AppTileGrid<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final rows = (options.length / columns).ceil();
-    return Column(
-      children: <Widget>[
-        for (var row = 0; row < rows; row++) ...<Widget>[
-          if (row > 0) const SizedBox(height: AppSpacing.md),
-          _buildRow(row),
-        ],
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth > _maxGridWidth
+            ? _maxGridWidth
+            : constraints.maxWidth;
+        final tileSize = (width - AppSpacing.md * (columns - 1)) / columns;
+        return Center(
+          child: SizedBox(
+            width: width,
+            child: Column(
+              children: <Widget>[
+                for (var row = 0; row < rows; row++) ...<Widget>[
+                  if (row > 0) const SizedBox(height: AppSpacing.md),
+                  _buildRow(row, tileSize),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

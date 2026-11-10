@@ -114,7 +114,7 @@ class _HeightScreenState extends State<HeightScreen> {
         minLabel: _rangeLabel(_minCm.toDouble()),
         maxLabel: _rangeLabel(_maxCm.toDouble()),
         trackWidth: 68,
-        height: 340,
+        height: 450,
         valueStyle: AppOnboardingType.value,
         onChanged: _handleChanged,
       ),

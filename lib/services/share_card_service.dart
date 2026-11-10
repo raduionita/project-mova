@@ -8,6 +8,7 @@ import '../common/formatters.dart';
 import '../models/personal_record.dart';
 import '../models/unit_preferences.dart';
 import '../models/workout_session.dart';
+import '../widgets/mova_mark.dart';
 import 'unit_conversion_service.dart';
 import 'workout_calculator.dart';
 
@@ -217,16 +218,10 @@ class ShareCardService {
       RRect.fromRectAndRadius(mark, const Radius.circular(38)),
       Paint()..color = _ink,
     );
-    _paintText(
+    MovaMarkPath.paint(
       canvas,
-      'M',
-      offset: const Offset(122, 118),
-      style: const TextStyle(
-        fontFamily: 'Barlow Condensed',
-        fontSize: 104,
-        fontWeight: FontWeight.w800,
-        color: _lime,
-      ),
+      Rect.fromCenter(center: mark.center, width: 72, height: 66),
+      _lime,
     );
     _paintText(
       canvas,

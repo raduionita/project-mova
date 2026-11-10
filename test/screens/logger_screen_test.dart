@@ -29,6 +29,7 @@ import 'package:mova/widgets/app_icon.dart';
 import 'package:mova/widgets/app_button.dart';
 import 'package:mova/widgets/app_chip.dart';
 import 'package:mova/widgets/exercise_picker_sheet.dart';
+import 'package:mova/widgets/set_row.dart';
 import 'package:provider/provider.dart';
 
 IdGenerator _sequentialIds() {
@@ -366,7 +367,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(workout.activeSession!.exercises.first.sets, hasLength(3));
 
-    await tester.tap(find.byTooltip('Remove set 1'));
+    await tester.drag(find.byType(SetRow).first, const Offset(-400, 0));
     await tester.pumpAndSettle();
     expect(workout.activeSession!.exercises.first.sets, hasLength(2));
   });

@@ -77,4 +77,39 @@ void main() {
     await tester.pumpAndSettle();
     expect(result, isNull);
   });
+
+  testWidgets('selects the current value so typing replaces it', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.dark,
+        home: Builder(
+          builder: (context) => TextButton(
+            onPressed: () {
+              showNumericInputSheet(
+                context,
+                title: 'Edit weight',
+                label: 'Weight (kg)',
+                initialValue: 0,
+                allowDecimal: true,
+                max: 500,
+              );
+            },
+            child: const Text('Open'),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Open'));
+    await tester.pumpAndSettle();
+
+    final field = tester.widget<TextField>(find.byType(TextField));
+    expect(field.controller!.text, '0');
+    expect(
+      field.controller!.selection,
+      const TextSelection(baseOffset: 0, extentOffset: 1),
+    );
+  });
 }

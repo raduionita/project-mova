@@ -9,9 +9,12 @@ import '../../theme/app_icons.dart';
 import '../../theme/app_onboarding_type.dart';
 import '../../theme/app_radii.dart';
 import '../../theme/app_spacing.dart';
-import '../../theme/app_typography.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_icon.dart';
+import '../../widgets/mova_mark.dart';
+
+/// Mid tone between [AppColors.text] and [AppColors.muted] for the value rows.
+const Color _kValueTextColor = Color(0xFFC3CDDD);
 
 /// First screen of onboarding. Starts a new draft or resumes a saved one.
 class WelcomeScreen extends StatelessWidget {
@@ -62,55 +65,38 @@ class WelcomeScreen extends StatelessWidget {
         ],
       ),
       child: Center(
-        child: Text(
-          'M',
-          style: AppTypography.displayXL.copyWith(
-            fontSize: 32,
-            height: 1,
-            color: AppColors.limeInk,
-          ),
+        child: MovaMark(
+          height: 30,
+          color: AppColors.limeInk,
+          semanticLabel: 'Mova logo',
         ),
       ),
     );
   }
 
-  Widget _buildValueRow(String asset, String title, String detail) {
+  Widget _buildValueRow(String asset, String label) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Container(
-            width: 28,
-            height: 28,
+            width: 36,
+            height: 36,
             decoration: BoxDecoration(
               color: AppColors.lime.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(AppRadii.sm + 1),
+              borderRadius: BorderRadius.circular(AppRadii.md),
             ),
             child: Center(
-              child: AppIcon(asset: asset, size: 15, color: AppColors.lime),
+              child: AppIcon(asset: asset, size: 18, color: AppColors.lime),
             ),
           ),
-          const SizedBox(width: AppSpacing.lg),
+          const SizedBox(width: AppSpacing.xl),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  title,
-                  style: AppOnboardingType.label.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.text,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.xxs),
-                Text(
-                  detail,
-                  style: AppOnboardingType.caption.copyWith(
-                    color: AppColors.muted,
-                  ),
-                ),
-              ],
+            child: Text(
+              label,
+              style: AppOnboardingType.tileLabel.copyWith(
+                color: _kValueTextColor,
+              ),
             ),
           ),
         ],
@@ -150,18 +136,15 @@ class WelcomeScreen extends StatelessWidget {
               const SizedBox(height: AppSpacing.x4l),
               _buildValueRow(
                 AppIcons.plan,
-                'A plan for your week',
-                'Generated from your goals, level, and schedule.',
+                'A weekly plan shaped by your goals and schedule',
               ),
               _buildValueRow(
                 AppIcons.clock,
-                'Log every set',
-                'Weights, reps, and rest tracked while you train.',
+                'A fast logger that remembers your last set',
               ),
               _buildValueRow(
                 AppIcons.trendUp,
-                'See progress',
-                'History, streaks, and personal records in one place.',
+                'Progress you can trust, built from your own data',
               ),
               const Spacer(),
               AppButton(

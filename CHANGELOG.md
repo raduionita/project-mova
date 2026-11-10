@@ -130,3 +130,8 @@
 2026.11.09 UI-16 Align Mova with the mockup using SVG icons, dot step progress, dashed quick actions, and day badges
 2026.11.09 UI-17 Put the onboarding progress dots on the back and step row
 2026.11.09 UI-18 Enlarge the height ruler and drop the drag hint
+2026.11.10 UI-19 Make onboarding goal tiles square with larger icons
+2026.11.10 UI-20 Enlarge the experience icons and the padding inside each row
+2026.11.10 UI-21 Center the Today week label, move Edit plan left, and move the streak into the workout card
+2026.11.10 UI-22 Add boxed weight and reps fields and swipe-to-remove set rows
+2026.11.10 UI-23 Show the experience icon on the Me avatar

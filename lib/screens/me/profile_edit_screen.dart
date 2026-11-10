@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../common/constants.dart';
+import '../../common/experience_display.dart';
 import '../../models/experience_level.dart';
 import '../../models/gender.dart';
 import '../../models/goal.dart';
@@ -38,32 +39,25 @@ class ProfileEditScreen extends StatefulWidget {
 class _ProfileEditScreenState extends State<ProfileEditScreen> {
   static const UnitConversionService _units = UnitConversionService();
 
-  static const List<
-    ({ExperienceLevel level, String assetIcon, String description})
-  >
-  _experienceOptions =
-      <({ExperienceLevel level, String assetIcon, String description})>[
-        (
-          level: ExperienceLevel.beginner,
-          assetIcon: AppIcons.seedling,
-          description: 'New to training or returning after a break.',
-        ),
-        (
-          level: ExperienceLevel.regular,
-          assetIcon: AppIcons.dumbbell,
-          description: 'Training consistently for under a year.',
-        ),
-        (
-          level: ExperienceLevel.gymRat,
-          assetIcon: AppIcons.flame,
-          description: 'Years of structured training.',
-        ),
-        (
-          level: ExperienceLevel.veteran,
-          assetIcon: AppIcons.trophy,
-          description: 'Advanced, competition-minded.',
-        ),
-      ];
+  static const List<({ExperienceLevel level, String description})>
+  _experienceOptions = <({ExperienceLevel level, String description})>[
+    (
+      level: ExperienceLevel.beginner,
+      description: 'New to training or returning after a break.',
+    ),
+    (
+      level: ExperienceLevel.regular,
+      description: 'Training consistently for under a year.',
+    ),
+    (
+      level: ExperienceLevel.gymRat,
+      description: 'Years of structured training.',
+    ),
+    (
+      level: ExperienceLevel.veteran,
+      description: 'Advanced, competition-minded.',
+    ),
+  ];
 
   static const List<AppMultiSelectOption<Goal>> _goalOptions =
       <AppMultiSelectOption<Goal>>[
@@ -127,16 +121,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   }
 
   String _experienceLabel(ExperienceLevel level) {
-    switch (level) {
-      case ExperienceLevel.beginner:
-        return 'Beginner';
-      case ExperienceLevel.regular:
-        return 'Regular';
-      case ExperienceLevel.gymRat:
-        return 'Gym rat';
-      case ExperienceLevel.veteran:
-        return 'Veteran';
-    }
+    return experienceLevelLabel(level);
   }
 
   String _genderLabel(Gender gender) {
@@ -388,7 +373,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
             child: AppChoiceCard(
               label: _experienceLabel(option.level),
               description: option.description,
-              assetIcon: option.assetIcon,
+              assetIcon: experienceLevelIcon(option.level),
               selected: _experience == option.level,
               onTap: _isSaving
                   ? null

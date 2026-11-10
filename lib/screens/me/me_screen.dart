@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 
+import '../../common/experience_display.dart';
 import '../../common/formatters.dart';
 import '../../models/app_settings.dart';
 import '../../models/experience_level.dart';
@@ -48,18 +49,10 @@ class _MeScreenState extends State<MeScreen> {
   }
 
   String _experienceLabel(ExperienceLevel? level) {
-    switch (level) {
-      case ExperienceLevel.beginner:
-        return 'Beginner';
-      case ExperienceLevel.regular:
-        return 'Regular';
-      case ExperienceLevel.gymRat:
-        return 'Gym rat';
-      case ExperienceLevel.veteran:
-        return 'Veteran';
-      case null:
-        return 'Add experience';
+    if (level == null) {
+      return 'Add experience';
     }
+    return experienceLevelLabel(level);
   }
 
   String _goalLabel(Goal goal) {
@@ -102,17 +95,20 @@ class _MeScreenState extends State<MeScreen> {
     Navigator.of(context).pushNamed(route);
   }
 
-  Widget _buildAvatar(String name) {
-    final initial = name.trim().isEmpty ? 'M' : name.trim().characters.first;
+  Widget _buildAvatar(ExperienceLevel? level) {
     return Container(
       width: 64,
       height: 64,
       alignment: Alignment.center,
-      decoration: BoxDecoration(color: AppColors.lime, shape: BoxShape.circle),
-      child: Text(
-        initial.toUpperCase(),
-        semanticsLabel: '',
-        style: AppTypography.display.copyWith(color: AppColors.limeInk),
+      decoration: const BoxDecoration(
+        color: AppColors.lime,
+        shape: BoxShape.circle,
+      ),
+      child: AppIcon(
+        key: const Key('me-avatar-icon'),
+        asset: level == null ? AppIcons.navMe : experienceLevelIcon(level),
+        size: 32,
+        color: AppColors.limeInk,
       ),
     );
   }
@@ -129,7 +125,7 @@ class _MeScreenState extends State<MeScreen> {
         children: <Widget>[
           Row(
             children: <Widget>[
-              _buildAvatar(name),
+              _buildAvatar(profile?.experienceLevel),
               const SizedBox(width: AppSpacing.x2l),
               Expanded(
                 child: Column(

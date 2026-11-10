@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mova/screens/shared/splash_screen.dart';
 import 'package:mova/theme/app_theme.dart';
+import 'package:mova/widgets/mova_mark.dart';
 
 Widget _wrap(Widget child) {
   return MaterialApp(theme: AppTheme.dark, home: child);
@@ -15,7 +16,7 @@ void main() {
 
     expect(find.text('mova'), findsOneWidget);
     expect(find.text('Move. Log. Progress.'), findsOneWidget);
-    expect(find.text('M'), findsOneWidget);
+    expect(find.byType(MovaMark), findsOneWidget);
     expect(
       find.byKey(const ValueKey<String>('splash-loading-bar')),
       findsOneWidget,

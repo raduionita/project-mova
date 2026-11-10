@@ -100,18 +100,10 @@
   }
 
   /* ---------- Caption ---------- */
-  .caption{width:292px}
-  .cap-head{display:flex; align-items:center; gap:8px; margin-bottom:6px}
   .num{
     width:24px;height:24px;border-radius:8px; display:grid; place-items:center;
     background:#1c2740; color:#a8b8d8; font-size:11px; font-weight:800;
   }
-  .cap-title{font-size:13.5px; font-weight:700}
-  .new{
-    font-size:9px; font-weight:800; letter-spacing:.8px; padding:3px 7px; border-radius:6px;
-    background:var(--lime); color:var(--lime-ink);
-  }
-  .cap-desc{font-size:11.5px; color:var(--muted); line-height:1.5}
 
   /* ---------- Screen-specific ---------- */
   /* Splash */
@@ -350,29 +342,22 @@
 
   <!-- 01 - SPLASH -->
   <div class="step">
-    <div class="phone"><div class="screen">
-      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G</span></div>
+    <div class="phone"><div class="screen" title="Cold start. Brand mark and tagline while the local profile and any active session are checked.">
       <div class="body splash">
         <div class="big-mark">M</div>
         <div class="word">mova</div>
         <div class="tagline">Move. Log. Progress.</div>
         <div class="loadbar"><i></i></div>
-        <div class="platforms">iOS · Android</div>
       </div>
-      <div class="homebar"></div>
     </div></div>
-    <div class="caption">
-      <div class="cap-head"><span class="num">01</span><span class="cap-title">Splash</span><span class="new">NEW</span></div>
-      <div class="cap-desc">Cold start. Brand mark and tagline while the local profile and any active session are checked.</div>
-    </div>
   </div>
 
   <div class="connector"><span class="lbl">first launch</span><div class="arrow"></div></div>
 
   <!-- 02 - WELCOME -->
   <div class="step">
-    <div class="phone"><div class="screen">
-      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G</span></div>
+    <div class="phone"><div class="screen" title="One promise, three value bullets, one action. No account and no sign-in in v1.">
+      
       <div class="body welcome">
         <div class="w-mark">M</div>
         <div class="w-title">Train with a plan</div>
@@ -385,20 +370,15 @@
         <div style="flex:1"></div>
         <div class="btn" style="width:100%">Get started</div>
       </div>
-      <div class="homebar"></div>
     </div></div>
-    <div class="caption">
-      <div class="cap-head"><span class="num">02</span><span class="cap-title">Welcome</span></div>
-      <div class="cap-desc">One promise, three value bullets, one action. No account and no sign-in in v1.</div>
-    </div>
   </div>
 
   <div class="connector"><span class="lbl">Get started</span><div class="arrow"></div></div>
 
   <!-- 03 - UNITS -->
   <div class="step">
-    <div class="phone"><div class="screen">
-      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G</span></div>
+    <div class="phone"><div class="screen" title="Weight, distance, and body units. Defaults are kg, km, and cm. All three persist before Continue.">
+      
       <div class="body">
         <div class="onb-top"><span class="back">‹</span><span class="stepcount">STEP 1 OF 10</span></div>
         <div>
@@ -422,20 +402,16 @@
         <div class="btn">Continue</div>
         <div class="dots"><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
       </div>
-      <div class="homebar"></div>
+      
     </div></div>
-    <div class="caption">
-      <div class="cap-head"><span class="num">03</span><span class="cap-title">Onboarding · Units</span><span class="new">NEW</span></div>
-      <div class="cap-desc">Weight, distance, and body units. Defaults are kg, km, and cm. All three persist before Continue.</div>
-    </div>
   </div>
 
   <div class="connector"><span class="lbl">Continue</span><div class="arrow"></div></div>
 
   <!-- 04 - GENDER -->
   <div class="step">
-    <div class="phone"><div class="screen">
-      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G</span></div>
+    <div class="phone"><div class="screen" title="Three full-width choice cards with icon and text. Selection is required.">
+      
       <div class="body">
         <div class="onb-top"><span class="back">‹</span><span class="stepcount">STEP 2 OF 10</span></div>
         <div>
@@ -459,20 +435,16 @@
         <div class="btn">Continue</div>
         <div class="dots"><i></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
       </div>
-      <div class="homebar"></div>
+      
     </div></div>
-    <div class="caption">
-      <div class="cap-head"><span class="num">04</span><span class="cap-title">Onboarding · Gender</span><span class="new">NEW</span></div>
-      <div class="cap-desc">Three full-width choice cards with icon and text. Selection is required.</div>
-    </div>
   </div>
 
   <div class="connector"><span class="lbl">Continue</span><div class="arrow"></div></div>
 
   <!-- 05 - BIRTH DATE -->
   <div class="step">
-    <div class="phone"><div class="screen">
-      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G</span></div>
+    <div class="phone"><div class="screen" title="Three vertical wheels for month, day, and year. Default is 25 years before today.">
+      
       <div class="body">
         <div class="onb-top"><span class="back">‹</span><span class="stepcount">STEP 3 OF 10</span></div>
         <div>
@@ -490,20 +462,16 @@
         <div class="btn">Continue</div>
         <div class="dots"><i></i><i></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
       </div>
-      <div class="homebar"></div>
+      
     </div></div>
-    <div class="caption">
-      <div class="cap-head"><span class="num">05</span><span class="cap-title">Onboarding · Birth date</span><span class="new">NEW</span></div>
-      <div class="cap-desc">Three vertical wheels for month, day, and year. Default is 25 years before today.</div>
-    </div>
   </div>
 
   <div class="connector"><span class="lbl">Continue</span><div class="arrow"></div></div>
 
   <!-- 06 - WEIGHT -->
   <div class="step">
-    <div class="phone"><div class="screen">
-      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G</span></div>
+    <div class="phone"><div class="screen" title="Horizontal ruler slider, 30 to 250 kg in 0.5 kg steps. Skip stores 0.">
+      
       <div class="body">
         <div class="onb-top"><span class="back">‹</span><span class="stepcount">STEP 4 OF 10</span></div>
         <div>
@@ -524,20 +492,16 @@
         <div class="btn ghost">Skip for now</div>
         <div class="dots"><i></i><i></i><i></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
       </div>
-      <div class="homebar"></div>
+      
     </div></div>
-    <div class="caption">
-      <div class="cap-head"><span class="num">06</span><span class="cap-title">Onboarding · Weight</span><span class="new">NEW</span></div>
-      <div class="cap-desc">Horizontal ruler slider, 30 to 250 kg in 0.5 kg steps. Skip stores 0.</div>
-    </div>
   </div>
 
   <div class="connector"><span class="lbl">Continue</span><div class="arrow"></div></div>
 
   <!-- 07 - HEIGHT -->
   <div class="step">
-    <div class="phone"><div class="screen">
-      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G</span></div>
+    <div class="phone"><div class="screen" title="Vertical roller, 120 to 230 cm in 1 cm steps. Skip stores 0.">
+      
       <div class="body">
         <div class="onb-top"><span class="back">‹</span><span class="stepcount">STEP 5 OF 10</span></div>
         <div>
@@ -553,20 +517,16 @@
         <div class="btn ghost">Skip for now</div>
         <div class="dots"><i></i><i></i><i></i><i></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i></div>
       </div>
-      <div class="homebar"></div>
+      
     </div></div>
-    <div class="caption">
-      <div class="cap-head"><span class="num">07</span><span class="cap-title">Onboarding · Height</span><span class="new">NEW</span></div>
-      <div class="cap-desc">Vertical roller, 120 to 230 cm in 1 cm steps. Skip stores 0.</div>
-    </div>
   </div>
 
   <div class="connector"><span class="lbl">Continue</span><div class="arrow"></div></div>
 
   <!-- 08 - GOALS -->
   <div class="step">
-    <div class="phone"><div class="screen">
-      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G</span></div>
+    <div class="phone"><div class="screen" title="Multi-select cards. At least one is required. The first selected goal is labelled primary.">
+      
       <div class="body">
         <div class="onb-top"><span class="back">‹</span><span class="stepcount">STEP 6 OF 10</span></div>
         <div>
@@ -583,20 +543,16 @@
         <div class="btn">Continue</div>
         <div class="dots"><i></i><i></i><i></i><i></i><i></i><i class="on"></i><i></i><i></i><i></i><i></i></div>
       </div>
-      <div class="homebar"></div>
+      
     </div></div>
-    <div class="caption">
-      <div class="cap-head"><span class="num">08</span><span class="cap-title">Onboarding · Goals</span><span class="new">NEW</span></div>
-      <div class="cap-desc">Multi-select cards. At least one is required. The first selected goal is labelled primary.</div>
-    </div>
   </div>
 
   <div class="connector"><span class="lbl">Continue</span><div class="arrow"></div></div>
 
   <!-- 09 - EXPERIENCE -->
   <div class="step">
-    <div class="phone"><div class="screen">
-      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G</span></div>
+    <div class="phone"><div class="screen" title="Single-select cards with a one-line description. Selection is required.">
+      
       <div class="body">
         <div class="onb-top"><span class="back">‹</span><span class="stepcount">STEP 7 OF 10</span></div>
         <div>
@@ -624,20 +580,16 @@
         <div class="btn">Continue</div>
         <div class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i class="on"></i><i></i><i></i><i></i></div>
       </div>
-      <div class="homebar"></div>
+      
     </div></div>
-    <div class="caption">
-      <div class="cap-head"><span class="num">09</span><span class="cap-title">Onboarding · Experience</span><span class="new">NEW</span></div>
-      <div class="cap-desc">Single-select cards with a one-line description. Selection is required.</div>
-    </div>
   </div>
 
   <div class="connector"><span class="lbl">Continue</span><div class="arrow"></div></div>
 
   <!-- 10 - SCHEDULE -->
   <div class="step">
-    <div class="phone"><div class="screen">
-      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G</span></div>
+    <div class="phone"><div class="screen" title="Days per week from 1 to 7 plus training weekdays. At least one weekday is required.">
+      
       <div class="body">
         <div class="onb-top"><span class="back">‹</span><span class="stepcount">STEP 8 OF 10</span></div>
         <div>
@@ -653,20 +605,16 @@
         <div class="btn">Continue</div>
         <div class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="on"></i><i></i><i></i></div>
       </div>
-      <div class="homebar"></div>
+      
     </div></div>
-    <div class="caption">
-      <div class="cap-head"><span class="num">10</span><span class="cap-title">Onboarding · Schedule</span><span class="new">NEW</span></div>
-      <div class="cap-desc">Days per week from 1 to 7 plus training weekdays. At least one weekday is required.</div>
-    </div>
   </div>
 
   <div class="connector"><span class="lbl">Continue</span><div class="arrow"></div></div>
 
   <!-- 11 - NOTIFICATIONS -->
   <div class="step">
-    <div class="phone"><div class="screen">
-      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G</span></div>
+    <div class="phone"><div class="screen" title="Enable asks for system permission. Deny, Not now, or unavailable continues with reminders off.">
+      
       <div class="body">
         <div class="onb-top"><span class="back">‹</span><span class="stepcount">STEP 9 OF 10</span></div>
         <div>
@@ -681,20 +629,16 @@
         <div class="btn ghost">Not now</div>
         <div class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="on"></i><i></i></div>
       </div>
-      <div class="homebar"></div>
+      
     </div></div>
-    <div class="caption">
-      <div class="cap-head"><span class="num">11</span><span class="cap-title">Onboarding · Notifications</span><span class="new">NEW</span></div>
-      <div class="cap-desc">Enable asks for system permission. Deny, Not now, or unavailable continues with reminders off.</div>
-    </div>
   </div>
 
   <div class="connector"><span class="lbl">Continue</span><div class="arrow"></div></div>
 
   <!-- 12 - PLAN PREVIEW -->
   <div class="step">
-    <div class="phone"><div class="screen">
-      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G</span></div>
+    <div class="phone"><div class="screen" title="Confirm persists profile, settings, and plan, then opens Today. Edit returns to Schedule with values preserved.">
+      
       <div class="body">
         <div class="onb-top"><span class="back">‹</span><span class="stepcount">STEP 10 OF 10</span></div>
         <div>
@@ -712,20 +656,16 @@
         <div class="btn ghost">Edit schedule</div>
         <div class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="on"></i></div>
       </div>
-      <div class="homebar"></div>
+      
     </div></div>
-    <div class="caption">
-      <div class="cap-head"><span class="num">12</span><span class="cap-title">Plan preview</span><span class="new">NEW</span></div>
-      <div class="cap-desc">Confirm persists profile, settings, and plan, then opens Today. Edit returns to Schedule with values preserved.</div>
-    </div>
   </div>
 
   <div class="connector"><span class="lbl">plan built</span><div class="arrow"></div></div>
 
   <!-- 13 - TODAY -->
   <div class="step">
-    <div class="phone"><div class="screen">
-      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G</span></div>
+    <div class="phone"><div class="screen" title="One clear next action, streak, synced steps. A paused session shows Resume here instead.">
+      
       <div class="body">
         <div class="rowline">
           <span class="tag lime">Monday · Week 3</span>
@@ -751,20 +691,16 @@
         <div class="tab"><svg class="ic"><use href="#ic-social"/></svg>Social</div>
         <div class="tab"><svg class="ic"><use href="#ic-me"/></svg>Me</div>
       </div>
-      <div class="homebar"></div>
+      
     </div></div>
-    <div class="caption">
-      <div class="cap-head"><span class="num">13</span><span class="cap-title">Today</span></div>
-      <div class="cap-desc">One clear next action, streak, synced steps. A paused session shows Resume here instead.</div>
-    </div>
   </div>
 
   <div class="connector"><span class="lbl">tap Start</span><div class="arrow"></div></div>
 
   <!-- 14 - LIVE LOGGER -->
   <div class="step">
-    <div class="phone"><div class="screen">
-      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G</span></div>
+    <div class="phone"><div class="screen" title="Previous values, one tap per set, auto rest timer. Immersive: the tab bar is hidden.">
+      
       <div class="body">
         <div class="rowline">
           <span class="small muted">✕</span>
@@ -785,20 +721,16 @@
         <div style="flex:1"></div>
         <div class="btn ghost">Finish workout</div>
       </div>
-      <div class="homebar"></div>
+      
     </div></div>
-    <div class="caption">
-      <div class="cap-head"><span class="num">14</span><span class="cap-title">Live logger</span></div>
-      <div class="cap-desc">Previous values, one tap per set, auto rest timer. Immersive: the tab bar is hidden.</div>
-    </div>
   </div>
 
   <div class="connector"><span class="lbl">Finish</span><div class="arrow"></div></div>
 
   <!-- 15 - SUMMARY + PR -->
   <div class="step">
-    <div class="phone"><div class="screen">
-      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G</span></div>
+    <div class="phone"><div class="screen" title="Auto PR detection and a share card made for stories. Save commits the session and its PRs.">
+      
       <div class="body">
         <div class="pr-badge">NEW PR</div>
         <div class="pr-card">
@@ -816,20 +748,16 @@
         <div class="btn">Share card</div>
         <div class="btn ghost">Save</div>
       </div>
-      <div class="homebar"></div>
+      
     </div></div>
-    <div class="caption">
-      <div class="cap-head"><span class="num">15</span><span class="cap-title">Summary + PR</span></div>
-      <div class="cap-desc">Auto PR detection and a share card made for stories. Save commits the session and its PRs.</div>
-    </div>
   </div>
 
   <div class="connector"><span class="lbl">saved to history</span><div class="arrow"></div></div>
 
   <!-- 16 - PROGRESS -->
   <div class="step">
-    <div class="phone"><div class="screen">
-      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G</span></div>
+    <div class="phone"><div class="screen" title="Strength score with a beta label and an honest local explanation, plus weekly volume and PRs. No gym ranking.">
+      
       <div class="body" style="gap:8px">
         <div class="h-title">Progress</div>
         <div class="trio">
@@ -866,20 +794,16 @@
         <div class="tab"><svg class="ic"><use href="#ic-social"/></svg>Social</div>
         <div class="tab"><svg class="ic"><use href="#ic-me"/></svg>Me</div>
       </div>
-      <div class="homebar"></div>
+      
     </div></div>
-    <div class="caption">
-      <div class="cap-head"><span class="num">16</span><span class="cap-title">Progress</span></div>
-      <div class="cap-desc">Strength score with a beta label and an honest local explanation, plus weekly volume and PRs. No gym ranking.</div>
-    </div>
   </div>
 
   <div class="connector"><span class="lbl">tab · Train</span><div class="arrow"></div></div>
 
   <!-- 17 - TRAIN -->
   <div class="step">
-    <div class="phone"><div class="screen">
-      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G</span></div>
+    <div class="phone"><div class="screen" title="Searchable exercise library plus saved routines. Detail, routine list, and routine builder are sub-routes.">
+      
       <div class="body">
         <div class="h-title">Train</div>
         <div class="search">Search exercises</div>
@@ -904,20 +828,16 @@
         <div class="tab"><svg class="ic"><use href="#ic-social"/></svg>Social</div>
         <div class="tab"><svg class="ic"><use href="#ic-me"/></svg>Me</div>
       </div>
-      <div class="homebar"></div>
+      
     </div></div>
-    <div class="caption">
-      <div class="cap-head"><span class="num">17</span><span class="cap-title">Train / library</span><span class="new">NEW</span></div>
-      <div class="cap-desc">Searchable exercise library plus saved routines. Detail, routine list, and routine builder are sub-routes.</div>
-    </div>
   </div>
 
   <div class="connector"><span class="lbl">tab · Social</span><div class="arrow"></div></div>
 
   <!-- 18 - SOCIAL FEED -->
   <div class="step">
-    <div class="phone"><div class="screen">
-      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G</span></div>
+    <div class="phone"><div class="screen" title="Local-first kudos, minus the noise. No comments, direct messages, or leaderboard.">
+      
       <div class="body">
         <div class="h-title">Feed</div>
         <div class="post">
@@ -945,20 +865,16 @@
         <div class="tab active"><svg class="ic"><use href="#ic-social"/></svg>Social</div>
         <div class="tab"><svg class="ic"><use href="#ic-me"/></svg>Me</div>
       </div>
-      <div class="homebar"></div>
+      
     </div></div>
-    <div class="caption">
-      <div class="cap-head"><span class="num">18</span><span class="cap-title">Social feed</span></div>
-      <div class="cap-desc">Local-first kudos, minus the noise. No comments, direct messages, or leaderboard.</div>
-    </div>
   </div>
 
   <div class="connector"><span class="lbl">tab · Me</span><div class="arrow"></div></div>
 
   <!-- 19 - ME -->
   <div class="step">
-    <div class="phone"><div class="screen">
-      <div class="statusbar"><span>9:41</span><span class="r">▂▄▆ 5G</span></div>
+    <div class="phone"><div class="screen" title="Identity, lifetime totals, and settings. No account, sign-in, or log out. Legal and licenses live in Settings.">
+      
       <div class="body">
         <div class="me-head">
           <div class="avatar" style="background:#b7f24c">A</div>
@@ -989,12 +905,8 @@
         <div class="tab"><svg class="ic"><use href="#ic-social"/></svg>Social</div>
         <div class="tab active"><svg class="ic"><use href="#ic-me"/></svg>Me</div>
       </div>
-      <div class="homebar"></div>
+      
     </div></div>
-    <div class="caption">
-      <div class="cap-head"><span class="num">19</span><span class="cap-title">Me / profile</span><span class="new">NEW</span></div>
-      <div class="cap-desc">Identity, lifetime totals, and settings. No account, sign-in, or log out. Legal and licenses live in Settings.</div>
-    </div>
   </div>
 
 </div>

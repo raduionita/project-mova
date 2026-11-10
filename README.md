@@ -26,9 +26,11 @@ The product bet is simple: the workout logger is the feature people touch every 
 
 | | |
 |---|---|
-| ![Onboarding, Today, Live logger](resources/mock-01.jpg) | ![Summary, Progress, Social](resources/mock-02.jpg) |
+| ![Welcome, Today, Live logger](resources/preview-01.jpg) | ![Summary, Progress, Social](resources/preview-02.jpg) |
 
-The canonical interactive storyboard is [`MOCK.html`](MOCK.html). Open it in a browser to view all 19 screens in one horizontal flow: Splash, the original 11-screen onboarding, and the five-tab core loop. The app adds an equipment step between schedule and notifications, so onboarding is now Welcome plus eleven steps.
+These previews are captured from the current Flutter web build, not from mockups: Welcome, Today, the live logger, the workout summary, Progress, and the Social feed. The individual captures live in [`overview/shots/`](overview/shots/).
+
+The canonical walkthrough is [`OVERVIEW.html`](OVERVIEW.html). Open it in a browser to view all 27 screens in one horizontal film strip: the welcome screen, the eleven onboarding steps, the training loop, the exercise library, progress, social, and settings. [`MOCK.html`](MOCK.html) is kept as the original design storyboard for comparison.
 
 ---
 
@@ -217,7 +219,7 @@ Docs-only changes still run `flutter analyze` and `flutter test` before they are
 | [`AGENTS.md`](AGENTS.md) | Repository rules, plan reading, conventions |
 | [`CHANGELOG.md`](CHANGELOG.md) | Compact completed-work log |
 | [`plans/`](plans/) | Active plans, one file per plan |
-| [`resources/`](resources/) | Mockups, screen tree, product review |
+| [`resources/`](resources/) | Screen previews, screen tree, product review, earlier mockups |
 
 Plans are named `YYYY.MM.DD.<slug>.md`. A plan is done only when its completed work is recorded in `CHANGELOG.md`.
 

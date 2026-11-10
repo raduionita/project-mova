@@ -2,6 +2,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
+import '../theme/app_radii.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
 
@@ -24,6 +25,7 @@ class AppVerticalRulerSlider extends StatefulWidget {
     this.pixelsPerStep = 10,
     this.height = 260,
     this.trackWidth = 56,
+    this.cornerRadius = AppRadii.lg - 3,
     this.valueStyle,
   });
 
@@ -43,6 +45,9 @@ class AppVerticalRulerSlider extends StatefulWidget {
 
   /// Ruler track thickness. Bumped on onboarding for a heavier control.
   final double trackWidth;
+
+  /// Track corner radius. Matches the horizontal ruler by default.
+  final double cornerRadius;
   final TextStyle? valueStyle;
 
   @override
@@ -50,9 +55,6 @@ class AppVerticalRulerSlider extends StatefulWidget {
 }
 
 class _AppVerticalRulerSliderState extends State<AppVerticalRulerSlider> {
-  static const double _limitsWidth = 82;
-  static const double _valueWidth = 132;
-
   final GlobalKey _rulerKey = GlobalKey();
 
   late double _current;
@@ -167,18 +169,18 @@ class _AppVerticalRulerSliderState extends State<AppVerticalRulerSlider> {
         widget.maxLabel ??
         (unit == null ? _format(widget.max) : '${_format(widget.max)} $unit');
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
-        SizedBox(
-          width: _limitsWidth,
-          height: widget.height,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: <Widget>[
-              _buildRangeLabel(maxLabel),
-              _buildRangeLabel(minLabel),
-            ],
+        Expanded(
+          child: SizedBox(
+            height: widget.height,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: <Widget>[
+                _buildRangeLabel(maxLabel),
+                _buildRangeLabel(minLabel),
+              ],
+            ),
           ),
         ),
         const SizedBox(width: AppSpacing.xl),
@@ -193,32 +195,36 @@ class _AppVerticalRulerSliderState extends State<AppVerticalRulerSlider> {
               max: widget.max,
               step: widget.step,
               pixelsPerStep: widget.pixelsPerStep,
+              cornerRadius: widget.cornerRadius,
             ),
           ),
         ),
         const SizedBox(width: AppSpacing.xl),
-        SizedBox(
-          width: _valueWidth,
-          height: widget.height,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: Alignment.centerLeft,
-                child: _buildValue(),
-              ),
-              if (widget.hint != null) ...<Widget>[
-                const SizedBox(height: AppSpacing.sm),
-                Text(
-                  widget.hint!,
-                  maxLines: 1,
-                  softWrap: false,
-                  style: AppTypography.caption.copyWith(color: AppColors.muted),
+        Expanded(
+          child: SizedBox(
+            height: widget.height,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: _buildValue(),
                 ),
+                if (widget.hint != null) ...<Widget>[
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    widget.hint!,
+                    maxLines: 1,
+                    softWrap: false,
+                    style: AppTypography.caption.copyWith(
+                      color: AppColors.muted,
+                    ),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ],
@@ -264,6 +270,7 @@ class _VerticalRulerPainter extends CustomPainter {
     required this.max,
     required this.step,
     required this.pixelsPerStep,
+    required this.cornerRadius,
   });
 
   final double value;
@@ -271,12 +278,13 @@ class _VerticalRulerPainter extends CustomPainter {
   final double max;
   final double step;
   final double pixelsPerStep;
+  final double cornerRadius;
 
   @override
   void paint(Canvas canvas, Size size) {
     final rect = RRect.fromRectAndRadius(
       Offset.zero & size,
-      Radius.circular(size.width / 2),
+      Radius.circular(cornerRadius),
     );
     canvas.drawRRect(rect, Paint()..color = const Color(0xFF151D30));
     canvas.drawRRect(
@@ -335,6 +343,7 @@ class _VerticalRulerPainter extends CustomPainter {
         oldDelegate.min != min ||
         oldDelegate.max != max ||
         oldDelegate.step != step ||
-        oldDelegate.pixelsPerStep != pixelsPerStep;
+        oldDelegate.pixelsPerStep != pixelsPerStep ||
+        oldDelegate.cornerRadius != cornerRadius;
   }
 }

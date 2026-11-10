@@ -358,39 +358,50 @@ class _TodayScreenState extends State<TodayScreen> with WidgetsBindingObserver {
     );
   }
 
-  Widget _buildHeader({String? label, int streak = 0}) {
-    return Row(
-      children: <Widget>[
-        AppTag(label: label ?? _weekdayNames[_now.weekday - 1]),
-        if (streak > 0) ...<Widget>[
-          const SizedBox(width: AppSpacing.sm),
-          AppTag(
-            key: const Key('today-streak'),
-            label: '$streak day streak',
-            variant: AppTagVariant.gold,
+  Widget _buildHeader({String? label}) {
+    return SizedBox(
+      height: 48,
+      child: Stack(
+        alignment: Alignment.center,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              IconButton(
+                tooltip: 'Edit plan',
+                onPressed: () => PlanOverviewSheet.show(context),
+                icon: const AppIcon(
+                  asset: AppIcons.calendar,
+                  size: 20,
+                  color: AppColors.muted,
+                ),
+              ),
+              const Spacer(),
+              IconButton(
+                key: const Key('today-reminders'),
+                tooltip: 'Workout reminders',
+                onPressed: () =>
+                    Navigator.of(context).pushNamed(Routes.meSettings),
+                icon: const AppIcon(
+                  asset: AppIcons.bell,
+                  size: 20,
+                  color: AppColors.muted,
+                ),
+              ),
+            ],
+          ),
+          Center(
+            child: AppTag(label: label ?? _weekdayNames[_now.weekday - 1]),
           ),
         ],
-        const Spacer(),
-        IconButton(
-          key: const Key('today-reminders'),
-          tooltip: 'Workout reminders',
-          onPressed: () => Navigator.of(context).pushNamed(Routes.meSettings),
-          icon: const AppIcon(
-            asset: AppIcons.bell,
-            size: 20,
-            color: AppColors.muted,
-          ),
-        ),
-        IconButton(
-          tooltip: 'Edit plan',
-          onPressed: () => PlanOverviewSheet.show(context),
-          icon: const AppIcon(
-            asset: AppIcons.calendar,
-            size: 20,
-            color: AppColors.muted,
-          ),
-        ),
-      ],
+      ),
+    );
+  }
+
+  Widget _buildStreakTag(int streak) {
+    return AppTag(
+      key: const Key('today-streak'),
+      label: '$streak day streak',
+      variant: AppTagVariant.gold,
     );
   }
 
@@ -432,7 +443,11 @@ class _TodayScreenState extends State<TodayScreen> with WidgetsBindingObserver {
     );
   }
 
-  Widget _buildWorkoutCard(PlanDay day, {required bool canStart}) {
+  Widget _buildWorkoutCard(
+    PlanDay day, {
+    required bool canStart,
+    int streak = 0,
+  }) {
     return AppCard(
       featured: true,
       child: Column(
@@ -447,6 +462,10 @@ class _TodayScreenState extends State<TodayScreen> with WidgetsBindingObserver {
                 ),
               ),
               const SizedBox(width: AppSpacing.md),
+              if (streak > 0) ...<Widget>[
+                _buildStreakTag(streak),
+                const SizedBox(width: AppSpacing.sm),
+              ],
               const AppTag(label: 'Planned', variant: AppTagVariant.lime),
             ],
           ),
@@ -473,7 +492,7 @@ class _TodayScreenState extends State<TodayScreen> with WidgetsBindingObserver {
     );
   }
 
-  Widget _buildRestCard() {
+  Widget _buildRestCard({int streak = 0}) {
     return AppCard(
       featured: true,
       child: Column(
@@ -488,6 +507,10 @@ class _TodayScreenState extends State<TodayScreen> with WidgetsBindingObserver {
                 ),
               ),
               const SizedBox(width: AppSpacing.md),
+              if (streak > 0) ...<Widget>[
+                _buildStreakTag(streak),
+                const SizedBox(width: AppSpacing.sm),
+              ],
               const AppTag(label: 'Recovery', variant: AppTagVariant.gold),
             ],
           ),
@@ -526,8 +549,9 @@ class _TodayScreenState extends State<TodayScreen> with WidgetsBindingObserver {
   Widget _buildPlanned(
     PlanDay day,
     TrainingPlan plan,
-    WorkoutSession? session,
-  ) {
+    WorkoutSession? session, {
+    int streak = 0,
+  }) {
     final canStart = session == null;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -536,7 +560,7 @@ class _TodayScreenState extends State<TodayScreen> with WidgetsBindingObserver {
           _buildSessionCard(session),
           const SizedBox(height: AppSpacing.x2l),
         ],
-        _buildWorkoutCard(day, canStart: canStart),
+        _buildWorkoutCard(day, canStart: canStart, streak: streak),
         const SizedBox(height: AppSpacing.x2l),
         _buildStepsCard(),
         if (canStart) ...<Widget>[
@@ -549,7 +573,11 @@ class _TodayScreenState extends State<TodayScreen> with WidgetsBindingObserver {
     );
   }
 
-  Widget _buildRest(TrainingPlan plan, WorkoutSession? session) {
+  Widget _buildRest(
+    TrainingPlan plan,
+    WorkoutSession? session, {
+    int streak = 0,
+  }) {
     final canStart = session == null;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -558,7 +586,7 @@ class _TodayScreenState extends State<TodayScreen> with WidgetsBindingObserver {
           _buildSessionCard(session),
           const SizedBox(height: AppSpacing.x2l),
         ],
-        _buildRestCard(),
+        _buildRestCard(streak: streak),
         const SizedBox(height: AppSpacing.x2l),
         _buildStepsCard(),
         if (canStart) ...<Widget>[
@@ -633,7 +661,7 @@ class _TodayScreenState extends State<TodayScreen> with WidgetsBindingObserver {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              _buildHeader(label: _weekLabel(plan, now), streak: streak),
+              _buildHeader(label: _weekLabel(plan, now)),
               if (warning != null) ...<Widget>[
                 const SizedBox(height: AppSpacing.xl),
                 _buildWarningBanner(warning),
@@ -642,8 +670,8 @@ class _TodayScreenState extends State<TodayScreen> with WidgetsBindingObserver {
               Expanded(
                 child: SingleChildScrollView(
                   child: day == null
-                      ? _buildRest(plan, session)
-                      : _buildPlanned(day, plan, session),
+                      ? _buildRest(plan, session, streak: streak)
+                      : _buildPlanned(day, plan, session, streak: streak),
                 ),
               ),
             ],

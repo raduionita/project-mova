@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mova - Product Overview - November 2026</title>
+<style>
+  :root{
+    --bg:#0b0f16; --panel:#101623; --card:#171f2e; --line:#232d40;
+    --text:#e9eef6; --muted:#8d97ab; --lime:#b7f24c; --lime-deep:#7fc93a; --lime-ink:#131a04;
+    --orange:#ff8a4c; --gold:#ffd166; --blue:#5ea2ff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:radial-gradient(1200px 600px at 20% -10%, #16203a 0%, var(--bg) 55%) fixed;
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;
+    min-height:100vh; overflow-x:hidden; padding-bottom:8px;
+  }
+
+  /* ---------- Header ---------- */
+  header{
+    display:flex; align-items:flex-end; justify-content:space-between; gap:20px;
+    padding:44px 48px 6px; flex-wrap:wrap;
+  }
+  .brand{display:flex; align-items:center; gap:14px}
+  .logo-mark{
+    width:44px;height:44px;border-radius:13px;display:grid;place-items:center;
+    background:linear-gradient(135deg,var(--lime),var(--lime-deep));
+    color:var(--lime-ink); font-weight:800; font-size:22px;
+    box-shadow:0 8px 24px rgba(183,242,76,.25);
+  }
+  h1{font-size:22px; letter-spacing:.2px; font-weight:800}
+  .sub{color:var(--muted); font-size:13px; margin-top:4px}
+  .meta{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+  .chip{
+    font-size:11px; padding:5px 10px; border-radius:999px;
+    background:#1b2436; border:1px solid var(--line); color:#a8b3c7;
+  }
+  .chip.accent{background:rgba(183,242,76,.12); border-color:rgba(183,242,76,.4); color:var(--lime)}
+
+  .intro{
+    margin:18px 48px 6px; max-width:780px; color:#b6c0d2; font-size:13.5px; line-height:1.65;
+  }
+  .intro b{color:var(--text)}
+
+  /* ---------- Chapter ---------- */
+  .chapter{margin-top:34px; border-top:1px solid rgba(35,45,64,.75); padding-top:24px}
+  .chapter:first-of-type{border-top:0}
+  .chapter-head{display:flex; gap:14px; align-items:flex-start; padding:0 48px}
+  .chapter-num{
+    flex:0 0 auto; width:34px; height:34px; border-radius:11px; display:grid; place-items:center;
+    background:#1c2740; color:#a8b8d8; font-size:12px; font-weight:800; margin-top:2px;
+  }
+  .chapter-head h2{font-size:17px; font-weight:800; letter-spacing:.2px}
+  .chapter-head p{color:var(--muted); font-size:12.5px; margin-top:4px; max-width:720px; line-height:1.55}
+  .chapter-head .count{
+    margin-left:auto; align-self:center; font-size:10.5px; font-weight:700; letter-spacing:.6px;
+    color:#66718a; text-transform:uppercase; white-space:nowrap;
+  }
+
+  /* ---------- Film strip ---------- */
+  .strip{
+    display:flex; align-items:flex-start; gap:0;
+    overflow-x:auto; padding:24px 48px 30px;
+    scroll-snap-type:x proximity; cursor:grab;
+    scrollbar-width:thin; scrollbar-color:#2c374d transparent;
+  }
+  .strip::-webkit-scrollbar{height:8px}
+  .strip::-webkit-scrollbar-thumb{background:#2c374d;border-radius:4px}
+  .strip::-webkit-scrollbar-track{background:transparent}
+
+  .step{flex:0 0 auto; display:flex; flex-direction:column; align-items:center; scroll-snap-align:center}
+
+  /* ---------- Phone frame ---------- */
+  .phone{
+    width:292px; background:#0a0e17; border:1px solid #2a3448; border-radius:46px;
+    padding:12px; box-shadow:0 30px 60px rgba(0,0,0,.5), inset 0 0 0 2px #05070c;
+  }
+  .screen{
+    border-radius:36px; overflow:hidden; background:#0b0f16; line-height:0;
+    border:1px solid #05070c;
+  }
+  .screen img{display:block; width:100%; height:auto}
+
+  /* ---------- Connectors ---------- */
+  .connector{
+    flex:0 0 auto; width:104px; height:608px; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:10px;
+  }
+  .connector .lbl{
+    font-size:10.5px; color:#9fb0ca; text-align:center; line-height:1.35;
+    background:#141c2c; border:1px solid var(--line); padding:5px 9px; border-radius:999px;
+    white-space:nowrap;
+  }
+  .connector .arrow{position:relative; width:78%; border-top:2px dashed #35425e}
+  .connector .arrow::after{
+    content:""; position:absolute; right:-3px; top:-6px;
+    border-left:9px solid #4e608a; border-top:5.5px solid transparent; border-bottom:5.5px solid transparent;
+  }
+
+  /* ---------- Caption ---------- */
+  .caption{width:292px; text-align:center; margin-top:14px; padding:0 10px}
+  .caption .idx{
+    display:inline-block; font-size:9.5px; font-weight:800; letter-spacing:.8px;
+    color:#66718a; margin-bottom:5px;
+  }
+  .caption strong{display:block; font-size:12.5px; font-weight:700; color:var(--text)}
+  .caption span{display:block; font-size:11px; color:var(--muted); margin-top:4px; line-height:1.45}
+
+  /* ---------- Footer ---------- */
+  .glance{
+    display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px;
+    margin:22px 48px 6px;
+  }
+  .glance .stat{
+    background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px 16px;
+  }
+  .glance .v{font-size:20px; font-weight:800}
+  .glance .k{font-size:10.5px; color:var(--muted); margin-top:3px}
+
+  .footnote{
+    margin:34px 48px 48px; padding:18px 22px; border:1px dashed #2c374d; border-radius:16px;
+    color:var(--muted); font-size:12.5px; line-height:1.7; background:rgba(16,22,35,.6);
+  }
+  .footnote b{color:var(--text)}
+  .footnote code{font-family:ui-monospace,Menlo,monospace; font-size:11.5px; color:#b6c0d2}
+  .swatches{display:flex; gap:8px; flex-wrap:wrap; margin-top:12px}
+  .swatches i{
+    width:26px; height:26px; border-radius:8px; display:inline-block;
+    border:1px solid rgba(255,255,255,.08);
+  }
+
+  @media (max-width:720px){
+    header{padding:32px 20px 4px}
+    .intro,.glance,.footnote{margin-left:20px; margin-right:20px}
+    .chapter-head{padding:0 20px}
+    .strip{padding:20px 20px 26px}
+    .glance{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .chapter-head .count{display:none}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="logo-mark">M</div>
+    <div>
+      <h1>Mova overview</h1>
+      <div class="sub">The current build, screen by screen. November 2026.</div>
+    </div>
+  </div>
+  <div class="meta">
+    <span class="chip accent">Flutter web build</span>
+    <span class="chip">27 screens</span>
+    <span class="chip">Local first</span>
+    <span class="chip">No account</span>
+  </div>
+</header>
+
+<p class="intro">
+  <b>One loop.</b> Pick units, get a weekly plan, open the logger, then watch progress appear from your own sets.
+  Every frame below is a screenshot from the running app, captured at 390 x 844 and shown in order.
+  Scroll any row sideways to follow a flow.
+</p>
+
+<div class="glance">
+  <div class="stat"><div class="v">11</div><div class="k">onboarding steps</div></div>
+  <div class="stat"><div class="v">5</div><div class="k">tabs: Today, Train, Progress, Social, Me</div></div>
+  <div class="stat"><div class="v">82</div><div class="k">seeded exercises</div></div>
+  <div class="stat"><div class="v">30</div><div class="k">completed workouts in the demo profile</div></div>
+</div>
+
+<!-- ============================================================ -->
+<!-- 01 - FIRST LAUNCH                                             -->
+<!-- ============================================================ -->
+<section class="chapter">
+  <div class="chapter-head">
+    <span class="chapter-num">01</span>
+    <div>
+      <h2>First launch</h2>
+      <p>Welcome, then a short setup: units, identity, birth date, weight, and height. Everything is stored on the device, so Continue is the only commitment.</p>
+    </div>
+    <span class="count">6 screens</span>
+  </div>
+
+  <div class="strip">
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <img src="overview/shots/00-welcome.png" alt="Welcome screen with Mova mark, headline Train with a plan, three value rows, and a lime Get started button." loading="eager">
+      </div></div>
+      <div class="caption"><span class="idx">01 / 06</span><strong>Welcome</strong><span>One promise, three value rows, one action.</span></div>
+    </div>
+
+    <div class="connector"><span class="lbl">Get started</span><div class="arrow"></div></div>
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <img src="overview/shots/20-onboarding-units.png" alt="Step 1 of 11, Choose your units, with kg selected over lb, km over mi, and cm over in." loading="eager">
+      </div></div>
+      <div class="caption"><span class="idx">02 / 06</span><strong>Units</strong><span>kg, km, cm by default. Distance is reserved for later cardio.</span></div>
+    </div>
+
+    <div class="connector"><span class="lbl">Continue</span><div class="arrow"></div></div>
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <img src="overview/shots/21-onboarding-gender.png" alt="Step 2 of 11, How do you identify, with Male, Female, and Other choice cards." loading="eager">
+      </div></div>
+      <div class="caption"><span class="idx">03 / 06</span><strong>Gender</strong><span>Sets reference values. Other skips the adjustment.</span></div>
+    </div>
+
+    <div class="connector"><span class="lbl">Continue</span><div class="arrow"></div></div>
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <img src="overview/shots/22-onboarding-birth-date.png" alt="Step 3 of 11, When were you born, with month, day, and year wheel pickers on November, 10, 2001.">
+      </div></div>
+      <div class="caption"><span class="idx">04 / 06</span><strong>Birth date</strong><span>Three wheels. Age is bounded to 13 through 120.</span></div>
+    </div>
+
+    <div class="connector"><span class="lbl">Continue</span><div class="arrow"></div></div>
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <img src="overview/shots/23-onboarding-weight.png" alt="Step 4 of 11, Your weight, showing 78 kg on a horizontal ruler from 30 to 250 kg.">
+      </div></div>
+      <div class="caption"><span class="idx">05 / 06</span><strong>Weight</strong><span>Horizontal ruler, 30 to 250 kg. Skip stores zero.</span></div>
+    </div>
+
+    <div class="connector"><span class="lbl">Continue</span><div class="arrow"></div></div>
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <img src="overview/shots/24-onboarding-height.png" alt="Step 5 of 11, Your height, showing 175 cm on a vertical ruler spanning 120 to 230 cm.">
+      </div></div>
+      <div class="caption"><span class="idx">06 / 06</span><strong>Height</strong><span>Vertical ruler, 120 to 230 cm, one centimetre per tick.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 02 - BUILD THE PLAN                                           -->
+<!-- ============================================================ -->
+<section class="chapter">
+  <div class="chapter-head">
+    <span class="chapter-num">02</span>
+    <div>
+      <h2>Build the plan</h2>
+      <p>Goals, experience, weekdays, and equipment feed the plan generator. The last step previews week one before the app opens.</p>
+    </div>
+    <span class="count">6 screens</span>
+  </div>
+
+  <div class="strip">
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <img src="overview/shots/25-onboarding-goals.png" alt="Step 6 of 11, What are you training for, with Build muscle marked Primary and Get stronger also selected.">
+      </div></div>
+      <div class="caption"><span class="idx">01 / 06</span><strong>Goals</strong><span>Pick all that apply. The first one becomes primary.</span></div>
+    </div>
+
+    <div class="connector"><span class="lbl">Continue</span><div class="arrow"></div></div>
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <img src="overview/shots/26-onboarding-experience.png" alt="Step 7 of 11, How much experience, with Gym rat selected.">
+      </div></div>
+      <div class="caption"><span class="idx">02 / 06</span><strong>Experience</strong><span>Four levels. Sets starting volume and exercise choice.</span></div>
+    </div>
+
+    <div class="connector"><span class="lbl">Continue</span><div class="arrow"></div></div>
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <img src="overview/shots/27-onboarding-schedule.png" alt="Step 8 of 11, How often do you train, with three days per week and Tuesday, Thursday, Saturday selected.">
+      </div></div>
+      <div class="caption"><span class="idx">03 / 06</span><strong>Schedule</strong><span>Three days a week, Tue, Thu, and Sat here.</span></div>
+    </div>
+
+    <div class="connector"><span class="lbl">Continue</span><div class="arrow"></div></div>
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <img src="overview/shots/28-onboarding-equipment.png" alt="Step 9 of 11, Your equipment, with five of seven options selected: bodyweight, dumbbells, barbell, machines, and cable station.">
+      </div></div>
+      <div class="caption"><span class="idx">04 / 06</span><strong>Equipment</strong><span>Only exercises you can actually do make the plan.</span></div>
+    </div>
+
+    <div class="connector"><span class="lbl">Continue</span><div class="arrow"></div></div>
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <img src="overview/shots/29-onboarding-notifications.png" alt="Step 10 of 11, Stay on schedule, with workout reminders on and a reminder time of 18:00.">
+      </div></div>
+      <div class="caption"><span class="idx">05 / 06</span><strong>Reminders</strong><span>One nudge before a session, at 18:00 by default.</span></div>
+    </div>
+
+    <div class="connector"><span class="lbl">Enable reminders</span><div class="arrow"></div></div>
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <img src="overview/shots/30-onboarding-plan.png" alt="Step 11 of 11, Your Week 1, listing Push on Tuesday, Pull on Thursday, and Legs on Saturday, each with six exercises and about 39 minutes.">
+      </div></div>
+      <div class="caption"><span class="idx">06 / 06</span><strong>Week one</strong><span>Push, Pull, Legs at 39 minutes each. Edit or start.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 03 - THE TRAINING LOOP                                        -->
+<!-- ============================================================ -->
+<section class="chapter">
+  <div class="chapter-head">
+    <span class="chapter-num">03</span>
+    <div>
+      <h2>The training loop</h2>
+      <p>Today names the session, a routine starts it, the logger remembers the last set, and the summary checks the work against your bests.</p>
+    </div>
+    <span class="count">5 screens</span>
+  </div>
+
+  <div class="strip">
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <img src="overview/shots/01-today.png" alt="Today tab with week and streak pills, a Push session card, 8,240 steps, and quick actions for empty workout, walk, and routine." loading="eager">
+      </div></div>
+      <div class="caption"><span class="idx">01 / 05</span><strong>Today</strong><span>The planned session, steps, and three quick actions.</span></div>
+    </div>
+
+    <div class="connector"><span class="lbl">Routine</span><div class="arrow"></div></div>
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <img src="overview/shots/07-routines.png" alt="Routines screen with three saved routines: Push Day, Pull Day, and Legs, each with six exercises.">
+      </div></div>
+      <div class="caption"><span class="idx">02 / 05</span><strong>Routines</strong><span>Three saved splits, ready to reuse or edit.</span></div>
+    </div>
+
+    <div class="connector"><span class="lbl">Push Day</span><div class="arrow"></div></div>
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <img src="overview/shots/08-routine-detail.png" alt="Push Day routine with six exercises, their sets, rep ranges, and rest times, plus Start now, Edit routine, and Delete routine.">
+      </div></div>
+      <div class="caption"><span class="idx">03 / 05</span><strong>Push Day</strong><span>Target sets, reps, and rest for every exercise.</span></div>
+    </div>
+
+    <div class="connector"><span class="lbl">Start now</span><div class="arrow"></div></div>
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <img src="overview/shots/14-logger.png" alt="Live logger for Barbell Bench Press showing a 26 minute timer, previous set values struck through, and four set rows with three completed.">
+      </div></div>
+      <div class="caption"><span class="idx">04 / 05</span><strong>Logger</strong><span>Previous sets on show, tap to log, timer running.</span></div>
+    </div>
+
+    <div class="connector"><span class="lbl">Finish workout</span><div class="arrow"></div></div>
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <img src="overview/shots/16-summary.png" alt="Workout complete summary for Push with a new personal record of 126.7 kilograms estimated one rep max, 26 minutes 20 seconds, 2.2 tonnes, and three sets.">
+      </div></div>
+      <div class="caption"><span class="idx">05 / 05</span><strong>Summary</strong><span>A new estimated 1RM, then save or share.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 04 - EXERCISE LIBRARY                                         -->
+<!-- ============================================================ -->
+<section class="chapter">
+  <div class="chapter-head">
+    <span class="chapter-num">04</span>
+    <div>
+      <h2>Exercise library</h2>
+      <p>Eighty-two exercises with muscle filters, search, and a detail page that pulls your own best set for that movement.</p>
+    </div>
+    <span class="count">2 screens</span>
+  </div>
+
+  <div class="strip">
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <img src="overview/shots/02-train.png" alt="Train tab with search, muscle filter chips, my routines, and a long list of exercises with add buttons.">
+      </div></div>
+      <div class="caption"><span class="idx">01 / 02</span><strong>Train</strong><span>Search, muscle filters, and the full library.</span></div>
+    </div>
+
+    <div class="connector"><span class="lbl">Open exercise</span><div class="arrow"></div></div>
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <img src="overview/shots/06-exercise.png" alt="Barbell Bench Press detail page with previous best of 102.5 kilograms for six reps, an estimated 1RM of 123 kilograms, and numbered instructions.">
+      </div></div>
+      <div class="caption"><span class="idx">02 / 02</span><strong>Bench press</strong><span>Best set, estimated 1RM, and how to perform it.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 05 - PROGRESS                                                 -->
+<!-- ============================================================ -->
+<section class="chapter">
+  <div class="chapter-head">
+    <span class="chapter-num">05</span>
+    <div>
+      <h2>Progress</h2>
+      <p>Totals, a weekly volume chart, a strength score, and personal records. Every number comes from sessions logged on this device.</p>
+    </div>
+    <span class="count">3 screens</span>
+  </div>
+
+  <div class="strip">
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <img src="overview/shots/03-progress.png" alt="Progress tab with 30 workouts, 225.9 tonnes of volume, a 13 day streak, strength score 178, weekly volume bars, and personal records.">
+      </div></div>
+      <div class="caption"><span class="idx">01 / 03</span><strong>Overview</strong><span>30 workouts, 225.9 t lifted, 13 day streak.</span></div>
+    </div>
+
+    <div class="connector"><span class="lbl">All sessions</span><div class="arrow"></div></div>
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <img src="overview/shots/09-history.png" alt="Workout history with 30 completed sessions: Pull on November 5, walks on November 5 and 4, and Push on November 3 with one PR badge.">
+      </div></div>
+      <div class="caption"><span class="idx">02 / 03</span><strong>History</strong><span>Every session, walks included, newest first.</span></div>
+    </div>
+
+    <div class="connector"><span class="lbl">Open session</span><div class="arrow"></div></div>
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <img src="overview/shots/10-session-detail.png" alt="Legs session from November 7 with 55 minutes, 22.8 tonnes of volume, 20 sets, and every exercise weight listed.">
+      </div></div>
+      <div class="caption"><span class="idx">03 / 03</span><strong>Legs, Nov 7</strong><span>Time, volume, sets, and each logged weight.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 06 - SOCIAL AND PROFILE                                       -->
+<!-- ============================================================ -->
+<section class="chapter">
+  <div class="chapter-head">
+    <span class="chapter-num">06</span>
+    <div>
+      <h2>Social and profile</h2>
+      <p>A quiet feed that stays local, a profile with lifetime totals, and settings for units, reminders, and equipment.</p>
+    </div>
+    <span class="count">5 screens</span>
+  </div>
+
+  <div class="strip">
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <img src="overview/shots/04-social.png" alt="Social feed with two of your own posts and three sample posts, each with kudos buttons and a Hide samples action.">
+      </div></div>
+      <div class="caption"><span class="idx">01 / 05</span><strong>Feed</strong><span>Your posts, sample posts, and one tap kudos.</span></div>
+    </div>
+
+    <div class="connector"><span class="lbl">Me tab</span><div class="arrow"></div></div>
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <img src="overview/shots/05-me.png" alt="Me tab with Andrei, Gym rat, Build muscle, lifetime totals, and settings rows from Edit profile through Reset local data.">
+      </div></div>
+      <div class="caption"><span class="idx">02 / 05</span><strong>Me</strong><span>30 workouts, 225.9 t, 13 day streak, all settings.</span></div>
+    </div>
+
+    <div class="connector"><span class="lbl">Edit profile</span><div class="arrow"></div></div>
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <img src="overview/shots/12-edit-profile.png" alt="Edit profile with the name Andrei, Gym rat selected as experience, and Build muscle plus Get stronger selected as goals.">
+      </div></div>
+      <div class="caption"><span class="idx">03 / 05</span><strong>Edit profile</strong><span>Name, experience, and goals in one screen.</span></div>
+    </div>
+
+    <div class="connector"><span class="lbl">Settings</span><div class="arrow"></div></div>
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <img src="overview/shots/11-settings.png" alt="Settings with equipment, kilogram, kilometre, and centimetre unit controls, and workout reminders on with Tuesday, Thursday, and Saturday selected at 18:00.">
+      </div></div>
+      <div class="caption"><span class="idx">04 / 05</span><strong>Settings</strong><span>Units, reminder days, and reminder time.</span></div>
+    </div>
+
+    <div class="connector"><span class="lbl">Equipment</span><div class="arrow"></div></div>
+
+    <div class="step">
+      <div class="phone"><div class="screen">
+        <img src="overview/shots/13-equipment.png" alt="Equipment settings with five options selected, from bodyweight through cable station, and kettlebells plus accessories unselected.">
+      </div></div>
+      <div class="caption"><span class="idx">05 / 05</span><strong>Equipment</strong><span>Change what the plan is allowed to use.</span></div>
+    </div>
+  </div>
+</section>
+
+<div class="footnote">
+  <b>How these were captured.</b> The release web build was served locally and driven in a 390 x 844 mobile viewport,
+  then each route was screenshotted at 2x. The demo profile is seeded with six weeks of training, so the plan,
+  history, and records are real app data, not mock layout. Palette: background <code>#0B0F16</code>, card
+  <code>#171F2E</code>, line <code>#232D40</code>, text <code>#E9EEF6</code>, muted <code>#8D97AB</code>, lime
+  <code>#B7F24C</code>, orange <code>#FF8A4C</code>, gold <code>#FFD166</code>, blue <code>#5EA2FF</code>.
+  <div class="swatches">
+    <i style="background:#0b0f16"></i><i style="background:#101623"></i><i style="background:#171f2e"></i>
+    <i style="background:#232d40"></i><i style="background:#8d97ab"></i><i style="background:#e9eef6"></i>
+    <i style="background:#b7f24c"></i><i style="background:#7fc93a"></i><i style="background:#ff8a4c"></i>
+    <i style="background:#ffd166"></i><i style="background:#5ea2ff"></i>
+  </div>
+</div>
+
+</body>
+</html>

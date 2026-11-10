@@ -256,10 +256,10 @@ The HTML mockup uses a system sans at small sizes. Those values describe a 292 p
 
 ### 7.3 Avatars
 
-- Circular, 34 px in feed rows, 52 px on the profile header.
+- Circular, 34 px in feed rows, 52 px on the profile header, 64 px on the Me profile card.
 - Default avatar shows the first initial in `limeInk` on a solid pastel background.
-- User avatar uses `lime` background with `limeInk` initial.
-- No image upload in v1. Initials only.
+- The Me avatar uses a `lime` background with the icon picked on the onboarding experience step in `limeInk`: seedling, dumbbell, flame, or trophy. Without a saved level it falls back to the person glyph.
+- No image upload in v1. Initials only elsewhere.
 
 ### 7.4 Imagery
 
@@ -352,16 +352,18 @@ Each component lives in its own file under `lib/widgets/`. No component file may
 
 ### 8.8 Set row
 
-- Grid: 28 px set number, flexible previous value, flexible current value, 32 px check.
-- Height 52, background `card`, 1 px `line`, radius 11, padding 9x10.
-- Header row uses `micro` labels: SET, PREV, KG x REPS, empty check column.
+- Grid: 28 px set number, flexible previous value, flexible current value with two boxed fields, 36 px check.
+- Height 60, background `card`, 1 px `line`, radius 11, padding 8x10.
+- Header row uses `micro` labels: SET, PREV, KG x REPS (centered over the fields), empty check column.
 - Previous value is `caption` `#67748E` with strikethrough.
-- Current value is `bodyStrong` `text`.
+- Weight and reps sit in separate `surfaceAlt` boxes, 44 px tall, radius 8, 1 px `line`, weight box wider than the reps box. The whole box is the tap target.
+- Current value is `bodyStrong` `text` once completed, `muted` while pending. The `x` between the boxes follows the same colour.
 - Completed row: lime check, current value `text`, background stays `card`.
-- Active row: `blue` border at 60 percent and a 2 px left accent.
-- Pending row: current value shows `- x -` in `textDisabled`.
-- Tapping weight or reps opens an inline numeric sheet with a Done action.
+- Active row: `blue` border at 60 percent on the row and on both boxes.
+- Pending row: current value shows `-` in `muted`.
+- Tapping a box opens an inline numeric sheet with a Done action. The sheet selects the current value so typing replaces it.
 - Tapping the check completes the set, starts rest, and advances focus.
+- Swiping the row left reveals an `orange` panel with a trash glyph and removes the set at once. The check stays the rightmost control and there is no close button. Removal is also exposed as a screen reader action.
 
 ### 8.9 Rest timer banner
 
@@ -587,8 +589,8 @@ All screens use `background`, 16 px horizontal padding, and the `body` type as t
 
 - **Purpose:** Turn the profile into a goal, a training week, an equipment set, and a reminder choice.
 - **Screens:** `/onboarding/goals`, `/onboarding/experience`, `/onboarding/schedule`, `/onboarding/equipment`, `/onboarding/notifications`.
-- **Goals:** 2x2 grid of `AppTileGrid` icon tiles for build muscle, get stronger, lose weight, and stay healthy. At least one is required. The first selected goal is primary and is labelled as such.
-- **Experience:** Single-select cards for beginner, regular, gym rat, and veteran, each with a one-line description.
+- **Goals:** 2x2 grid of square `AppTileGrid` icon tiles for build muscle, get stronger, lose weight, and stay healthy, with 32 px icons. The grid is capped at 400 px so squares stay readable on wide windows. At least one is required. The first selected goal is primary and is labelled as such.
+- **Experience:** Single-select cards for beginner, regular, gym rat, and veteran, each with a one-line description, a 40 px icon box, and 16 px inner padding.
 - **Schedule:** Days per week from 1 to 7 and the training weekdays. Default is 3 days on Monday, Wednesday, and Friday. At least one weekday is required and the count must match the selected days per week.
 - **Equipment:** Multi-select cards for bodyweight, dumbbells, barbell and EZ bar, machines, cable station, kettlebells, and accessories. Every group is selected by default so a new user keeps a full-gym plan. At least one group is required. The selection is stored on the profile and every generated plan.
 - **Notifications:** Explain workout reminders. Enable asks for system permission. Deny, Not now, or unavailable continues with reminders off. The choice is stored and can be changed later in Settings.
@@ -607,13 +609,13 @@ All screens use `background`, 16 px horizontal padding, and the `body` type as t
 ### 10.6 Today
 
 - **Purpose:** Answer "What should I do today?" and make starting a workout one tap away.
-- **Layout:** Week label and notification icon row, featured planned workout card, streak and steps stat duo, quick action row, flexible spacer.
-- **Components:** Planned workout card (`cardElevated`), primary "Start workout", two stat tiles, three quick actions.
-- **Content:** Workout name, muscle groups, exercise count, estimated duration, status tag.
+- **Layout:** Calendar action on the left, centered week label, notification icon on the right, featured planned workout card with the streak tag, steps stat duo, quick action row, flexible spacer.
+- **Components:** Planned workout card (`cardElevated`) with the gold streak tag next to the status tag, primary "Start workout", two stat tiles, three quick actions.
+- **Content:** Workout name, muscle groups, exercise count, estimated duration, status tag, current streak.
 - **Actions:** Start planned workout, empty workout, walk, start saved routine, open plan overview.
 - **States:**
-  - Planned: card plus Start.
-  - Rest day: "Rest day" card with "Start empty workout" as the primary action.
+  - Planned: card plus Start, gold streak tag beside the Planned tag.
+  - Rest day: "Rest day" card with "Start empty workout" as the primary action and the streak tag beside the Recovery tag.
   - No plan: empty state with "Build a plan".
   - Active session at startup: the app opens `/logger`.
   - Paused session: Today shows a "Resume workout" card with elapsed time and a discard action.
@@ -709,7 +711,7 @@ All screens use `background`, 16 px horizontal padding, and the `body` type as t
 
 - **Purpose:** Identity, lifetime totals, and settings entry.
 - **Layout:** Profile header with avatar, name, experience tag, three stat tiles, settings list, app version.
-- **Components:** Avatar, name, tag, stat trio, setting rows with icon, label, value, chevron.
+- **Components:** Avatar showing the experience icon in `limeInk` on `lime`, name, tag, stat trio, setting rows with icon, label, value, chevron.
 - **Entries:** Edit profile, Units, Workout reminders, Integrations, Equipment, Privacy and social, Help and support, Reset local data, App version. Privacy policy, Terms of service, and Open-source licenses open from Settings.
 - **States:** Default profile, edited name, no PRs.
 - **Rules:** There is no account, sign-in, or log out in v1. Reset local data requires a confirmation and explains what is removed. Legal and license screens live under Settings, not as separate Me rows.

@@ -102,9 +102,18 @@ void main() {
 
     await tester.pumpWidget(_wrap(provider, (_) {}));
 
-    expect(find.text('A plan for your week'), findsOneWidget);
-    expect(find.text('Log every set'), findsOneWidget);
-    expect(find.text('See progress'), findsOneWidget);
+    expect(
+      find.text('A weekly plan shaped by your goals and schedule'),
+      findsOneWidget,
+    );
+    expect(
+      find.text('A fast logger that remembers your last set'),
+      findsOneWidget,
+    );
+    expect(
+      find.text('Progress you can trust, built from your own data'),
+      findsOneWidget,
+    );
     expect(find.text('Mova'), findsNothing);
     expect(
       tester

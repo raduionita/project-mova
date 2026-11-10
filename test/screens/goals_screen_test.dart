@@ -9,7 +9,9 @@ import 'package:mova/screens/onboarding/goals_screen.dart';
 import 'package:mova/services/clock.dart';
 import 'package:mova/services/storage_service.dart';
 import 'package:mova/theme/app_theme.dart';
+import 'package:mova/theme/app_icons.dart';
 import 'package:mova/widgets/app_button.dart';
+import 'package:mova/widgets/app_icon.dart';
 import 'package:provider/provider.dart';
 
 final DateTime _fixedNow = DateTime.utc(2026, 11, 5, 12);
@@ -58,6 +60,25 @@ void main() {
 
     final button = tester.widget<AppButton>(find.byType(AppButton));
     expect(button.onPressed, isNull);
+  });
+
+  testWidgets('uses square tiles with a large goal icon', (tester) async {
+    final provider = await _providerAtGoals(StorageService.inMemory());
+
+    await tester.pumpWidget(_wrap(provider, (_) {}));
+
+    final tile = find
+        .ancestor(of: find.text('Build muscle'), matching: find.byType(InkWell))
+        .first;
+    final size = tester.getSize(tile);
+    expect(size.width, size.height);
+
+    final icon = tester.widget<AppIcon>(
+      find.byWidgetPredicate(
+        (widget) => widget is AppIcon && widget.asset == AppIcons.dumbbell,
+      ),
+    );
+    expect(icon.size, 32);
   });
 
   testWidgets('selection order decides the primary goal and persists', (

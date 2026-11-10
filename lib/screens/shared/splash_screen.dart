@@ -5,6 +5,7 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_radii.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
+import '../../widgets/mova_mark.dart';
 
 /// Cold-start brand screen shown while local state loads.
 class SplashScreen extends StatelessWidget {
@@ -47,14 +48,7 @@ class SplashScreen extends StatelessWidget {
           ),
         ],
       ),
-      child: Text(
-        'M',
-        style: AppTypography.displayXL.copyWith(
-          color: AppColors.limeInk,
-          fontSize: 44,
-          height: 1,
-        ),
-      ),
+      child: MovaMark(height: 44, color: AppColors.limeInk),
     );
   }
 

@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../common/experience_display.dart';
 import '../../models/experience_level.dart';
 import '../../navigation/onboarding_flow.dart';
 import '../../navigation/routes.dart';
 import '../../providers/onboarding_provider.dart';
 import '../../theme/app_icons.dart';
 import '../../theme/app_onboarding_type.dart';
+import '../../theme/app_spacing.dart';
 import '../../widgets/app_choice_card.dart';
 import 'onboarding_scaffold.dart';
 
@@ -100,30 +102,23 @@ class _ExperienceScreenState extends State<ExperienceScreen> {
           Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: AppChoiceCard(
-              label: _labelFor(option.level),
+              label: experienceLevelLabel(option.level),
               description: option.description,
               assetIcon: option.assetIcon,
               labelStyle: AppOnboardingType.choiceTitle,
               descriptionStyle: AppOnboardingType.choiceDesc,
+              iconSize: 22,
+              iconBoxSize: 40,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.x2l,
+                vertical: AppSpacing.x2l,
+              ),
               selected: _selected == option.level,
               onTap: () => setState(() => _selected = option.level),
             ),
           ),
       ],
     );
-  }
-
-  String _labelFor(ExperienceLevel level) {
-    switch (level) {
-      case ExperienceLevel.beginner:
-        return 'Beginner';
-      case ExperienceLevel.regular:
-        return 'Regular';
-      case ExperienceLevel.gymRat:
-        return 'Gym rat';
-      case ExperienceLevel.veteran:
-        return 'Veteran';
-    }
   }
 
   @override

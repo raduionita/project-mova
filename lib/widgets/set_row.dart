@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 
 import '../models/unit_preferences.dart';
 import '../models/workout_set.dart';
@@ -116,24 +117,46 @@ class SetRow extends StatelessWidget {
     );
   }
 
-  Widget _buildValueTap({
+  Widget _buildValueField({
     required String text,
     required String tooltip,
     required VoidCallback? onTap,
+    int flex = 1,
   }) {
-    return Tooltip(
-      message: tooltip,
-      child: InkResponse(
-        onTap: onTap,
-        radius: AppSpacing.x2l,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-          child: Text(
-            text,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: AppTypography.bodyStrong.copyWith(
-              color: set.completed ? AppColors.text : AppColors.textDisabled,
+    final radius = BorderRadius.circular(AppRadii.md);
+    final border = active
+        ? AppColors.blue.withValues(alpha: 0.6)
+        : AppColors.line;
+    return Expanded(
+      flex: flex,
+      child: Tooltip(
+        message: tooltip,
+        child: Material(
+          color: AppColors.surfaceAlt,
+          shape: RoundedRectangleBorder(
+            borderRadius: radius,
+            side: BorderSide(color: border),
+          ),
+          child: InkWell(
+            borderRadius: radius,
+            onTap: onTap,
+            child: SizedBox(
+              height: 44,
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.sm,
+                  ),
+                  child: Text(
+                    text,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTypography.bodyStrong.copyWith(
+                      color: set.completed ? AppColors.text : AppColors.muted,
+                    ),
+                  ),
+                ),
+              ),
             ),
           ),
         ),
@@ -155,29 +178,26 @@ class SetRow extends StatelessWidget {
     final repsTap = onEditReps ?? onEdit;
     final usesSharedEdit = onEditWeight == null && onEditReps == null;
     return Row(
-      mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        Flexible(
-          child: _buildValueTap(
-            text: weight,
-            tooltip: usesSharedEdit
-                ? 'Edit set ${set.index + 1}'
-                : 'Edit weight for set ${set.index + 1}',
-            onTap: weightTap,
-          ),
+        _buildValueField(
+          text: weight,
+          tooltip: usesSharedEdit
+              ? 'Edit set ${set.index + 1}'
+              : 'Edit weight for set ${set.index + 1}',
+          onTap: weightTap,
+          flex: 3,
         ),
         Text(
           ' × ',
           style: AppTypography.bodyStrong.copyWith(
-            color: set.completed ? AppColors.text : AppColors.textDisabled,
+            color: set.completed ? AppColors.text : AppColors.muted,
           ),
         ),
-        Flexible(
-          child: _buildValueTap(
-            text: '${set.reps}',
-            tooltip: 'Edit reps for set ${set.index + 1}',
-            onTap: repsTap,
-          ),
+        _buildValueField(
+          text: '${set.reps}',
+          tooltip: 'Edit reps for set ${set.index + 1}',
+          onTap: repsTap,
+          flex: 2,
         ),
       ],
     );
@@ -190,10 +210,7 @@ class SetRow extends StatelessWidget {
           : 'Complete set ${set.index + 1}',
       onPressed: onToggleComplete,
       padding: EdgeInsets.zero,
-      constraints: const BoxConstraints.tightFor(
-        width: AppSpacing.x5l - AppSpacing.xs,
-        height: AppSpacing.x5l - AppSpacing.xs,
-      ),
+      constraints: const BoxConstraints.tightFor(width: 36, height: 36),
       icon: AppIcon(
         asset: set.completed ? AppIcons.check : AppIcons.circle,
         size: AppSpacing.x2l + AppSpacing.xs,
@@ -202,54 +219,67 @@ class SetRow extends StatelessWidget {
     );
   }
 
-  Widget _buildRemove() {
-    return IconButton(
-      tooltip: 'Remove set ${set.index + 1}',
-      onPressed: onRemove,
-      padding: EdgeInsets.zero,
-      constraints: const BoxConstraints.tightFor(
-        width: AppSpacing.x4l,
-        height: AppSpacing.x5l - AppSpacing.xs,
+  Widget _buildDismissBackground() {
+    return Container(
+      alignment: Alignment.centerRight,
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.x3l),
+      decoration: BoxDecoration(
+        color: AppColors.orange.withValues(alpha: 0.16),
+        borderRadius: BorderRadius.circular(AppRadii.md),
       ),
-      icon: const AppIcon(
-        asset: AppIcons.close,
-        size: AppSpacing.x2l,
-        color: AppColors.textDisabled,
+      child: const AppIcon(
+        asset: AppIcons.trash,
+        size: 20,
+        color: AppColors.orange,
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Semantics(
-      container: true,
-      label: _semanticsLabel,
-      child: Container(
-        height: 52,
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.lg,
-          vertical: AppSpacing.sm,
-        ),
-        decoration: BoxDecoration(
-          color: AppColors.card,
-          borderRadius: BorderRadius.circular(AppRadii.md),
-          border: Border.all(
-            color: active
-                ? AppColors.blue.withValues(alpha: 0.6)
-                : AppColors.line,
+    return Dismissible(
+      key: ValueKey<String>('set-${set.id}'),
+      direction: DismissDirection.endToStart,
+      background: _buildDismissBackground(),
+      confirmDismiss: (_) async {
+        onRemove?.call();
+        return false;
+      },
+      child: Semantics(
+        container: true,
+        label: _semanticsLabel,
+        customSemanticsActions: onRemove == null
+            ? null
+            : <CustomSemanticsAction, VoidCallback>{
+                const CustomSemanticsAction(label: 'Remove set'): () =>
+                    onRemove!(),
+              },
+        child: Container(
+          height: 60,
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg,
+            vertical: AppSpacing.sm,
           ),
-        ),
-        child: Row(
-          children: <Widget>[
-            _buildSetNumber(),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(flex: 3, child: _buildPrevious()),
-            const SizedBox(width: AppSpacing.sm),
-            Expanded(flex: 3, child: _buildCurrent()),
-            const SizedBox(width: AppSpacing.xs),
-            _buildCheck(),
-            _buildRemove(),
-          ],
+          decoration: BoxDecoration(
+            color: AppColors.card,
+            borderRadius: BorderRadius.circular(AppRadii.md),
+            border: Border.all(
+              color: active
+                  ? AppColors.blue.withValues(alpha: 0.6)
+                  : AppColors.line,
+            ),
+          ),
+          child: Row(
+            children: <Widget>[
+              _buildSetNumber(),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(flex: 3, child: _buildPrevious()),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(flex: 3, child: _buildCurrent()),
+              const SizedBox(width: AppSpacing.xs),
+              _buildCheck(),
+            ],
+          ),
         ),
       ),
     );

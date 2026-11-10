@@ -20,6 +20,12 @@ class AppChoiceCard extends StatelessWidget {
     this.trailing,
     this.labelStyle,
     this.descriptionStyle,
+    this.iconSize = 17,
+    this.iconBoxSize = 32,
+    this.contentPadding = const EdgeInsets.symmetric(
+      horizontal: AppSpacing.xl + AppSpacing.xxs,
+      vertical: AppSpacing.xl,
+    ),
   });
 
   final String label;
@@ -32,6 +38,15 @@ class AppChoiceCard extends StatelessWidget {
   final VoidCallback? onTap;
   final TextStyle? labelStyle;
   final TextStyle? descriptionStyle;
+
+  /// Glyph size inside the icon box. Defaults to the standard card size.
+  final double iconSize;
+
+  /// Side length of the tinted icon box.
+  final double iconBoxSize;
+
+  /// Padding around the label and icon.
+  final EdgeInsetsGeometry contentPadding;
 
   /// Replaces the selected check mark, for example with a Primary tag.
   final Widget? trailing;
@@ -46,8 +61,8 @@ class AppChoiceCard extends StatelessWidget {
     final asset = assetIcon;
     final color = selected ? AppColors.lime : AppColors.muted;
     return Container(
-      width: 32,
-      height: 32,
+      width: iconBoxSize,
+      height: iconBoxSize,
       decoration: BoxDecoration(
         color: selected
             ? AppColors.lime.withValues(alpha: 0.16)
@@ -56,9 +71,9 @@ class AppChoiceCard extends StatelessWidget {
       ),
       child: asset != null
           ? Center(
-              child: AppIcon(asset: asset, size: 17, color: color),
+              child: AppIcon(asset: asset, size: iconSize, color: color),
             )
-          : Icon(icon, size: 17, color: color),
+          : Icon(icon, size: iconSize, color: color),
     );
   }
 
@@ -93,10 +108,7 @@ class AppChoiceCard extends StatelessWidget {
           borderRadius: radius,
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.xl + AppSpacing.xxs,
-              vertical: AppSpacing.xl,
-            ),
+            padding: contentPadding,
             child: Row(
               children: <Widget>[
                 if (icon != null || assetIcon != null) ...<Widget>[

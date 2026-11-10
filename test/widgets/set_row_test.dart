@@ -96,7 +96,8 @@ void main() {
     await tester.tap(find.byTooltip('Edit set 1'));
     await tester.tap(find.byTooltip('Complete set 1'));
     await tester.tap(find.byTooltip('Toggle warm-up for set 1'));
-    await tester.tap(find.byTooltip('Remove set 1'));
+    await tester.drag(find.byType(SetRow), const Offset(-400, 0));
+    await tester.pumpAndSettle();
 
     expect(edits, 1);
     expect(completes, 1);

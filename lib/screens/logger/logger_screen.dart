@@ -637,12 +637,12 @@ class _LoggerScreenState extends State<LoggerScreen>
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             flex: 3,
-            child: Text('${unitLabel.toUpperCase()} × REPS', style: style),
+            child: Center(
+              child: Text('${unitLabel.toUpperCase()} × REPS', style: style),
+            ),
           ),
           const SizedBox(width: AppSpacing.xs),
-          const SizedBox(
-            width: AppSpacing.x5l - AppSpacing.xs + AppSpacing.x4l,
-          ),
+          const SizedBox(width: 36),
         ],
       ),
     );

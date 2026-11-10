@@ -61,10 +61,14 @@ class NumericInputSheet extends StatefulWidget {
 }
 
 class _NumericInputSheetState extends State<NumericInputSheet> {
-  late final TextEditingController _controller = TextEditingController(
-    text: _initialText(),
-  );
+  late final TextEditingController _controller = _createController();
   String? _error;
+
+  TextEditingController _createController() {
+    final text = _initialText();
+    return TextEditingController(text: text)
+      ..selection = TextSelection(baseOffset: 0, extentOffset: text.length);
+  }
 
   String _initialText() {
     final fixed = widget.initialValue.toStringAsFixed(
