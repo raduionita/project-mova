@@ -182,7 +182,7 @@ class _StartupGateState extends State<_StartupGate> {
       return;
     }
     final social = context.read<SocialProvider>();
-    social.setSamplesDismissed(
+    social.setPlaceholderDismissed(
       context.read<SettingsProvider>().settings.sampleFeedDismissed,
     );
     await social.load();

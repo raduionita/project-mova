@@ -38,34 +38,15 @@ class SeedDataService {
     return exercises;
   }
 
-  List<ActivityPost> samplePosts(DateTime now) {
+  /// One faded welcome card shown until the first own workout post exists.
+  List<ActivityPost> placeholderPosts(DateTime now) {
     return <ActivityPost>[
       ActivityPost(
-        id: 'sample-1',
+        id: 'placeholder-1',
         authorName: 'Mova Coach',
         isOwn: false,
-        text: 'Welcome to Mova. Log your first workout and start tracking progress.',
-        createdAt: now.subtract(const Duration(hours: 3)),
-        kudos: 12,
-        isSample: true,
-      ),
-      ActivityPost(
-        id: 'sample-2',
-        authorName: 'Alex',
-        isOwn: false,
-        text: 'Hit a new bench press personal record this morning. Consistency pays off.',
-        createdAt: now.subtract(const Duration(days: 1, hours: 2)),
-        kudos: 8,
-        isSample: true,
-      ),
-      ActivityPost(
-        id: 'sample-3',
-        authorName: 'Sam',
-        isOwn: false,
-        text:
-            'Leg day complete. Four sets of squats and a long walk to finish.',
-        createdAt: now.subtract(const Duration(days: 2, hours: 5)),
-        kudos: 5,
+        text: 'Welcome to Mova. Finish your first workout and your post will appear here.',
+        createdAt: now,
         isSample: true,
       ),
     ];

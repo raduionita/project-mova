@@ -1,3 +1,4 @@
+import 'common/display_name.dart';
 import 'common/formatters.dart';
 import 'models/activity_post.dart';
 import 'models/equipment_group.dart';
@@ -79,7 +80,7 @@ class AppCoordinator {
     final now = _clock.now();
     final profile = UserProfile(
       id: _idService.next(),
-      displayName: 'Athlete',
+      displayName: '',
       gender: draft.gender,
       birthDate: draft.birthDate,
       heightCm: draft.heightCm,
@@ -310,11 +311,11 @@ class AppCoordinator {
     final sets = WorkoutCalculator.completedSetCount(session.exercises);
     final volume = WorkoutCalculator.volumeKg(session.exercises);
     final name = session.name.trim().isEmpty ? 'Workout' : session.name.trim();
-    final author = profileProvider.profile?.displayName.trim();
+    final author = profileDisplayName(profileProvider.profile);
     await social.addPost(
       ActivityPost(
         id: _idService.next(),
-        authorName: author == null || author.isEmpty ? 'Athlete' : author,
+        authorName: author,
         isOwn: true,
         sessionId: session.id,
         text:

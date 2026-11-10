@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../common/constants.dart';
 import '../../common/experience_display.dart';
+import '../../common/goal_display.dart';
 import '../../models/experience_level.dart';
 import '../../models/gender.dart';
 import '../../models/goal.dart';
@@ -59,32 +60,15 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     ),
   ];
 
-  static const List<AppMultiSelectOption<Goal>> _goalOptions =
+  static final List<AppMultiSelectOption<Goal>> _goalOptions =
       <AppMultiSelectOption<Goal>>[
-        AppMultiSelectOption<Goal>(
-          value: Goal.buildMuscle,
-          label: 'Build muscle',
-          description: 'Add size with steady volume.',
-          assetIcon: AppIcons.dumbbell,
-        ),
-        AppMultiSelectOption<Goal>(
-          value: Goal.getStronger,
-          label: 'Get stronger',
-          description: 'Lift heavier with lower reps.',
-          assetIcon: AppIcons.trendUp,
-        ),
-        AppMultiSelectOption<Goal>(
-          value: Goal.loseWeight,
-          label: 'Lose weight',
-          description: 'Burn energy with higher reps.',
-          assetIcon: AppIcons.flame,
-        ),
-        AppMultiSelectOption<Goal>(
-          value: Goal.stayHealthy,
-          label: 'Stay healthy',
-          description: 'Train consistently without burnout.',
-          assetIcon: AppIcons.heart,
-        ),
+        for (final goal in Goal.values)
+          AppMultiSelectOption<Goal>(
+            value: goal,
+            label: goalLabel(goal),
+            description: goalDescription(goal),
+            assetIcon: goalIcon(goal),
+          ),
       ];
 
   late final TextEditingController _nameController;
@@ -103,9 +87,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   void initState() {
     super.initState();
     final profile = context.read<ProfileProvider>().profile;
-    _nameController = TextEditingController(
-      text: profile?.displayName ?? 'Athlete',
-    );
+    _nameController = TextEditingController(text: profile?.displayName ?? '');
     _experience = profile?.experienceLevel;
     _goals = List<Goal>.of(profile?.goals ?? const <Goal>[]);
     _gender = profile?.gender;
@@ -249,9 +231,6 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   }
 
   String? _validate() {
-    if (_nameController.text.trim().isEmpty) {
-      return 'Enter your name.';
-    }
     if (_experience == null) {
       return 'Choose your training experience.';
     }
@@ -358,7 +337,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       style: AppTypography.bodyStrong.copyWith(color: AppColors.text),
       decoration: const InputDecoration(
         labelText: 'Name',
-        hintText: 'How should we call you?',
+        hintText: 'Optional',
         counterText: '',
       ),
     );
@@ -486,7 +465,11 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                       ),
                     ),
                     const SizedBox(height: AppSpacing.x3l),
-                    _buildSection(title: 'Name', child: _buildNameField()),
+                    _buildSection(
+                      title: 'Name',
+                      subtitle: 'Leave blank to show your experience level.',
+                      child: _buildNameField(),
+                    ),
                     _buildSection(
                       title: 'Experience',
                       subtitle: 'Sets starting volume and exercise selection.',

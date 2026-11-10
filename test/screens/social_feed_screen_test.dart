@@ -144,7 +144,7 @@ class _Harness {
       progress.load(),
       exercises.load(),
     ]);
-    social.setSamplesDismissed(settings.settings.sampleFeedDismissed);
+    social.setPlaceholderDismissed(settings.settings.sampleFeedDismissed);
     await social.load();
   }
 
@@ -196,44 +196,48 @@ Future<_Harness> _pumpFeed(
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('renders the seeded feed with sample labels', (tester) async {
+  testWidgets('renders one faded placeholder post', (tester) async {
     await _pumpFeed(tester);
 
     expect(find.text('Feed'), findsOneWidget);
     expect(find.text('Mova Coach'), findsOneWidget);
-    expect(find.text('Alex'), findsOneWidget);
-    expect(find.text('Sam'), findsOneWidget);
-    expect(find.text('Sample'), findsNWidgets(3));
-    expect(find.text('Hide samples'), findsOneWidget);
+    expect(find.text('Placeholder'), findsOneWidget);
+    expect(find.byKey(const Key('feed-placeholder')), findsOneWidget);
+    expect(find.text('Hide placeholder'), findsOneWidget);
+    expect(find.text('Sample'), findsNothing);
     expect(find.text('Posts and kudos stay on this device.'), findsOneWidget);
+    expect(
+      find.text(
+        'Welcome to Mova. Finish your first workout and your post will '
+        'appear here.',
+      ),
+      findsOneWidget,
+    );
   });
 
-  testWidgets('hides samples and persists the dismissal', (tester) async {
+  testWidgets('hides the placeholder and persists the dismissal', (
+    tester,
+  ) async {
     final harness = await _pumpFeed(tester);
 
     await tester.tap(find.byKey(const Key('hide-samples')));
     await tester.pumpAndSettle();
 
-    expect(find.text('Sample'), findsNothing);
+    expect(find.text('Placeholder'), findsNothing);
     expect(find.text('Your feed is quiet'), findsOneWidget);
     expect(harness.settings.settings.sampleFeedDismissed, isTrue);
     expect(harness.social.posts, isEmpty);
   });
 
   testWidgets('kudos toggles and persists', (tester) async {
-    final harness = await _pumpFeed(tester);
+    final harness = await _pumpFeed(tester, withOwnPost: true);
 
-    expect(find.text('12'), findsOneWidget);
-    await tester.tap(find.byKey(const Key('kudos-sample-1')));
+    expect(find.byKey(const Key('kudos-own-1')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('kudos-own-1')));
     await tester.pumpAndSettle();
 
-    expect(find.text('13'), findsOneWidget);
-    expect(
-      harness.social.posts
-          .firstWhere((post) => post.id == 'sample-1')
-          .kudosGiven,
-      isTrue,
-    );
+    expect(find.text('1'), findsOneWidget);
+    expect(harness.social.posts.first.kudosGiven, isTrue);
   });
 
   testWidgets('an own post shows the You tag and workout actions', (
@@ -256,7 +260,8 @@ void main() {
 
     expect(find.text('You'), findsNothing);
     expect(find.text('View workout'), findsNothing);
-    expect(find.text('Mova Coach'), findsOneWidget);
+    expect(find.text('Mova Coach'), findsNothing);
+    expect(find.text('Your feed is quiet'), findsOneWidget);
   });
 
   testWidgets('the empty feed offers a start action', (tester) async {
@@ -264,7 +269,7 @@ void main() {
     final harness = _Harness(storage);
     await harness.load();
     await harness.settings.dismissSampleFeed();
-    await harness.social.dismissSamples();
+    await harness.social.dismissPlaceholder();
     await tester.pumpWidget(harness.wrap(SocialFeedScreen(clock: _clock)));
     await tester.pumpAndSettle();
 

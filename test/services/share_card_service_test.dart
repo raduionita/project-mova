@@ -73,6 +73,14 @@ void main() {
 
   const service = ShareCardService();
 
+  test('headlineFor uses the workout headline without a record', () {
+    expect(ShareCardService.headlineFor(null), 'WORKOUT');
+  });
+
+  test('headlineFor uses the record headline with a record', () {
+    expect(ShareCardService.headlineFor(_record()), 'PERSONAL RECORD');
+  });
+
   test('render produces a 1080x1920 PNG', () async {
     final bytes = await service.render(
       _session(),

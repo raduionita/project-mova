@@ -59,6 +59,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     final onboarding = context.read<OnboardingProvider>();
     final settings = context.read<SettingsProvider>();
     final editingPlan = onboarding.editingPlan;
+    final reminderHour = onboarding.draft.reminderHour;
+    final reminderMinute = onboarding.draft.reminderMinute;
 
     var granted = false;
     if (enable) {
@@ -71,8 +73,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     await settings.setReminders(
       enabled: granted,
       weekdays: _reminderDays(onboarding),
-      hour: 18,
-      minute: 0,
+      hour: reminderHour,
+      minute: reminderMinute,
     );
     await onboarding.markNotificationsAsked(true);
     final next = editingPlan
@@ -87,6 +89,39 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
     setState(() => _isBusy = false);
     _open(context, next);
+  }
+
+  Future<void> _pickReminderTime() async {
+    if (_isBusy) {
+      return;
+    }
+    final onboarding = context.read<OnboardingProvider>();
+    final current = onboarding.draft;
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay(
+        hour: current.reminderHour,
+        minute: current.reminderMinute,
+      ),
+      helpText: 'Reminder time',
+      builder: (context, child) {
+        final theme = Theme.of(context);
+        return Theme(
+          data: theme.copyWith(
+            colorScheme: theme.colorScheme.copyWith(
+              primary: AppColors.lime,
+              surface: AppColors.card,
+              onSurface: AppColors.text,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked == null || !mounted) {
+      return;
+    }
+    await onboarding.setReminderTime(hour: picked.hour, minute: picked.minute);
   }
 
   void _back(BuildContext context) {
@@ -146,8 +181,40 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 
+  Widget _buildReminderTimeCard(String time) {
+    return _buildNotifCard(
+      InkWell(
+        key: const Key('onboarding-reminder-time'),
+        onTap: _isBusy ? null : _pickReminderTime,
+        child: _buildInfoRow(
+          'Reminder time',
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Text(
+                time,
+                style: AppOnboardingType.choiceDesc.copyWith(
+                  color: AppColors.muted,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              const AppIcon(
+                asset: AppIcons.chevronRight,
+                size: 16,
+                color: AppColors.muted,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final onboarding = context.watch<OnboardingProvider>();
+    final hour = onboarding.draft.reminderHour.toString().padLeft(2, '0');
+    final minute = onboarding.draft.reminderMinute.toString().padLeft(2, '0');
     return OnboardingScaffold(
       title: 'Stay on schedule',
       subtitle: 'A short reminder before your workout. One nudge, no spam.',
@@ -170,17 +237,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             ),
           ),
           const SizedBox(height: AppSpacing.md),
-          _buildNotifCard(
-            _buildInfoRow(
-              'Reminder time',
-              Text(
-                '18:00',
-                style: AppOnboardingType.choiceDesc.copyWith(
-                  color: AppColors.muted,
-                ),
-              ),
-            ),
-          ),
+          _buildReminderTimeCard('$hour:$minute'),
         ],
       ),
     );

@@ -67,7 +67,7 @@ void main() {
     test('missing fields use safe defaults', () {
       final decoded = UserProfile.fromJson(const <String, dynamic>{});
       expect(decoded.id, isEmpty);
-      expect(decoded.displayName, 'Athlete');
+      expect(decoded.displayName, isEmpty);
       expect(decoded.goals, isEmpty);
       expect(decoded.primaryGoal, isNull);
       expect(decoded.isComplete, isFalse);
@@ -111,10 +111,33 @@ void main() {
       daysPerWeek: 3,
       trainingDays: const <int>[1, 3, 5],
       notificationsAsked: true,
+      reminderHour: 7,
+      reminderMinute: 45,
       updatedAt: DateTime.utc(2026, 2, 3),
     );
     final decoded = OnboardingDraft.fromJson(draft.toJson());
     expect(decoded.toJson(), draft.toJson());
+    expect(decoded.reminderHour, 7);
+    expect(decoded.reminderMinute, 45);
+  });
+
+  test(
+    'OnboardingDraft defaults experience to regular and reminder to 18:00',
+    () {
+      final draft = OnboardingDraft(updatedAt: DateTime.utc(2026, 2, 3));
+
+      expect(draft.experienceLevel, ExperienceLevel.regular);
+      expect(draft.reminderHour, 18);
+      expect(draft.reminderMinute, 0);
+    },
+  );
+
+  test('OnboardingDraft fills a missing experience level with regular', () {
+    final decoded = OnboardingDraft.fromJson(<String, dynamic>{
+      'updatedAt': DateTime.utc(2026, 2, 3).toIso8601String(),
+    });
+
+    expect(decoded.experienceLevel, ExperienceLevel.regular);
   });
 
   test('Exercise round-trips', () {

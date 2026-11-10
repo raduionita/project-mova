@@ -1,7 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mova/app_coordinator.dart';
+import 'package:mova/models/experience_level.dart';
 import 'package:mova/models/session_exercise.dart';
 import 'package:mova/models/workout_session.dart';
+import 'package:mova/models/user_profile.dart';
 import 'package:mova/models/workout_set.dart';
 import 'package:mova/providers/history_provider.dart';
 import 'package:mova/providers/onboarding_provider.dart';
@@ -100,6 +102,14 @@ void main() {
   test('finishing a workout creates one own post when sharing is on', () async {
     final harness = _Harness(StorageService.inMemory());
     await harness.load();
+    await harness.profile.saveProfile(
+      UserProfile(
+        id: 'profile-1',
+        experienceLevel: ExperienceLevel.regular,
+        createdAt: _now,
+        updatedAt: _now,
+      ),
+    );
 
     final saved = await harness.coordinator.completeWorkout(_session('s1'));
 
@@ -109,7 +119,7 @@ void main() {
     expect(post.isOwn, isTrue);
     expect(post.isSample, isFalse);
     expect(post.sessionId, 's1');
-    expect(post.authorName, 'Athlete');
+    expect(post.authorName, 'Regular');
     expect(post.text, contains('Push Day'));
   });
 

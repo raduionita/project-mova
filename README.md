@@ -78,7 +78,7 @@ The canonical walkthrough is [`OVERVIEW.html`](OVERVIEW.html). Open it in a brow
 - **Guest profile.** Onboarding creates a local profile. Google and Apple Sign-In, accounts, and cloud sync are post-MVP and do not change the local data model.
 - **Dark only.** Every mockup is dark. The token layer is structured for a light theme later.
 - **Honest metrics.** The strength score is labeled beta and does not claim a gym or global ranking, because a local-only app has no comparative dataset.
-- **Local social.** The feed contains sample activity and the user's own workouts. Kudos are stored locally. It is motivation, not a network.
+- **Local social.** The feed shows one faded welcome placeholder and the user's own workouts. The placeholder disappears after the first own post. Kudos are stored locally. It is motivation, not a network.
 - **Manual fallback.** Steps can be entered manually when a health integration is unavailable, so Today never depends on a permission.
 - **Equipment-aware plans.** The profile stores equipment groups. The generator only picks exercises the user can perform and warns when a muscle group has no match instead of dropping it silently. The same selection filters the exercise picker and the swap flow.
 - **Deterministic overload.** When every working set of the most recent session reaches the top of the rep range, the next session pre-fills the next load: 2.5 kg in kg mode or 5 lb converted in lb mode. Otherwise it pre-fills the last weight. The app never rewrites logged history.

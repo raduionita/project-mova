@@ -14,27 +14,28 @@ SocialProvider _provider(StorageService storage) {
 }
 
 void main() {
-  test('first load seeds three labeled sample posts', () async {
+  test('first load seeds one welcome placeholder', () async {
     final storage = StorageService.inMemory();
     final provider = _provider(storage);
 
     await provider.load();
 
-    expect(provider.posts, hasLength(3));
-    expect(provider.posts.every((post) => post.isSample), isTrue);
-    expect(provider.posts.every((post) => !post.isOwn), isTrue);
-    expect(provider.hasSamples, isTrue);
+    expect(provider.posts, hasLength(1));
+    expect(provider.posts.single.id, 'placeholder-1');
+    expect(provider.posts.single.isSample, isTrue);
+    expect(provider.posts.single.isOwn, isFalse);
+    expect(provider.hasPlaceholder, isTrue);
     expect(provider.error, isNull);
   });
 
-  test('dismissing samples removes them and persists', () async {
+  test('dismissing the placeholder removes it and persists', () async {
     final storage = StorageService.inMemory();
     final provider = _provider(storage);
     await provider.load();
 
-    expect(await provider.dismissSamples(), isTrue);
+    expect(await provider.dismissPlaceholder(), isTrue);
     expect(provider.posts, isEmpty);
-    expect(provider.hasSamples, isFalse);
+    expect(provider.hasPlaceholder, isFalse);
 
     final reloaded = _provider(storage);
     await reloaded.load();
@@ -44,18 +45,44 @@ void main() {
   test('a dismissed feed does not reseed when the flag is set', () async {
     final storage = StorageService.inMemory();
     final provider = _provider(storage);
-    provider.setSamplesDismissed(true);
+    provider.setPlaceholderDismissed(true);
 
     await provider.load();
 
     expect(provider.posts, isEmpty);
-    expect(provider.hasSamples, isFalse);
+    expect(provider.hasPlaceholder, isFalse);
+  });
+
+  test('legacy sample payloads collapse to one placeholder', () async {
+    final storage = StorageService.inMemory();
+    await storage.writeObject(kSocialKey, <String, dynamic>{
+      'schemaVersion': 1,
+      'seeded': true,
+      'posts': <Map<String, dynamic>>[
+        for (var index = 1; index <= 3; index++)
+          ActivityPost(
+            id: 'sample-$index',
+            authorName: 'Sample $index',
+            isOwn: false,
+            text: 'Old sample $index',
+            createdAt: _now,
+            isSample: true,
+          ).toJson(),
+      ],
+    });
+    final provider = _provider(storage);
+
+    await provider.load();
+
+    expect(provider.posts, hasLength(1));
+    expect(provider.posts.single.id, 'placeholder-1');
   });
 
   test('kudos toggles locally and survives a reload', () async {
     final storage = StorageService.inMemory();
     final provider = _provider(storage);
     await provider.load();
+    await provider.addPost(_ownPost(id: 'own-1', sessionId: 'session-1'));
     final id = provider.posts.first.id;
     final initial = provider.posts.first.kudos;
 
@@ -80,20 +107,21 @@ void main() {
 
     expect(await provider.toggleKudos('missing'), isFalse);
     expect(provider.error, 'Post not found.');
-    expect(provider.posts, hasLength(3));
+    expect(provider.posts, hasLength(1));
   });
 
-  test('visible posts hide own posts when sharing is off', () async {
+  test('the first own post replaces the placeholder', () async {
     final storage = StorageService.inMemory();
     final provider = _provider(storage);
     await provider.load();
     await provider.addPost(_ownPost(id: 'own-1', sessionId: 'session-1'));
 
-    expect(provider.visiblePosts(), hasLength(4));
+    expect(provider.posts, hasLength(1));
+    expect(provider.posts.single.isOwn, isTrue);
+    expect(provider.hasPlaceholder, isFalse);
     final filtered = provider.visiblePosts(includeOwnPosts: false);
 
-    expect(filtered, hasLength(3));
-    expect(filtered.every((post) => !post.isOwn), isTrue);
+    expect(filtered, isEmpty);
   });
 
   test('removing a session removes only its own post', () async {

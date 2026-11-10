@@ -8,9 +8,11 @@ import 'package:mova/providers/onboarding_provider.dart';
 import 'package:mova/screens/onboarding/goals_screen.dart';
 import 'package:mova/services/clock.dart';
 import 'package:mova/services/storage_service.dart';
+import 'package:mova/theme/app_spacing.dart';
 import 'package:mova/theme/app_theme.dart';
 import 'package:mova/theme/app_icons.dart';
 import 'package:mova/widgets/app_button.dart';
+import 'package:mova/widgets/app_choice_card.dart';
 import 'package:mova/widgets/app_icon.dart';
 import 'package:provider/provider.dart';
 
@@ -56,29 +58,41 @@ void main() {
     expect(find.text('Get stronger'), findsOneWidget);
     expect(find.text('Lose weight'), findsOneWidget);
     expect(find.text('Stay healthy'), findsOneWidget);
+    expect(find.text('Add size with steady volume.'), findsOneWidget);
+    expect(find.text('Lift heavier with lower reps.'), findsOneWidget);
+    expect(find.text('Burn energy with higher reps.'), findsOneWidget);
+    expect(find.text('Train consistently without burnout.'), findsOneWidget);
     expect(find.text('Primary'), findsNothing);
 
     final button = tester.widget<AppButton>(find.byType(AppButton));
     expect(button.onPressed, isNull);
   });
 
-  testWidgets('uses square tiles with a large goal icon', (tester) async {
+  testWidgets('uses the larger icon and padding from the experience step', (
+    tester,
+  ) async {
     final provider = await _providerAtGoals(StorageService.inMemory());
 
     await tester.pumpWidget(_wrap(provider, (_) {}));
 
-    final tile = find
-        .ancestor(of: find.text('Build muscle'), matching: find.byType(InkWell))
-        .first;
-    final size = tester.getSize(tile);
-    expect(size.width, size.height);
+    final cards = tester.widgetList<AppChoiceCard>(find.byType(AppChoiceCard));
+    expect(cards, hasLength(4));
+    for (final card in cards) {
+      expect(card.iconSize, 22);
+      expect(card.iconBoxSize, 40);
+      final padding = card.contentPadding.resolve(TextDirection.ltr);
+      expect(padding.left, AppSpacing.x2l);
+      expect(padding.right, AppSpacing.x2l);
+      expect(padding.top, AppSpacing.x2l);
+      expect(padding.bottom, AppSpacing.x2l);
+    }
 
     final icon = tester.widget<AppIcon>(
       find.byWidgetPredicate(
         (widget) => widget is AppIcon && widget.asset == AppIcons.dumbbell,
       ),
     );
-    expect(icon.size, 32);
+    expect(icon.size, 22);
   });
 
   testWidgets('selection order decides the primary goal and persists', (
@@ -97,7 +111,7 @@ void main() {
     expect(find.text('Primary'), findsOneWidget);
     final primaryCard = find.ancestor(
       of: find.text('Primary'),
-      matching: find.byType(Column),
+      matching: find.byType(AppChoiceCard),
     );
     expect(
       find.descendant(
@@ -125,7 +139,7 @@ void main() {
 
     final primaryCard = find.ancestor(
       of: find.text('Primary'),
-      matching: find.byType(Column),
+      matching: find.byType(AppChoiceCard),
     );
     expect(
       find.descendant(
@@ -149,7 +163,7 @@ void main() {
 
     final primaryCard = find.ancestor(
       of: find.text('Primary'),
-      matching: find.byType(Column),
+      matching: find.byType(AppChoiceCard),
     );
     expect(
       find.descendant(

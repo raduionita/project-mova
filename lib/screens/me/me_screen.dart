@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 
+import '../../common/display_name.dart';
 import '../../common/experience_display.dart';
 import '../../common/formatters.dart';
 import '../../models/app_settings.dart';
@@ -115,7 +116,7 @@ class _MeScreenState extends State<MeScreen> {
 
   Widget _buildProfileCard() {
     final profile = context.watch<ProfileProvider>().profile;
-    final name = profile?.displayName ?? 'Athlete';
+    final name = profileDisplayName(profile);
     final experience = _experienceLabel(profile?.experienceLevel);
     final goals = profile?.goals ?? const <Goal>[];
     return AppCard(

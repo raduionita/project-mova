@@ -20,7 +20,7 @@ class ShareResult {
   final String? error;
 }
 
-/// Renders the 1080x1920 PR card and shares it.
+/// Renders the 1080x1920 workout card and shares it.
 ///
 /// The card is drawn locally with a canvas. No network is used. On web the
 /// share package falls back to downloading the image when the Web Share API
@@ -30,6 +30,12 @@ class ShareCardService {
 
   static const int cardWidth = 1080;
   static const int cardHeight = 1920;
+
+  /// Kicker shown above the headline. Only a real personal record earns the
+  /// PR label; other shares read as a workout card.
+  static String headlineFor(PersonalRecord? record) {
+    return record == null ? 'WORKOUT' : 'PERSONAL RECORD';
+  }
 
   static const Color _lime = Color(0xFFB7F24C);
   static const Color _limeEnd = Color(0xFF4D8A2A);
@@ -59,7 +65,7 @@ class ShareCardService {
 
     _paintText(
       canvas,
-      'PERSONAL RECORD',
+      headlineFor(record),
       offset: const Offset(80, 540),
       style: const TextStyle(
         fontFamily: 'Inter',

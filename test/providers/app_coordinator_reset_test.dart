@@ -56,7 +56,7 @@ void main() {
       await settings.setHealthProvider(HealthProvider.healthConnect);
       await settings.setPostWorkoutsToFeed(false);
 
-      expect(social.hasSamples, isTrue);
+      expect(social.hasPlaceholder, isTrue);
       expect(
         storage.readObject<AppSettings>(kSettingsKey, AppSettings.fromJson),
         isNotNull,
@@ -85,7 +85,7 @@ void main() {
       expect(steps.todaySteps, 0);
       expect(settings.settings.postWorkoutsToFeed, isTrue);
       expect(settings.settings.healthProvider, HealthProvider.none);
-      expect(social.hasSamples, isTrue);
+      expect(social.hasPlaceholder, isTrue);
       expect(social.posts.every((post) => post.isSample), isTrue);
     },
   );

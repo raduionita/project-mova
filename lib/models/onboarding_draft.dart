@@ -39,11 +39,13 @@ class OnboardingDraft {
     this.bodyWeightKg = 0.0,
     this.heightCm = 0.0,
     this.goals = const <Goal>[],
-    this.experienceLevel,
+    this.experienceLevel = ExperienceLevel.regular,
     this.daysPerWeek,
     this.trainingDays = const <int>[],
     this.availableEquipment = EquipmentGroup.values,
     this.notificationsAsked = false,
+    this.reminderHour = 18,
+    this.reminderMinute = 0,
     required this.updatedAt,
   });
 
@@ -60,6 +62,8 @@ class OnboardingDraft {
   final List<int> trainingDays;
   final List<EquipmentGroup> availableEquipment;
   final bool notificationsAsked;
+  final int reminderHour;
+  final int reminderMinute;
   final DateTime updatedAt;
 
   factory OnboardingDraft.fromJson(Map<String, dynamic> json) {
@@ -93,9 +97,11 @@ class OnboardingDraft {
                 .whereType<Goal>()
                 .toList(growable: false)
           : const <Goal>[],
-      experienceLevel: ExperienceLevel.values
-          .where((level) => level.name == json['experienceLevel'])
-          .firstOrNull,
+      experienceLevel:
+          ExperienceLevel.values
+              .where((level) => level.name == json['experienceLevel'])
+              .firstOrNull ??
+          ExperienceLevel.regular,
       daysPerWeek: (json['daysPerWeek'] as num?)?.toInt(),
       trainingDays: rawTrainingDays is List
           ? rawTrainingDays
@@ -105,6 +111,12 @@ class OnboardingDraft {
           : const <int>[],
       availableEquipment: EquipmentGroup.fromJson(json['availableEquipment']),
       notificationsAsked: json['notificationsAsked'] as bool? ?? false,
+      reminderHour: ((json['reminderHour'] as num?)?.toInt() ?? 18)
+          .clamp(0, 23)
+          .toInt(),
+      reminderMinute: ((json['reminderMinute'] as num?)?.toInt() ?? 0)
+          .clamp(0, 59)
+          .toInt(),
       updatedAt:
           _parseDate(json['updatedAt']) ??
           DateTime.fromMillisecondsSinceEpoch(0),
@@ -126,6 +138,8 @@ class OnboardingDraft {
       'trainingDays': trainingDays,
       'availableEquipment': EquipmentGroup.toJson(availableEquipment),
       'notificationsAsked': notificationsAsked,
+      'reminderHour': reminderHour,
+      'reminderMinute': reminderMinute,
       'updatedAt': updatedAt.toIso8601String(),
     };
   }
@@ -144,6 +158,8 @@ class OnboardingDraft {
     List<int>? trainingDays,
     List<EquipmentGroup>? availableEquipment,
     bool? notificationsAsked,
+    int? reminderHour,
+    int? reminderMinute,
     DateTime? updatedAt,
   }) {
     return OnboardingDraft(
@@ -166,6 +182,8 @@ class OnboardingDraft {
       trainingDays: trainingDays ?? this.trainingDays,
       availableEquipment: availableEquipment ?? this.availableEquipment,
       notificationsAsked: notificationsAsked ?? this.notificationsAsked,
+      reminderHour: reminderHour ?? this.reminderHour,
+      reminderMinute: reminderMinute ?? this.reminderMinute,
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }

@@ -64,15 +64,16 @@ void main() {
     expect(await service.loadExercises(), isNotEmpty);
   });
 
-  test('sample posts are labeled and ordered newest first', () {
+  test('welcome placeholder is a single faded, dashed card', () {
     final now = DateTime.utc(2026, 1, 1, 12);
-    final posts = SeedDataService().samplePosts(now);
+    final posts = SeedDataService().placeholderPosts(now);
 
-    expect(posts, hasLength(3));
-    expect(posts.every((post) => post.isSample), isTrue);
-    expect(posts.every((post) => !post.isOwn), isTrue);
-    expect(posts.map((post) => post.id).toSet(), hasLength(3));
-    expect(posts[0].createdAt.isAfter(posts[1].createdAt), isTrue);
-    expect(posts[1].createdAt.isAfter(posts[2].createdAt), isTrue);
+    expect(posts, hasLength(1));
+    expect(posts.single.id, 'placeholder-1');
+    expect(posts.single.isSample, isTrue);
+    expect(posts.single.isOwn, isFalse);
+    expect(posts.single.kudos, 0);
+    expect(posts.single.createdAt, now);
+    expect(posts.single.text, contains('Finish your first workout'));
   });
 }

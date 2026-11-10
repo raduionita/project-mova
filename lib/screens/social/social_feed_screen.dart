@@ -13,16 +13,18 @@ import '../../services/clock.dart';
 import '../../services/share_card_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_icons.dart';
+import '../../theme/app_radii.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
 import '../../widgets/app_card.dart';
 import '../../widgets/app_empty_state.dart';
 import '../../widgets/app_icon.dart';
 import '../../widgets/app_tag.dart';
+import '../../widgets/dashed_border.dart';
 import '../../widgets/kudos_button.dart';
 import '../../widgets/share_card_sheet.dart';
 
-/// Local-only social feed with sample posts, own workout posts, and kudos.
+/// Local-only social feed with one welcome placeholder and own workout posts.
 class SocialFeedScreen extends StatefulWidget {
   const SocialFeedScreen({
     super.key,
@@ -56,20 +58,21 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
       return;
     }
     final social = context.read<SocialProvider>();
-    social.setSamplesDismissed(settings.settings.sampleFeedDismissed);
+    social.setPlaceholderDismissed(settings.settings.sampleFeedDismissed);
     await social.load();
   }
 
-  Future<void> _hideSamples() async {
+  Future<void> _hidePlaceholder() async {
     final settings = context.read<SettingsProvider>();
     final social = context.read<SocialProvider>();
     await settings.dismissSampleFeed();
-    await social.dismissSamples();
+    await social.dismissPlaceholder();
     if (!mounted) {
       return;
     }
-    ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text('Sample posts hidden.')));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Placeholder post hidden.')));
   }
 
   Future<void> _toggleKudos(ActivityPost post) async {
@@ -134,12 +137,12 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
             style: AppTypography.h1.copyWith(color: AppColors.text),
           ),
         ),
-        if (social.hasSamples)
+        if (social.hasPlaceholder)
           TextButton(
             key: const Key('hide-samples'),
-            onPressed: _hideSamples,
+            onPressed: _hidePlaceholder,
             child: Text(
-              'Hide samples',
+              'Hide placeholder',
               style: AppTypography.label.copyWith(color: AppColors.lime),
             ),
           ),
@@ -220,10 +223,6 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
                               variant: AppTagVariant.lime,
                             ),
                           ],
-                          if (post.isSample) ...<Widget>[
-                            const SizedBox(width: AppSpacing.sm),
-                            const AppTag(label: 'Sample'),
-                          ],
                         ],
                       ),
                       const SizedBox(height: AppSpacing.xxs),
@@ -283,6 +282,86 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
     );
   }
 
+  Widget _buildPlaceholderPost(ActivityPost post) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+      child: Opacity(
+        opacity: 0.72,
+        child: Container(
+          key: const Key('feed-placeholder'),
+          decoration: BoxDecoration(
+            color: AppColors.card,
+            borderRadius: BorderRadius.circular(AppRadii.xl),
+          ),
+          child: DashedBorder(
+            color: AppColors.muted.withValues(alpha: 0.4),
+            radius: AppRadii.xl,
+            dashLength: 7,
+            gapLength: 5,
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.xl + AppSpacing.xxs),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      _buildAvatar(post),
+                      const SizedBox(width: AppSpacing.xl),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Row(
+                              children: <Widget>[
+                                Flexible(
+                                  child: Text(
+                                    post.authorName,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: AppTypography.bodyStrong.copyWith(
+                                      color: AppColors.text,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: AppSpacing.sm),
+                                const AppTag(label: 'Placeholder'),
+                              ],
+                            ),
+                            const SizedBox(height: AppSpacing.xxs),
+                            Text(
+                              formatRelativeTime(post.createdAt, _now),
+                              style: AppTypography.caption.copyWith(
+                                color: AppColors.muted,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  Text(
+                    post.text,
+                    style: AppTypography.body.copyWith(color: AppColors.text),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    'This preview disappears after your first workout.',
+                    style: AppTypography.caption.copyWith(
+                      color: AppColors.muted,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildEmptyState() {
     return AppEmptyState(
       assetIcon: AppIcons.navSocial,
@@ -307,7 +386,10 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
     }
     return ListView(
       padding: const EdgeInsets.only(bottom: AppSpacing.x4l),
-      children: <Widget>[for (final post in posts) _buildPost(post)],
+      children: <Widget>[
+        for (final post in posts)
+          post.isSample ? _buildPlaceholderPost(post) : _buildPost(post),
+      ],
     );
   }
 

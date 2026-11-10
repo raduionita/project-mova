@@ -22,9 +22,9 @@ Turn on Workout reminders in Settings, choose the days and time, and allow notif
 
 You can enter steps manually from the Today steps card. To read steps from your device, connect Apple Health or Health Connect in Settings. Mova reads step count only. If health access is unavailable, manual entry still works.
 
-## Sample posts
+## Welcome post
 
-The Social tab starts with three clearly labeled sample posts. Use Hide sample posts in Settings to remove them. Your own posts stay on the device.
+The Social tab starts with one faded, dashed welcome post. It is a preview, not a real workout. Use Hide placeholder post in Settings to remove it, or finish your first workout and the preview makes way for your own post. Your posts stay on the device.
 
 ## Reset local data
 

@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../common/constants.dart';
+import '../../common/goal_display.dart';
 import '../../models/experience_level.dart';
-import '../../models/goal.dart';
 import '../../models/exercise.dart';
+import '../../models/goal.dart';
 import '../../models/onboarding_draft.dart';
 import '../../models/plan_day.dart';
 import '../../models/training_plan.dart';
@@ -60,13 +61,6 @@ class _PlanPreviewScreenState extends State<PlanPreviewScreen> {
     'SAT',
     'SUN',
   ];
-
-  static const Map<Goal, String> _goalLabels = <Goal, String>{
-    Goal.buildMuscle: 'Build muscle',
-    Goal.getStronger: 'Get stronger',
-    Goal.loseWeight: 'Lose weight',
-    Goal.stayHealthy: 'Stay healthy',
-  };
 
   static const Map<ExperienceLevel, String> _experienceLabels =
       <ExperienceLevel, String>{
@@ -192,8 +186,8 @@ class _PlanPreviewScreenState extends State<PlanPreviewScreen> {
 
   String _subtitle(OnboardingDraft draft) {
     final goal = draft.goals.isEmpty
-        ? 'Build muscle'
-        : _goalLabels[draft.goals.first]!;
+        ? goalLabel(Goal.buildMuscle)
+        : goalLabel(draft.goals.first);
     final days = draft.daysPerWeek ?? draft.trainingDays.length;
     final level =
         _experienceLabels[draft.experienceLevel ?? ExperienceLevel.beginner]!;

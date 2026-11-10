@@ -208,7 +208,7 @@ The HTML mockup uses a system sans at small sizes. Those values describe a 292 p
 | `xs` | 6 | Micro tags, tiny badges |
 | `sm` | 8 | Stepper buttons, small icon buttons |
 | `md` | 11 | Inputs, set rows, search fields |
-| `lg` | 13 | Stat tiles, choice rows, goal tiles |
+| `lg` | 13 | Stat tiles, choice rows |
 | `xl` | 14 | Cards |
 | `2xl` | 16 | Featured cards, PR cards, sheets on compact screens |
 | `3xl` | 20 | Bottom sheets, dialogs |
@@ -250,7 +250,7 @@ The HTML mockup uses a system sans at small sizes. Those values describe a 292 p
 ### 7.2 Emoji
 
 - Emoji are allowed inside seeded social content.
-- Onboarding goal tiles use SVG icons, not emoji.
+- Onboarding goal cards use SVG icons, not emoji.
 - Do not use emoji as navigation icons, button labels, or data labels.
 - Do not use emoji in the PR share card.
 
@@ -589,12 +589,12 @@ All screens use `background`, 16 px horizontal padding, and the `body` type as t
 
 - **Purpose:** Turn the profile into a goal, a training week, an equipment set, and a reminder choice.
 - **Screens:** `/onboarding/goals`, `/onboarding/experience`, `/onboarding/schedule`, `/onboarding/equipment`, `/onboarding/notifications`.
-- **Goals:** 2x2 grid of square `AppTileGrid` icon tiles for build muscle, get stronger, lose weight, and stay healthy, with 32 px icons. The grid is capped at 400 px so squares stay readable on wide windows. At least one is required. The first selected goal is primary and is labelled as such.
-- **Experience:** Single-select cards for beginner, regular, gym rat, and veteran, each with a one-line description, a 40 px icon box, and 16 px inner padding.
+- **Goals:** Multi-select cards for build muscle, get stronger, lose weight, and stay healthy, each with a one-line description, a 40 px icon box, and 16 px inner padding. The cards match the experience step. At least one is required. The first selected goal is primary and is labelled as such.
+- **Experience:** Single-select cards for beginner, regular, gym rat, and veteran, each with a one-line description, a 40 px icon box, and 16 px inner padding. Regular is selected by default and one level is always active.
 - **Schedule:** Days per week from 1 to 7 and the training weekdays. Default is 3 days on Monday, Wednesday, and Friday. At least one weekday is required and the count must match the selected days per week.
 - **Equipment:** Multi-select cards for bodyweight, dumbbells, barbell and EZ bar, machines, cable station, kettlebells, and accessories. Every group is selected by default so a new user keeps a full-gym plan. At least one group is required. The selection is stored on the profile and every generated plan.
 - **Notifications:** Explain workout reminders. Enable asks for system permission. Deny, Not now, or unavailable continues with reminders off. The choice is stored and can be changed later in Settings.
-- **Components:** `AppTileGrid`, `AppMultiSelect`, `AppChoiceCard`, stepper, day selector, equipment cards, step progress, primary Continue.
+- **Components:** `AppMultiSelect`, `AppChoiceCard`, stepper, day selector, equipment cards, step progress, primary Continue.
 - **Behavior:** The schedule and equipment feed the plan generator. The notification choice never blocks progress.
 - **States:** No goal, no day, invalid day count, no equipment, permission granted, denied, unavailable, skipped.
 
@@ -700,10 +700,11 @@ All screens use `background`, 16 px horizontal padding, and the `body` type as t
 - **Layout:** `h1` Feed, list of activity posts, local-only notice in the first session, flexible spacer.
 - **Components:** Post row with avatar, name, activity text, time, kudos button and count. Own posts show a "You" tag.
 - **Actions:** Give or remove kudos, open own workout detail, open the PR share card.
-- **States:** Empty feed, first-run seeded feed, own post, kudos given.
+- **States:** Empty feed, first-run welcome placeholder, own post, kudos given.
 - **Rules:**
   - No comments, no direct messages, no follower graph in v1.
-  - The feed is local. Seeded posts are labeled as sample content and can be dismissed.
+  - The feed is local. One faded, dashed welcome placeholder stands in until the first own post or until it is dismissed.
+  - The placeholder carries no kudos count and is not a real workout.
   - Kudos are stored locally and never imply a network count.
   - No ranking, leaderboard, or gym comparison.
 
@@ -995,7 +996,7 @@ mova.v1.onboarding
 ### 15.4 Local-first behavior
 
 - The app opens with no network dependency.
-- Social content is local. Seeded sample posts are clearly labeled and removable.
+- Social content is local. One faded welcome placeholder is clearly removable.
 - Share cards are rendered and shared on device.
 - Health integration is optional. The manual steps fallback is part of the MVP.
 - No analytics SDK and no remote config in v1.
@@ -1011,7 +1012,7 @@ mova.v1.onboarding
 | 2026-11-02 | MVP scope is P0 plus P1 plus Social | User confirmed the broader scope |
 | 2026-11-02 | Local guest profile, no authentication in v1 | No backend and no Firebase. A profile is created during onboarding |
 | 2026-11-02 | Dark theme only | Matches every mockup. Tokens allow a light theme later |
-| 2026-11-02 | Social is local-first | No backend. Feed uses seeded activity plus the user's own posts and local kudos |
+| 2026-11-02 | Social is local-first | No backend. Feed uses one welcome placeholder plus the user's own posts and local kudos |
 | 2026-11-02 | Strength score is beta and unranked | A local-only app cannot compute "Top X% at your gym" honestly |
 | 2026-11-02 | Health sync has a manual fallback | Prevents Today from depending on a platform permission |
 | 2026-11-02 | Nutrition and GPS are post-MVP | They do not support the core loop |

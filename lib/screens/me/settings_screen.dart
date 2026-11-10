@@ -286,17 +286,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  Future<void> _hideSamples() async {
+  Future<void> _hidePlaceholder() async {
     final social = context.read<SocialProvider>();
     final settings = context.read<SettingsProvider>();
-    social.setSamplesDismissed(true);
-    final hidden = await social.dismissSamples();
+    social.setPlaceholderDismissed(true);
+    final hidden = await social.dismissPlaceholder();
     if (!hidden) {
-      _showMessage(social.error ?? 'Could not hide sample posts.');
+      _showMessage(social.error ?? 'Could not hide the placeholder post.');
       return;
     }
     await settings.dismissSampleFeed();
-    _showMessage('Sample posts hidden.');
+    _showMessage('Placeholder post hidden.');
   }
 
   Future<void> _openReset() async {
@@ -587,7 +587,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               activeThumbColor: AppColors.limeInk,
             ),
           ),
-          if (social.hasSamples) ...<Widget>[
+          if (social.hasPlaceholder) ...<Widget>[
             const Divider(
               color: AppColors.line,
               height: 1,
@@ -597,9 +597,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             SettingsRow(
               key: const Key('settings-hide-samples'),
               assetIcon: AppIcons.eyeOff,
-              label: 'Hide sample posts',
-              value: 'Remove the three labeled samples',
-              onTap: _hideSamples,
+              label: 'Hide placeholder post',
+              value: 'Remove the welcome preview',
+              onTap: _hidePlaceholder,
             ),
           ],
         ],

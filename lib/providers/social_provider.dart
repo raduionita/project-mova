@@ -33,15 +33,15 @@ class SocialProvider extends ChangeNotifier {
     return _posts.where((post) => !post.isOwn).toList(growable: false);
   }
 
-  bool get hasSamples => _posts.any((post) => post.isSample);
+  bool get hasPlaceholder => _posts.any((post) => post.isSample);
 
   bool hasPostForSession(String sessionId) {
     return _posts.any((post) => post.sessionId == sessionId);
   }
 
-  /// Tells the provider whether sample posts were dismissed in Settings.
-  /// Call this before [load] so a missing payload does not reseed them.
-  void setSamplesDismissed(bool dismissed) {
+  /// Tells the provider whether the welcome placeholder was dismissed in
+  /// Settings. Call this before [load] so a missing payload does not reseed it.
+  void setPlaceholderDismissed(bool dismissed) {
     _samplesDismissed = dismissed;
   }
 
@@ -57,11 +57,11 @@ class SocialProvider extends ChangeNotifier {
       if (payload == null) {
         _posts = _samplesDismissed
             ? const <ActivityPost>[]
-            : _seedDataService.samplePosts(_clock.now());
+            : _seedDataService.placeholderPosts(_clock.now());
         await _write(_posts);
       } else {
         final rawPosts = payload['posts'];
-        _posts = rawPosts is List
+        final parsed = rawPosts is List
             ? rawPosts
                   .whereType<Map>()
                   .map(
@@ -71,6 +71,17 @@ class SocialProvider extends ChangeNotifier {
                   )
                   .toList(growable: false)
             : const <ActivityPost>[];
+        final stored = parsed
+            .where((post) => !post.isSample)
+            .toList(growable: false);
+        _samplesDismissed =
+            _samplesDismissed || payload['placeholderDismissed'] == true;
+        _posts = stored.isEmpty && !_samplesDismissed
+            ? _seedDataService.placeholderPosts(_clock.now())
+            : stored;
+        if (_posts.length != parsed.length) {
+          await _write(_posts);
+        }
       }
     } catch (error) {
       _error = error.toString();
@@ -81,7 +92,7 @@ class SocialProvider extends ChangeNotifier {
   }
 
   Future<bool> addPost(ActivityPost post) {
-    final next = <ActivityPost>[..._posts];
+    final next = _posts.where((item) => !item.isSample).toList();
     final index = next.indexWhere((item) => item.id == post.id);
     if (index == -1) {
       next.insert(0, post);
@@ -124,7 +135,7 @@ class SocialProvider extends ChangeNotifier {
     return _write(next);
   }
 
-  Future<bool> dismissSamples() {
+  Future<bool> dismissPlaceholder() {
     _samplesDismissed = true;
     final next = _posts.where((post) => !post.isSample).toList(growable: false);
     return _write(next);
@@ -135,6 +146,7 @@ class SocialProvider extends ChangeNotifier {
     final saved = await _storage.writeObject(kSocialKey, <String, dynamic>{
       'schemaVersion': kSchemaVersion,
       'seeded': true,
+      'placeholderDismissed': _samplesDismissed,
       'posts': posts.map((post) => post.toJson()).toList(growable: false),
     });
     if (!saved) {

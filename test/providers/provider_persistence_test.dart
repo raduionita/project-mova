@@ -157,7 +157,7 @@ void main() {
     expect(reloaded.routines, isEmpty);
   });
 
-  test('social feed seeds, persists kudos, and dismisses samples', () async {
+  test('social feed seeds and dismisses the placeholder', () async {
     final storage = StorageService.inMemory();
     final provider = SocialProvider(
       storage,
@@ -166,20 +166,12 @@ void main() {
     );
     await provider.load();
 
-    expect(provider.posts, hasLength(3));
-    expect(provider.posts.every((post) => post.isSample), isTrue);
+    expect(provider.posts, hasLength(1));
+    expect(provider.posts.single.id, 'placeholder-1');
+    expect(provider.posts.single.isSample, isTrue);
 
-    final first = provider.posts.first;
-    expect(await provider.toggleKudos(first.id), isTrue);
-    expect(provider.posts.first.kudosGiven, isTrue);
-    expect(provider.posts.first.kudos, first.kudos + 1);
-
-    final reloaded = SocialProvider(storage, SeedDataService());
-    await reloaded.load();
-    expect(reloaded.posts.first.kudosGiven, isTrue);
-
-    expect(await reloaded.dismissSamples(), isTrue);
-    expect(reloaded.posts, isEmpty);
+    expect(await provider.dismissPlaceholder(), isTrue);
+    expect(provider.posts, isEmpty);
 
     final cleared = SocialProvider(storage, SeedDataService());
     await cleared.load();

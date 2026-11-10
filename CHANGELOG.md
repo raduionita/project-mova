@@ -135,3 +135,9 @@
 2026.11.10 UI-21 Center the Today week label, move Edit plan left, and move the streak into the workout card
 2026.11.10 UI-22 Add boxed weight and reps fields and swipe-to-remove set rows
 2026.11.10 UI-23 Show the experience icon on the Me avatar
+2026.11.10 POL-01 Replace the sample feed with one faded dashed Mova Coach placeholder
+2026.11.10 POL-02 Use the saved name or the experience level as the profile display name
+2026.11.10 POL-03 Add a real reminder time picker to onboarding and persist the chosen time
+2026.11.10 POL-04 Label share cards WORKOUT or PERSONAL RECORD from the record context
+2026.11.10 UI-25 Replace the onboarding goal grid with described choice cards
+2026.11.10 UI-26 Default the onboarding experience step to regular

@@ -114,6 +114,10 @@ class OnboardingProvider extends ChangeNotifier {
     return _update(_draft.copyWith(notificationsAsked: asked));
   }
 
+  Future<bool> setReminderTime({required int hour, required int minute}) {
+    return _update(_draft.copyWith(reminderHour: hour, reminderMinute: minute));
+  }
+
   bool canContinue(OnboardingStep step) {
     switch (step) {
       case OnboardingStep.welcome:

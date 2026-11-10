@@ -174,6 +174,41 @@ void main() {
     expect(reloadedDraft.draft.notificationsAsked, isTrue);
   });
 
+  testWidgets('the reminder time opens a time picker', (tester) async {
+    final storage = StorageService.inMemory();
+    await storage.writeObject(
+      kOnboardingKey,
+      OnboardingDraft(
+        currentStep: OnboardingStep.notifications,
+        reminderHour: 7,
+        reminderMinute: 30,
+        updatedAt: _fixedNow,
+      ).toJson(),
+    );
+    final onboarding = await _onboardingWith(storage, seed: false);
+    final settings = await _settingsWith(storage);
+
+    await tester.pumpWidget(
+      _wrap(
+        onboarding,
+        settings,
+        _FakeNotificationService(permissionGranted: true),
+        (_) {},
+      ),
+    );
+
+    expect(find.text('07:30'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('onboarding-reminder-time')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(TimePickerDialog), findsOneWidget);
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+
+    expect(onboarding.draft.reminderHour, 7);
+    expect(onboarding.draft.reminderMinute, 30);
+  });
+
   testWidgets('back returns to the schedule step', (tester) async {
     final storage = StorageService.inMemory();
     final onboarding = await _onboardingWith(storage);

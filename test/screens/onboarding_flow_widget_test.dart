@@ -264,7 +264,7 @@ void main() {
 
     final profile = ProfileProvider(storage, clock: FakeClock(_fixedNow));
     await profile.load();
-    expect(profile.profile?.displayName, 'Athlete');
+    expect(profile.profile?.displayName, isEmpty);
     expect(profile.profile?.bodyWeightKg, 78);
     expect(profile.profile?.heightCm, 175);
     expect(profile.profile?.goals, const <Goal>[Goal.buildMuscle]);

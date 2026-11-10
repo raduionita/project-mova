@@ -264,7 +264,7 @@ void main() {
     tester,
   ) async {
     final harness = await _pump(tester);
-    expect(harness.social.hasSamples, isTrue);
+    expect(harness.social.hasPlaceholder, isTrue);
 
     await tester.ensureVisible(
       find.byKey(const Key('settings-share-workouts')),
@@ -277,7 +277,7 @@ void main() {
     await tester.tap(find.byKey(const Key('settings-hide-samples')));
     await tester.pumpAndSettle();
 
-    expect(harness.social.hasSamples, isFalse);
+    expect(harness.social.hasPlaceholder, isFalse);
     expect(harness.settings.settings.sampleFeedDismissed, isTrue);
   });
 

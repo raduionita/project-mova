@@ -12,12 +12,20 @@ DateTime? _parseDate(Object? value) {
   return null;
 }
 
+String _parseDisplayName(Object? value) {
+  if (value is! String) {
+    return '';
+  }
+  final trimmed = value.trim();
+  return trimmed == 'Athlete' ? '' : trimmed;
+}
+
 /// Local guest profile.
 class UserProfile {
   const UserProfile({
     this.schemaVersion = 1,
     required this.id,
-    this.displayName = 'Athlete',
+    this.displayName = '',
     this.gender,
     this.birthDate,
     this.heightCm = 0.0,
@@ -55,7 +63,7 @@ class UserProfile {
     return UserProfile(
       schemaVersion: (json['schemaVersion'] as num?)?.toInt() ?? 1,
       id: json['id'] as String? ?? '',
-      displayName: json['displayName'] as String? ?? 'Athlete',
+      displayName: _parseDisplayName(json['displayName']),
       gender: Gender.values
           .where((gender) => gender.name == json['gender'])
           .firstOrNull,

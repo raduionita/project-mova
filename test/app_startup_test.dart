@@ -145,7 +145,7 @@ void main() {
     expect(find.text('No plan yet'), findsOneWidget);
   });
 
-  testWidgets('startup seeds the sample feed before a workout is saved', (
+  testWidgets('startup seeds one placeholder post before a workout is saved', (
     tester,
   ) async {
     final storage = await _pumpApp(tester, profile: _completeProfile());
@@ -156,16 +156,15 @@ void main() {
     );
     expect(payload, isNotNull);
     final posts = payload!['posts'] as List<dynamic>;
-    expect(posts, hasLength(3));
-    expect(
-      posts.every((post) => (post as Map<String, dynamic>)['isSample'] == true),
-      isTrue,
-    );
+    expect(posts, hasLength(1));
+    expect((posts.single as Map<String, dynamic>)['isSample'], isTrue);
 
     await tester.tap(find.text('Social'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Sample'), findsNWidgets(3));
+    expect(find.text('Placeholder'), findsOneWidget);
+    expect(find.text('Sample'), findsNothing);
+    expect(find.byKey(const Key('feed-placeholder')), findsOneWidget);
   });
 
   testWidgets('an incomplete profile with a draft resumes onboarding', (

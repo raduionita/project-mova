@@ -17,13 +17,16 @@ import 'package:provider/provider.dart';
 final DateTime _now = DateTime(2026, 11, 10, 12);
 final FakeClock _clock = FakeClock(_now);
 
-Future<StorageService> _storageWith(ExperienceLevel? level) async {
+Future<StorageService> _storageWith(
+  ExperienceLevel? level, {
+  String displayName = 'Andrei',
+}) async {
   final storage = StorageService.inMemory();
   await storage.writeObject(
     kProfileKey,
     UserProfile(
       id: 'profile-1',
-      displayName: 'Andrei',
+      displayName: displayName,
       experienceLevel: level,
       createdAt: DateTime(2026, 10, 1),
       updatedAt: _now,
@@ -73,5 +76,26 @@ void main() {
     await tester.pump();
 
     expect(_avatarIcon(tester).asset, AppIcons.navMe);
+  });
+
+  testWidgets('an empty name shows the experience level', (tester) async {
+    await tester.pumpWidget(
+      await _wrap(await _storageWith(ExperienceLevel.regular, displayName: '')),
+    );
+    await tester.pump();
+
+    expect(find.text('Regular'), findsWidgets);
+    expect(find.text('Andrei'), findsNothing);
+  });
+
+  testWidgets('a saved name is shown as-is', (tester) async {
+    await tester.pumpWidget(
+      await _wrap(
+        await _storageWith(ExperienceLevel.veteran, displayName: 'Andrei'),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.text('Andrei'), findsOneWidget);
   });
 }

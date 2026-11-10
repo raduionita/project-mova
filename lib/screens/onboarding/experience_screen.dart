@@ -51,13 +51,15 @@ class _ExperienceScreenState extends State<ExperienceScreen> {
     ),
   ];
 
-  ExperienceLevel? _selected;
+  late ExperienceLevel _selected;
   bool _isBusy = false;
 
   @override
   void initState() {
     super.initState();
-    _selected = context.read<OnboardingProvider>().draft.experienceLevel;
+    _selected =
+        context.read<OnboardingProvider>().draft.experienceLevel ??
+        ExperienceLevel.regular;
   }
 
   void _open(BuildContext context, String route) {
@@ -70,14 +72,13 @@ class _ExperienceScreenState extends State<ExperienceScreen> {
   }
 
   Future<void> _continue() async {
-    final selected = _selected;
-    if (_isBusy || selected == null) {
+    if (_isBusy) {
       return;
     }
     setState(() => _isBusy = true);
     final onboarding = context.read<OnboardingProvider>();
 
-    await onboarding.setExperienceLevel(selected);
+    await onboarding.setExperienceLevel(_selected);
     final next = OnboardingFlow.nextRoute(Routes.onboardingExperience)!;
     onboarding.syncStep(OnboardingFlow.stepFor(next));
     if (!mounted) {
@@ -128,8 +129,8 @@ class _ExperienceScreenState extends State<ExperienceScreen> {
       subtitle: 'Sets starting volume and exercise selection.',
       currentStep: OnboardingFlow.stepForRoute(Routes.onboardingExperience),
       onBack: () => _back(context),
-      onContinue: _selected == null ? null : _continue,
-      continueEnabled: _selected != null,
+      onContinue: _continue,
+      continueEnabled: true,
       isBusy: _isBusy,
       child: _buildOptions(),
     );

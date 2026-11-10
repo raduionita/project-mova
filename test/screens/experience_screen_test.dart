@@ -36,7 +36,7 @@ Widget _wrap(OnboardingProvider provider, ValueChanged<String> onRoute) {
 }
 
 void main() {
-  testWidgets('shows four levels and blocks continue until one is picked', (
+  testWidgets('defaults to regular and continues without a tap', (
     tester,
   ) async {
     final provider = await _providerWith(StorageService.inMemory());
@@ -49,11 +49,15 @@ void main() {
     expect(find.text('Gym rat'), findsOneWidget);
     expect(find.text('Veteran'), findsOneWidget);
 
+    final cards = tester.widgetList<AppChoiceCard>(find.byType(AppChoiceCard));
+    expect(cards.elementAt(1).selected, isTrue);
+    expect(cards.where((card) => card.selected), hasLength(1));
+
     await tester.tap(find.text('Continue'));
     await tester.pumpAndSettle();
 
-    expect(routes, isEmpty);
-    expect(provider.draft.experienceLevel, isNull);
+    expect(routes, <String>[Routes.onboardingSchedule]);
+    expect(provider.draft.experienceLevel, ExperienceLevel.regular);
   });
 
   testWidgets('uses a larger icon and roomier padding on the cards', (
