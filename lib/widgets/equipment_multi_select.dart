@@ -41,13 +41,13 @@ class EquipmentMultiSelect extends StatelessWidget {
           value: EquipmentGroup.machines,
           label: 'Machines',
           description: 'Selectorized and plate-loaded machines',
-          assetIcon: AppIcons.gear,
+          assetIcon: AppIcons.machine,
         ),
         AppMultiSelectOption<EquipmentGroup>(
           value: EquipmentGroup.cables,
           label: 'Cable station',
           description: 'Pulleys and cable stacks',
-          assetIcon: AppIcons.link,
+          assetIcon: AppIcons.cable,
         ),
         AppMultiSelectOption<EquipmentGroup>(
           value: EquipmentGroup.kettlebells,
@@ -59,7 +59,7 @@ class EquipmentMultiSelect extends StatelessWidget {
           value: EquipmentGroup.accessories,
           label: 'Accessories',
           description: 'Ab wheel, medicine ball, and sled',
-          assetIcon: AppIcons.band,
+          assetIcon: AppIcons.accessory,
         ),
       ];
 

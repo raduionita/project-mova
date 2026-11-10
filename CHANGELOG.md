@@ -141,3 +141,4 @@
 2026.11.10 POL-04 Label share cards WORKOUT or PERSONAL RECORD from the record context
 2026.11.10 UI-25 Replace the onboarding goal grid with described choice cards
 2026.11.10 UI-26 Default the onboarding experience step to regular
+2026.11.10 UI-27 Give every equipment group its own SVG icon

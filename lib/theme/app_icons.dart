@@ -66,5 +66,8 @@ class AppIcons {
   static const String bodyweight = 'assets/icons/bodyweight.svg';
   static const String barbell = 'assets/icons/barbell.svg';
   static const String kettlebell = 'assets/icons/kettlebell.svg';
+  static const String machine = 'assets/icons/machine.svg';
+  static const String cable = 'assets/icons/cable.svg';
+  static const String accessory = 'assets/icons/accessory.svg';
   static const String band = 'assets/icons/band.svg';
 }
