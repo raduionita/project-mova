@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../common/equipment_display.dart';
 import '../models/exercise.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_icons.dart';
@@ -71,6 +72,21 @@ class ExerciseRow extends StatelessWidget {
           ),
           child: Row(
             children: <Widget>[
+              Container(
+                width: AppSpacing.x5l,
+                height: AppSpacing.x5l,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceAlt,
+                  borderRadius: BorderRadius.circular(AppRadii.sm),
+                ),
+                child: AppIcon(
+                  asset: EquipmentDisplay.iconFor(exercise.equipment),
+                  size: 20,
+                  color: AppColors.muted,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

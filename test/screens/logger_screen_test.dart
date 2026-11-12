@@ -353,7 +353,13 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
     expect(workout.activeSession!.exercises.first.sets.first.completed, isTrue);
-    expect(_assetIcon(AppIcons.check), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(SetRow).first,
+        matching: _assetIcon(AppIcons.check),
+      ),
+      findsOneWidget,
+    );
 
     await tester.tap(find.text('Skip'));
     await tester.pump();
@@ -576,6 +582,65 @@ void main() {
       swapped.sets.every((set) => set.weightKg == 0 && !set.completed),
       isTrue,
     );
+  });
+
+  testWidgets('shows live duration, volume, and set totals', (tester) async {
+    final clock = FakeClock(now);
+    await pumpLogger(tester, clock: clock);
+
+    expect(find.byKey(const Key('logger-stats-bar')), findsOneWidget);
+    expect(find.text('00:00'), findsOneWidget);
+    expect(find.text('0 kg'), findsOneWidget);
+    expect(find.text('0 / 5'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Edit weight for set 1'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), '100');
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Complete set 1'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(find.text('800 kg'), findsOneWidget);
+    expect(find.text('1 / 5'), findsOneWidget);
+
+    clock.advance(const Duration(seconds: 65));
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.text('01:05'), findsOneWidget);
+  });
+
+  testWidgets('saves an exercise note and shows a preview', (tester) async {
+    final workout = await pumpLogger(tester);
+
+    await tester.tap(find.byKey(const Key('logger-exercise-notes')));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.byKey(const Key('exercise-notes-field')),
+      '  Pause at the chest  ',
+    );
+    await tester.tap(find.byKey(const Key('exercise-notes-save')));
+    await tester.pumpAndSettle();
+
+    expect(workout.activeSession!.exercises.first.notes, 'Pause at the chest');
+    expect(find.byKey(const Key('logger-exercise-note')), findsOneWidget);
+    expect(find.text('Pause at the chest'), findsOneWidget);
+  });
+
+  testWidgets('rest timer toggle suppresses the rest banner', (tester) async {
+    await pumpLogger(tester);
+
+    await tester.tap(find.byKey(const Key('logger-rest-toggle')));
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('Rest timer off'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Complete set 1'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(find.textContaining('Rest ·'), findsNothing);
   });
 }
 

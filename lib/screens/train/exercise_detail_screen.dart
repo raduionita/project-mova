@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../common/equipment_display.dart';
 import '../../common/formatters.dart';
 import '../../models/exercise.dart';
 import '../../models/personal_record.dart';
@@ -19,6 +20,7 @@ import '../../widgets/app_back_bar.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_card.dart';
 import '../../widgets/app_empty_state.dart';
+import '../../widgets/app_icon.dart';
 import '../../widgets/app_tag.dart';
 import '../../widgets/exercise_picker_sheet.dart';
 
@@ -56,6 +58,44 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
 
   Widget _buildBackBar() {
     return const AppBackBar(label: 'Exercise');
+  }
+
+  Widget _buildHero(Exercise exercise) {
+    return Row(
+      children: <Widget>[
+        Container(
+          width: 72,
+          height: 72,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: AppColors.limeSoft,
+            borderRadius: BorderRadius.circular(AppRadii.xl),
+          ),
+          child: AppIcon(
+            asset: EquipmentDisplay.iconFor(exercise.equipment),
+            size: 34,
+            color: AppColors.lime,
+          ),
+        ),
+        const SizedBox(width: AppSpacing.xl),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(
+                exercise.name,
+                style: AppTypography.h1.copyWith(color: AppColors.text),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                '${exercise.primaryMuscle} · ${exercise.equipment}',
+                style: AppTypography.caption.copyWith(color: AppColors.muted),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _buildTags(Exercise exercise) {
@@ -212,10 +252,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Text(
-                  exercise.name,
-                  style: AppTypography.h1.copyWith(color: AppColors.text),
-                ),
+                _buildHero(exercise),
                 const SizedBox(height: AppSpacing.xl),
                 _buildTags(exercise),
                 const SizedBox(height: AppSpacing.x3l),

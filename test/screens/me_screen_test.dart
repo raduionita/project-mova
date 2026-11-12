@@ -6,6 +6,7 @@ import 'package:mova/models/user_profile.dart';
 import 'package:mova/providers/profile_provider.dart';
 import 'package:mova/providers/progress_provider.dart';
 import 'package:mova/providers/settings_provider.dart';
+import 'package:mova/providers/weight_provider.dart';
 import 'package:mova/screens/me/me_screen.dart';
 import 'package:mova/services/clock.dart';
 import 'package:mova/services/storage_service.dart';
@@ -20,6 +21,7 @@ final FakeClock _clock = FakeClock(_now);
 Future<StorageService> _storageWith(
   ExperienceLevel? level, {
   String displayName = 'Andrei',
+  double bodyWeightKg = 0,
 }) async {
   final storage = StorageService.inMemory();
   await storage.writeObject(
@@ -28,6 +30,7 @@ Future<StorageService> _storageWith(
       id: 'profile-1',
       displayName: displayName,
       experienceLevel: level,
+      bodyWeightKg: bodyWeightKg,
       createdAt: DateTime(2026, 10, 1),
       updatedAt: _now,
     ).toJson(),
@@ -42,11 +45,14 @@ Future<Widget> _wrap(StorageService storage) async {
   await progress.load();
   final settings = SettingsProvider(storage);
   await settings.load();
+  final weights = WeightProvider(storage, clock: _clock);
+  await weights.load();
   return MultiProvider(
     providers: [
       ChangeNotifierProvider<ProfileProvider>.value(value: profile),
       ChangeNotifierProvider<ProgressProvider>.value(value: progress),
       ChangeNotifierProvider<SettingsProvider>.value(value: settings),
+      ChangeNotifierProvider<WeightProvider>.value(value: weights),
     ],
     child: MaterialApp(theme: AppTheme.dark, home: const MeScreen()),
   );
@@ -97,5 +103,17 @@ void main() {
     await tester.pump();
 
     expect(find.text('Andrei'), findsOneWidget);
+  });
+
+  testWidgets('body weight row shortcuts to the weight log', (tester) async {
+    await tester.pumpWidget(
+      await _wrap(
+        await _storageWith(ExperienceLevel.regular, bodyWeightKg: 78.5),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.byKey(const Key('me-weight-row')), findsOneWidget);
+    expect(find.text('78.5 kg'), findsOneWidget);
   });
 }

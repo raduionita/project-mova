@@ -93,9 +93,15 @@ void main() {
       healthProvider: HealthProvider.appleHealth,
       postWorkoutsToFeed: false,
       sampleFeedDismissed: true,
+      restTimerEnabled: false,
     );
     final decoded = AppSettings.fromJson(settings.toJson());
     expect(decoded.toJson(), settings.toJson());
+  });
+
+  test('AppSettings defaults the rest timer on for legacy JSON', () {
+    final decoded = AppSettings.fromJson(const <String, Object?>{});
+    expect(decoded.restTimerEnabled, isTrue);
   });
 
   test('OnboardingDraft round-trips', () {

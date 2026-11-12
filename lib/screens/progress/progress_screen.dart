@@ -9,6 +9,7 @@ import '../../providers/exercise_provider.dart';
 import '../../providers/profile_provider.dart';
 import '../../providers/progress_provider.dart';
 import '../../providers/settings_provider.dart';
+import '../../providers/weight_provider.dart';
 import '../../services/clock.dart';
 import '../../services/unit_conversion_service.dart';
 import '../../theme/app_colors.dart';
@@ -24,6 +25,31 @@ import '../../widgets/app_tag.dart';
 import '../../widgets/body_weight_sheet.dart';
 import '../../widgets/progress_ring.dart';
 import '../../widgets/volume_bars.dart';
+import '../../widgets/weight_chart.dart';
+
+/// Plain-language definitions shown from the Progress header.
+const List<(String, String)> _metricDefinitions = <(String, String)>[
+  (
+    'Workouts',
+    'Completed sessions saved on this device. Discarded or unfinished '
+        'sessions never count.',
+  ),
+  (
+    'Volume',
+    'Weight times reps for every completed set with external load. '
+        'Bodyweight-only sets do not add volume.',
+  ),
+  (
+    'Streak',
+    'Consecutive days with at least one completed workout, ending today.',
+  ),
+  ('Weekly volume', 'Volume from the last 7 days, including today.'),
+  (
+    'PR',
+    'The best estimated one-rep max for an exercise, from its heaviest '
+        'completed set.',
+  ),
+];
 
 /// Progress dashboard with lifetime totals, score, weekly volume, and PRs.
 class ProgressScreen extends StatefulWidget {
@@ -68,15 +94,93 @@ class _ProgressScreenState extends State<ProgressScreen>
     final progress = context.read<ProgressProvider>();
     final library = context.read<ExerciseProvider>();
     final profile = context.read<ProfileProvider>();
+    final weights = context.read<WeightProvider>();
     await Future.wait<void>(<Future<void>>[
       progress.load(),
       if (library.exercises.isEmpty && !library.isLoading) library.load(),
       if (profile.profile == null && !profile.isLoading) profile.load(),
+      if (weights.entries.isEmpty && !weights.isLoading) weights.load(),
     ]);
   }
 
   Future<void> _addBodyWeight() async {
     await BodyWeightSheet.show(context);
+  }
+
+  Future<void> _openWeightLog() async {
+    await Navigator.of(context).pushNamed(Routes.progressWeight);
+  }
+
+  Widget _buildWeightCard(
+    WeightProvider weights,
+    ProfileProvider profile,
+    WeightUnit unit,
+  ) {
+    final latest =
+        weights.latest?.weightKg ?? profile.profile?.bodyWeightKg ?? 0;
+    final ordered = weights.entries.reversed.toList(growable: false);
+    final hasTrend = ordered.length > 1;
+    return AppCard(
+      key: const Key('progress-weight-card'),
+      onTap: _openWeightLog,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              const AppIcon(
+                asset: AppIcons.scale,
+                size: 22,
+                color: AppColors.lime,
+              ),
+              const SizedBox(width: AppSpacing.xl),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      'Body weight',
+                      style: AppTypography.title.copyWith(
+                        color: AppColors.text,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.xxs),
+                    Text(
+                      latest <= 0
+                          ? 'Add your weight to start a trend.'
+                          : _units.displayWeight(latest, unit),
+                      style: AppTypography.caption.copyWith(
+                        color: latest <= 0 ? AppColors.muted : AppColors.text,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                key: const Key('progress-add-weight'),
+                onPressed: _addBodyWeight,
+                tooltip: 'Add weight',
+                icon: const AppIcon(
+                  asset: AppIcons.plus,
+                  size: 20,
+                  color: AppColors.lime,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.xl),
+          if (hasTrend)
+            WeightChart(entries: ordered, height: 90)
+          else
+            Text(
+              weights.entries.isEmpty
+                  ? 'Your first entry also updates your strength score.'
+                  : 'Add another entry to see the trend line.',
+              style: AppTypography.caption.copyWith(color: AppColors.muted),
+            ),
+        ],
+      ),
+    );
   }
 
   Future<void> _showScoreExplanation() async {
@@ -121,6 +225,70 @@ class _ProgressScreenState extends State<ProgressScreen>
                 onPressed: () => Navigator.of(sheetContext).pop(),
               ),
             ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _showMetricsExplanation() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      useSafeArea: true,
+      backgroundColor: AppColors.panel,
+      builder: (sheetContext) {
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.x3l,
+            AppSpacing.x2l,
+            AppSpacing.x3l,
+            AppSpacing.x3l,
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                Text(
+                  'What counts',
+                  style: AppTypography.h2.copyWith(color: AppColors.text),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                for (final row in _metricDefinitions)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        SizedBox(
+                          width: 116,
+                          child: Text(
+                            row.$1,
+                            style: AppTypography.bodyStrong.copyWith(
+                              color: AppColors.text,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.sm),
+                        Expanded(
+                          child: Text(
+                            row.$2,
+                            style: AppTypography.caption.copyWith(
+                              color: AppColors.muted,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                const SizedBox(height: AppSpacing.lg),
+                AppButton(
+                  label: 'Got it',
+                  variant: AppButtonVariant.ghost,
+                  onPressed: () => Navigator.of(sheetContext).pop(),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -388,6 +556,7 @@ class _ProgressScreenState extends State<ProgressScreen>
     ProgressProvider progress,
     ProfileProvider profile,
     ExerciseProvider library,
+    WeightProvider weights,
     WeightUnit unit,
   ) {
     return SingleChildScrollView(
@@ -398,6 +567,8 @@ class _ProgressScreenState extends State<ProgressScreen>
           _buildTotals(progress, unit),
           const SizedBox(height: AppSpacing.x2l),
           _buildScoreCard(progress, profile),
+          const SizedBox(height: AppSpacing.x2l),
+          _buildWeightCard(weights, profile, unit),
           const SizedBox(height: AppSpacing.x2l),
           _buildVolumeCard(progress, unit),
           const SizedBox(height: AppSpacing.x2l),
@@ -414,6 +585,7 @@ class _ProgressScreenState extends State<ProgressScreen>
     final progress = context.watch<ProgressProvider>();
     final profile = context.watch<ProfileProvider>();
     final library = context.watch<ExerciseProvider>();
+    final weights = context.watch<WeightProvider>();
     final unit = context
         .watch<SettingsProvider>()
         .settings
@@ -434,9 +606,16 @@ class _ProgressScreenState extends State<ProgressScreen>
         onAction: _load,
       );
     } else if (progress.totalWorkouts == 0) {
-      body = _buildEmptyState();
+      body = Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          _buildWeightCard(weights, profile, unit),
+          const SizedBox(height: AppSpacing.x2l),
+          Expanded(child: _buildEmptyState()),
+        ],
+      );
     } else {
-      body = _buildContent(progress, profile, library, unit);
+      body = _buildContent(progress, profile, library, weights, unit);
     }
 
     return Scaffold(
@@ -465,6 +644,18 @@ class _ProgressScreenState extends State<ProgressScreen>
                         color: AppColors.muted,
                       ),
                     ),
+                  const SizedBox(width: AppSpacing.xs),
+                  IconButton(
+                    key: const Key('progress-metrics-info'),
+                    tooltip: 'What counts',
+                    visualDensity: VisualDensity.compact,
+                    onPressed: _showMetricsExplanation,
+                    icon: const AppIcon(
+                      asset: AppIcons.info,
+                      size: 20,
+                      color: AppColors.muted,
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: AppSpacing.x3l),

@@ -205,6 +205,36 @@ class WorkoutProvider extends ChangeNotifier {
     );
   }
 
+  Future<bool> setExerciseNotes({
+    required String exerciseId,
+    required String notes,
+  }) {
+    final session = _activeSession;
+    if (session == null) {
+      return _fail('No active workout.');
+    }
+    final index = session.exercises.indexWhere(
+      (exercise) => exercise.exerciseId == exerciseId,
+    );
+    if (index == -1) {
+      return _fail('Exercise not found.');
+    }
+    final exercise = session.exercises[index];
+    final trimmed = notes.trim();
+    if (trimmed == exercise.notes) {
+      return Future<bool>.value(true);
+    }
+    return _replace(
+      session.copyWith(
+        exercises: _replaceExercise(
+          session.exercises,
+          index,
+          exercise.copyWith(notes: trimmed),
+        ),
+      ),
+    );
+  }
+
   Future<bool> updateSet({
     required String exerciseId,
     required String setId,

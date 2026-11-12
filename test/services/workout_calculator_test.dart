@@ -53,6 +53,10 @@ void main() {
     expect(WorkoutCalculator.completedSetCount(exercises), 3);
   });
 
+  test('working set count includes open sets but excludes warm-ups', () {
+    expect(WorkoutCalculator.workingSetCount(exercises), 4);
+  });
+
   test('duration subtracts stored and running pause time', () {
     final startedAt = DateTime(2026, 11, 6, 12);
     final now = DateTime(2026, 11, 6, 12, 30);

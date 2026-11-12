@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
+import '../common/numeric_expression.dart';
 import '../models/plate_calculation.dart';
 import '../models/plate_loadout.dart';
 import '../models/unit_preferences.dart';
@@ -11,6 +13,7 @@ import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
 import 'app_chip.dart';
 import 'app_icon.dart';
+import 'calc_keypad.dart';
 
 /// Opens the plate calculator without changing the workout.
 Future<void> showPlateCalculatorSheet(
@@ -60,6 +63,8 @@ class _PlateCalculatorSheetState extends State<PlateCalculatorSheet> {
   late double _barWeight;
   double _target = 0;
 
+  static final RegExp _operatorPattern = RegExp(r'[+\-*/×÷]');
+
   @override
   void initState() {
     super.initState();
@@ -68,6 +73,119 @@ class _PlateCalculatorSheetState extends State<PlateCalculatorSheet> {
         ? widget.targetWeight
         : _loadout.defaultBarWeight;
     _targetController = TextEditingController(text: _format(_target));
+  }
+
+  void _handleKey(String token) {
+    switch (token) {
+      case CalcKeys.clear:
+        _setExpression('');
+        return;
+      case CalcKeys.backspace:
+        _backspace();
+        return;
+      case CalcKeys.equals:
+        _applyEquals();
+        return;
+      default:
+        _insert(token);
+    }
+  }
+
+  void _insert(String token) {
+    final value = _targetController.value;
+    final text = value.text;
+    var start = value.selection.start;
+    var end = value.selection.end;
+    if (start < 0 || end < 0) {
+      start = text.length;
+      end = text.length;
+    }
+    if (start > end) {
+      final swap = start;
+      start = end;
+      end = swap;
+    }
+    final left = text.substring(0, start);
+    final right = text.substring(end);
+    if (_isOperator(token)) {
+      var base = left.trimRight();
+      while (base.isNotEmpty && _isOperator(base[base.length - 1])) {
+        base = base.substring(0, base.length - 1);
+      }
+      if (base.isEmpty && token != '-') {
+        return;
+      }
+      _setExpression('$base$token$right');
+      return;
+    }
+    var insert = token;
+    if (token == CalcKeys.decimal) {
+      final segment = left.split(_operatorPattern).last;
+      if (segment.contains('.')) {
+        return;
+      }
+      if (segment.isEmpty) {
+        insert = '0.';
+      }
+    }
+    _setExpression('$left$insert$right');
+  }
+
+  void _backspace() {
+    final value = _targetController.value;
+    final text = value.text;
+    var start = value.selection.start;
+    var end = value.selection.end;
+    if (start < 0 || end < 0) {
+      start = text.length;
+      end = text.length;
+    }
+    if (start > end) {
+      final swap = start;
+      start = end;
+      end = swap;
+    }
+    if (start == end) {
+      if (start == 0) {
+        return;
+      }
+      start -= 1;
+    }
+    _setExpression(text.substring(0, start) + text.substring(end));
+  }
+
+  void _applyEquals() {
+    final parsed = evaluateNumericExpression(_targetController.text.trim());
+    if (parsed == null) {
+      return;
+    }
+    setState(() => _target = parsed);
+    _targetController.value = TextEditingValue(
+      text: _format(parsed),
+      selection: TextSelection.collapsed(offset: _format(parsed).length),
+    );
+  }
+
+  void _setExpression(String text) {
+    _targetController.value = TextEditingValue(
+      text: text,
+      selection: TextSelection.collapsed(offset: text.length),
+    );
+    _onTargetChanged(text);
+  }
+
+  double? _previewValue() {
+    final text = _targetController.text.trim();
+    for (var index = 1; index < text.length; index += 1) {
+      if (_operatorPattern.hasMatch(text[index])) {
+        return evaluateNumericExpression(text);
+      }
+    }
+    return null;
+  }
+
+  bool _isOperator(String token) {
+    return token == '+' || token == '-' || token == '×' || token == '÷';
   }
 
   @override
@@ -95,9 +213,15 @@ class _PlateCalculatorSheetState extends State<PlateCalculatorSheet> {
   );
 
   void _onTargetChanged(String value) {
-    setState(() {
-      _target = double.tryParse(value.replaceAll(',', '.')) ?? 0;
-    });
+    final text = value.trim();
+    if (text.isEmpty) {
+      setState(() => _target = 0);
+      return;
+    }
+    final parsed = evaluateNumericExpression(text);
+    if (parsed != null) {
+      setState(() => _target = parsed);
+    }
   }
 
   Widget _buildHeader() {
@@ -167,7 +291,10 @@ class _PlateCalculatorSheetState extends State<PlateCalculatorSheet> {
       key: const Key('plate-target'),
       controller: _targetController,
       onChanged: _onTargetChanged,
-      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      keyboardType: TextInputType.none,
+      inputFormatters: <TextInputFormatter>[
+        FilteringTextInputFormatter.allow(RegExp(r'[0-9.+\-*/×÷]')),
+      ],
       style: AppTypography.title.copyWith(color: AppColors.text),
       cursorColor: AppColors.lime,
       decoration: InputDecoration(
@@ -322,6 +449,7 @@ class _PlateCalculatorSheetState extends State<PlateCalculatorSheet> {
   @override
   Widget build(BuildContext context) {
     final result = _result;
+    final preview = _previewValue();
     final viewInsets = MediaQuery.viewInsetsOf(context).bottom;
     return Padding(
       padding: EdgeInsets.only(bottom: viewInsets),
@@ -342,6 +470,21 @@ class _PlateCalculatorSheetState extends State<PlateCalculatorSheet> {
               _buildHeader(),
               const SizedBox(height: AppSpacing.lg),
               _buildTargetField(),
+              if (preview != null) ...<Widget>[
+                const SizedBox(height: AppSpacing.xs),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    '= ${_format(preview)} $_unitLabel',
+                    key: const Key('plate-target-calc-result'),
+                    style: AppTypography.caption.copyWith(
+                      color: AppColors.lime,
+                    ),
+                  ),
+                ),
+              ],
+              const SizedBox(height: AppSpacing.md),
+              CalcKeypad(allowDecimal: true, onKey: _handleKey),
               const SizedBox(height: AppSpacing.x2l),
               Text(
                 'Bar',

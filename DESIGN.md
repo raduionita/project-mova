@@ -347,7 +347,9 @@ Each component lives in its own file under `lib/widgets/`. No component file may
 - Placeholder `textDisabled`.
 - Focus: `lime` border, no glow.
 - Error: `orange` border plus helper text in `orange`.
-- Numeric fields use a numeric keyboard and tabular figures.
+- Numeric fields use tabular figures, a right-aligned value, and an in-app calculator keypad instead of the OS keyboard. The keypad has digits, a decimal when allowed, clear, backspace, add, subtract, multiply, divide, and equals.
+- The sheet previews the calculated result while an expression is open. Done evaluates the expression, rejects fractions for whole-number fields, and enforces the field range.
+- Hardware keyboards still type into the field.
 - Weight and reps are edited inline in the logger, not in a separate screen.
 
 ### 8.8 Set row
@@ -361,7 +363,7 @@ Each component lives in its own file under `lib/widgets/`. No component file may
 - Completed row: lime check, current value `text`, background stays `card`.
 - Active row: `blue` border at 60 percent on the row and on both boxes.
 - Pending row: current value shows `-` in `muted`.
-- Tapping a box opens an inline numeric sheet with a Done action. The sheet selects the current value so typing replaces it.
+- Tapping a box opens an inline numeric sheet with a calculator keypad and a Done action. The sheet selects the current value so the first key replaces it.
 - Tapping the check completes the set, starts rest, and advances focus.
 - Swiping the row left reveals an `orange` panel with a trash glyph and removes the set at once. The check stays the rightmost control and there is no close button. Removal is also exposed as a screen reader action.
 
@@ -372,6 +374,7 @@ Each component lives in its own file under `lib/widgets/`. No component file may
 - Skip action in `blue`, `caption` weight 600.
 - Progress bar height 4, radius 4, track `#1D3155`, fill `blue`.
 - Counts down once per second without animation jitter.
+- The logger header toggle turns the timer on or off. While off, completing a set does not start the banner.
 - On completion, haptic plus a short sound if enabled, then the next set becomes active.
 
 ### 8.10 Progress ring
@@ -483,6 +486,7 @@ Main (5-tab shell)
   |-- Progress
   |     |-- Workout history
   |     |-- Workout detail
+  |     |-- Body weight log
   |     |-- Body weight (sheet)
   |-- Social
   |     |-- Feed
@@ -592,7 +596,7 @@ All screens use `background`, 16 px horizontal padding, and the `body` type as t
 - **Goals:** Multi-select cards for build muscle, get stronger, lose weight, and stay healthy, each with a one-line description, a 40 px icon box, and 16 px inner padding. The cards match the experience step. At least one is required. The first selected goal is primary and is labelled as such.
 - **Experience:** Single-select cards for beginner, regular, gym rat, and veteran, each with a one-line description, a 40 px icon box, and 16 px inner padding. Regular is selected by default and one level is always active.
 - **Schedule:** Days per week from 1 to 7 and the training weekdays. Default is 3 days on Monday, Wednesday, and Friday. At least one weekday is required and the count must match the selected days per week.
-- **Equipment:** Multi-select cards for bodyweight, dumbbells, barbell and EZ bar, machines, cable station, kettlebells, and accessories. Each group has its own glyph: a push-up, hex dumbbell, loaded barbell, pinned weight stack, cable pulley with a lat bar, kettlebell, and paneled medicine ball. Every group is selected by default so a new user keeps a full-gym plan. At least one group is required. The selection is stored on the profile and every generated plan.
+- **Equipment:** Multi-select cards for bodyweight, dumbbells, barbell and EZ bar, machines, cable station, kettlebells, and accessories. Each group has its own glyph: a push-up, hex dumbbell, loaded barbell, pinned weight stack, cable pulley with a lat bar, kettlebell, and paneled medicine ball. Every group is selected by default so a new user keeps a full-gym plan. At least one group is required. The selection is stored on the profile and every generated plan. A Quick start preset bar above the cards applies a common setup (Bodyweight only, Home gym, Full gym) in one tap, then the cards can be fine-tuned.
 - **Notifications:** Explain workout reminders. Enable asks for system permission. Deny, Not now, or unavailable continues with reminders off. The choice is stored and can be changed later in Settings.
 - **Components:** `AppMultiSelect`, `AppChoiceCard`, stepper, day selector, equipment cards, step progress, primary Continue.
 - **Behavior:** The schedule and equipment feed the plan generator. The notification choice never blocks progress.
@@ -625,10 +629,13 @@ All screens use `background`, 16 px horizontal padding, and the `body` type as t
 ### 10.7 Live logger
 
 - **Purpose:** Log sets faster than any competitor.
-- **Layout:** Top row with close, exercise name, elapsed timer, tag. Set table header. Current exercise set rows. Rest timer when active. Up-next card. Flexible spacer. The active set row is the primary control; "Finish workout" is a secondary action.
-- **Components:** Set row, rest banner, up-next card, finish action, overflow menu.
-- **Actions:** Complete set, edit weight or reps, add or remove a set, skip rest, add exercise, replace exercise, open the plate calculator, pause, finish, discard.
+- **Layout:** Top row with close, session name, and a rest-timer toggle. Live totals bar with Duration, Volume, and Sets. Set table header. Current exercise set rows. Rest timer when active. Up-next card. Flexible spacer. The active set row is the primary control; "Finish workout" is a secondary action.
+- **Components:** Live totals bar, set row, rest banner, up-next card, finish action, overflow menu.
+- **Actions:** Complete set, edit weight or reps, add or remove a set, skip rest, toggle the rest timer, add or edit an exercise note, add exercise, replace exercise, open the plate calculator, pause, finish, discard.
 - **Behavior:**
+  - The totals bar stays pinned under the header and updates every second: elapsed workout time, completed working volume in the selected unit, and completed working sets out of all working sets. Warm-up sets never count toward volume or set totals.
+  - Each exercise can carry one free-text note, opened from the note action beside the exercise name. A saved note shows a two-line preview under the set count and is stored with the workout history.
+  - Completing a set starts the default rest timer for the exercise type. The header toggle turns the timer off for the workout and suppresses the banner until it is turned back on.
   - Prefill weight and reps from the previous session for the same exercise, then apply the progressive overload suggestion.
   - The progression hint sits above the set table. It reads `Progressive overload: +<increment>` when every working set of the last session reached the top of the rep range, or `Repeat last weight: <weight>` otherwise. Bodyweight exercises and exercises without history show no hint.
   - "Replace exercise" opens the picker filtered to the same primary muscle and the profile's equipment, excluding the current exercise. A swap keeps the set count, clears every completed set, zeros the weight, and asks for confirmation when sets are already logged.
@@ -653,7 +660,7 @@ All screens use `background`, 16 px horizontal padding, and the `body` type as t
 
 - **Purpose:** Find exercises and start or edit routines.
 - **Layout:** `h1` Train, search field, horizontal muscle filter chips, exercise result list, My routines section.
-- **Components:** Search input, filter chips, exercise row (name, muscle and equipment, add button), routine row (name, exercise count, chevron).
+- **Components:** Search input, filter chips, exercise row (equipment glyph, name, muscle and equipment, add button), routine row (name, exercise count, chevron).
 - **Actions:** Search, filter, open exercise details, add exercise to the active session, open a routine, create a routine.
 - **States:** Default list, search results, no results, empty routines, active session add mode.
 - **Rules:** Search matches name, muscle group, and equipment. Result count is announced to screen readers.
@@ -661,8 +668,8 @@ All screens use `background`, 16 px horizontal padding, and the `body` type as t
 ### 10.10 Exercise details
 
 - **Purpose:** Explain the movement and show previous performance.
-- **Layout:** Back bar, exercise name, muscle and equipment tags, previous performance card, instructions section, primary "Add to workout", ghost "Add to routine".
-- **Components:** Tag row, performance card with best set and last session, numbered instruction list, buttons.
+- **Layout:** Back bar, equipment hero with a large glyph and the exercise name, muscle and equipment caption, previous performance card, instructions section, primary "Add to workout", ghost "Add to routine".
+- **Components:** Equipment hero, tag row, performance card with best set and last session, numbered instruction list, buttons.
 - **States:** No history shows "First time? Log a set to start tracking." Add is disabled if there is no active session and no routine draft.
 - **Rules:** Instructions are stored locally as short text. No video in v1.
 
@@ -678,12 +685,21 @@ All screens use `background`, 16 px horizontal padding, and the `body` type as t
 ### 10.12 Progress
 
 - **Purpose:** Answer "Am I improving?" with honest local metrics.
-- **Layout:** `h1` Progress, lifetime totals trio (workouts, total volume, day streak), strength score card with ring, weekly volume card with bars, PR list, workout history shortcut.
-- **Components:** Stat tiles, progress ring, volume bars, PR rows, history link.
-- **Metrics:** Total workouts, total volume, current streak, weekly volume, best estimated 1RM per tracked lift.
+- **Layout:** `h1` Progress, lifetime totals trio (workouts, total volume, day streak), strength score card with ring, body weight card with a quick add action, weekly volume card with bars, PR list, workout history shortcut.
+- **Components:** Stat tiles, progress ring, weight chart, volume bars, PR rows, history link, "What counts" info action.
+- **Metrics:** Total workouts, total volume, current streak, weekly volume, best estimated 1RM per tracked lift, current body weight and its recent trend. The info action opens a plain-language sheet that defines every metric, so no number is a mystery.
+- **Body weight:** One entry per local day, newest first, stored only on the device. The card shows the latest value and a trend line once two entries exist. The plus action opens the weight sheet, and tapping the card opens the full log. No workouts are required to use it. The weight sheet uses the shared calculator keypad, so a value can be typed or worked out with an expression and the field shows a live `= value` preview.
 - **Strength score:** Display with a "Beta" tag and a tap-through explanation. Do not show a gym or global ranking in v1. The mock's gym ranking line is intentionally omitted because there is no comparative dataset.
-- **States:** No workouts shows an empty state with "Start your first workout". Fewer than three sessions hides the score and shows the raw metrics instead.
+- **States:** No workouts shows the body weight card above an empty state with "Start your first workout". Fewer than three sessions hides the score and shows the raw metrics instead.
 - **Rules:** Every chart has a text summary. No chart is the only way to read a value.
+
+### 10.12.1 Body weight log
+
+- **Route:** `/progress/weight`.
+- **Layout:** Back bar, `h1` Body weight, current value card with an Add weight action, trend chart card, history list newest first.
+- **Actions:** Add weight opens the numeric body weight sheet. Saving a value updates today's entry, replaces an earlier value from the same day, updates the profile body weight, and refreshes the strength score.
+- **States:** Empty log shows one Add weight action. A single entry shows a point and asks for another entry to draw a trend. Missing or unreadable entries never block the screen.
+- **Rules:** Values use the selected weight unit for display and stay stored in kilograms. Range checks match onboarding body weight.
 
 ### 10.13 Workout history and detail
 
@@ -713,7 +729,7 @@ All screens use `background`, 16 px horizontal padding, and the `body` type as t
 - **Purpose:** Identity, lifetime totals, and settings entry.
 - **Layout:** Profile header with avatar, name, experience tag, three stat tiles, settings list, app version.
 - **Components:** Avatar showing the experience icon in `limeInk` on `lime`, name, tag, stat trio, setting rows with icon, label, value, chevron.
-- **Entries:** Edit profile, Units, Workout reminders, Integrations, Equipment, Privacy and social, Help and support, Reset local data, App version. Privacy policy, Terms of service, and Open-source licenses open from Settings.
+- **Entries:** Edit profile, Body weight, Units, Workout reminders, Integrations, Equipment, Privacy and social, Help and support, Reset local data, App version. Body weight opens `/progress/weight`. Privacy policy, Terms of service, and Open-source licenses open from Settings.
 - **States:** Default profile, edited name, no PRs.
 - **Rules:** There is no account, sign-in, or log out in v1. Reset local data requires a confirmation and explains what is removed. Legal and license screens live under Settings, not as separate Me rows.
 
@@ -721,7 +737,7 @@ All screens use `background`, 16 px horizontal padding, and the `body` type as t
 
 - **Profile:** Edit name, experience, goals, gender, birth date, height, and body weight on `/me/edit`.
 - **Units:** Weight, distance, and body units. Converts display only. Canonical storage stays kg, km, and cm.
-- **Equipment:** Opens `/me/equipment`. Shows the number of selected groups and reuses the onboarding equipment cards. Saving offers "Save only" or "Save and regenerate". Regeneration rebuilds the current week with the new equipment and keeps history and personal records.
+- **Equipment:** Opens `/me/equipment`. Shows the number of selected groups and reuses the onboarding equipment cards with the Quick start preset bar. Saving offers "Save only" or "Save and regenerate". Regeneration rebuilds the current week with the new equipment and keeps history and personal records.
 - **Reminders:** Toggle plus weekday and time picker. Requires notification permission at the moment of enabling.
 - **Integrations:** Apple Health or Health Connect row. Shows connected, not connected, or unavailable. Manual steps fallback is always available.
 - **Privacy and social:** Local-only explanation. Toggle for showing own workouts in the feed.
@@ -733,7 +749,7 @@ All screens use `background`, 16 px horizontal padding, and the `body` type as t
 
 - **Purpose:** Review and change the weekly schedule without redoing onboarding.
 - **Layout:** Bottom sheet or full screen with seven day rows, current workout per day, and "Edit schedule".
-- **Actions:** Move a whole split day to another weekday, swap two occupied days, regenerate the week.
+- **Actions:** Move a whole split day to another weekday, swap two occupied days, choose training days per week for the next regeneration, regenerate the week.
 - **States:** Rest day, edited week, regeneration confirmation, skipped-muscle warning.
 - **Rules:** Editing the plan never deletes completed history. Regeneration reports that history and PRs are unchanged and appends any equipment warning. Per-exercise editing is not part of v1.
 
@@ -826,6 +842,7 @@ score = round(
 
 - Steps come from the platform health integration when connected.
 - Otherwise the user can add a manual step count from Today.
+- The manual entry sheet uses the shared calculator keypad, so counts can be added as an expression with a live `= value` preview.
 - Manual entries are labeled "Manual" with an edit action.
 - Walks logged in Mova count as activity minutes, not steps.
 
@@ -853,6 +870,7 @@ next_reps = reps_low
 - kg loadout: bars 20, 15, and 10 kg; plates 25, 20, 15, 10, 5, 2.5, and 1.25 kg.
 - lb loadout: bars 45, 35, and 25 lb; plates 45, 35, 25, 10, 5, and 2.5 lb.
 - When the target is not loadable, show the closest loadable weight and the remainder with one decimal.
+- The target uses the shared calculator keypad, so a long-press-free expression like `45 + 25` resolves before loading. The field shows a live `= value` preview.
 - The calculator is read-only. It never changes logged sets.
 
 ### 11.10 Empty and missing data

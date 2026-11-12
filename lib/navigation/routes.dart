@@ -90,6 +90,7 @@ class Routes {
   /// Workout history routes are `/progress/history` and
   /// `/progress/history/:id`.
   static const String progressHistory = '$progress/history';
+  static const String progressWeight = '$progress/weight';
 
   static String progressHistoryDetail(String sessionId) {
     return '$progressHistory/${Uri.encodeComponent(sessionId)}';

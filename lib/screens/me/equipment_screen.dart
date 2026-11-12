@@ -11,6 +11,7 @@ import '../../theme/app_typography.dart';
 import '../../widgets/app_back_bar.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/equipment_multi_select.dart';
+import '../../widgets/equipment_preset_bar.dart';
 
 /// Settings route for changing available equipment.
 class EquipmentSettingsScreen extends StatefulWidget {
@@ -138,6 +139,14 @@ class _EquipmentSettingsScreenState extends State<EquipmentSettingsScreen> {
                     style: AppTypography.body.copyWith(color: AppColors.muted),
                   ),
                   const SizedBox(height: AppSpacing.x3l),
+                  EquipmentPresetBar(
+                    selected: _equipment,
+                    enabled: !_isSaving,
+                    onApply: (preset) => setState(
+                      () => _equipment = List<EquipmentGroup>.of(preset.groups),
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.x2l),
                   EquipmentMultiSelect(
                     selected: _equipment,
                     onChanged: (value) => setState(() => _equipment = value),

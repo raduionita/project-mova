@@ -14,6 +14,7 @@ class AppSettings {
     this.healthProvider = HealthProvider.none,
     this.postWorkoutsToFeed = true,
     this.sampleFeedDismissed = false,
+    this.restTimerEnabled = true,
   });
 
   final int schemaVersion;
@@ -25,6 +26,7 @@ class AppSettings {
   final HealthProvider healthProvider;
   final bool postWorkoutsToFeed;
   final bool sampleFeedDismissed;
+  final bool restTimerEnabled;
 
   factory AppSettings.fromJson(Map<String, dynamic> json) {
     final rawUnitPreferences = json['unitPreferences'];
@@ -49,6 +51,7 @@ class AppSettings {
       ),
       postWorkoutsToFeed: json['postWorkoutsToFeed'] as bool? ?? true,
       sampleFeedDismissed: json['sampleFeedDismissed'] as bool? ?? false,
+      restTimerEnabled: json['restTimerEnabled'] as bool? ?? true,
     );
   }
 
@@ -63,6 +66,7 @@ class AppSettings {
       'healthProvider': healthProvider.name,
       'postWorkoutsToFeed': postWorkoutsToFeed,
       'sampleFeedDismissed': sampleFeedDismissed,
+      'restTimerEnabled': restTimerEnabled,
     };
   }
 
@@ -76,6 +80,7 @@ class AppSettings {
     HealthProvider? healthProvider,
     bool? postWorkoutsToFeed,
     bool? sampleFeedDismissed,
+    bool? restTimerEnabled,
   }) {
     return AppSettings(
       schemaVersion: schemaVersion ?? this.schemaVersion,
@@ -87,6 +92,7 @@ class AppSettings {
       healthProvider: healthProvider ?? this.healthProvider,
       postWorkoutsToFeed: postWorkoutsToFeed ?? this.postWorkoutsToFeed,
       sampleFeedDismissed: sampleFeedDismissed ?? this.sampleFeedDismissed,
+      restTimerEnabled: restTimerEnabled ?? this.restTimerEnabled,
     );
   }
 }

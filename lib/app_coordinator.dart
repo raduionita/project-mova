@@ -21,6 +21,7 @@ import 'providers/routine_provider.dart';
 import 'providers/settings_provider.dart';
 import 'providers/social_provider.dart';
 import 'providers/steps_provider.dart';
+import 'providers/weight_provider.dart';
 import 'providers/workout_provider.dart';
 import 'services/clock.dart';
 import 'services/id_service.dart';
@@ -45,6 +46,7 @@ class AppCoordinator {
     this.exerciseProvider,
     this.routineProvider,
     this.stepsProvider,
+    this.weightProvider,
     this.prService = const PrService(),
     Clock? clock,
     IdService? idService,
@@ -63,6 +65,7 @@ class AppCoordinator {
   final ExerciseProvider? exerciseProvider;
   final RoutineProvider? routineProvider;
   final StepsProvider? stepsProvider;
+  final WeightProvider? weightProvider;
   final PrService prService;
   final Clock _clock;
   final IdService _idService;
@@ -291,6 +294,7 @@ class AppCoordinator {
       historyProvider.load(),
       progressProvider.load(),
       stepsProvider?.load() ?? Future<void>.value(),
+      weightProvider?.load() ?? Future<void>.value(),
       socialProvider?.load() ?? Future<void>.value(),
       exerciseProvider?.load() ?? Future<void>.value(),
       routineProvider?.load() ?? Future<void>.value(),

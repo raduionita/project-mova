@@ -94,6 +94,10 @@ class SettingsProvider extends ChangeNotifier {
     return _save(_settings.copyWith(postWorkoutsToFeed: enabled));
   }
 
+  Future<bool> setRestTimerEnabled(bool enabled) {
+    return _save(_settings.copyWith(restTimerEnabled: enabled));
+  }
+
   Future<bool> dismissSampleFeed() {
     return _save(_settings.copyWith(sampleFeedDismissed: true));
   }

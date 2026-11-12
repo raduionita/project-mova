@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../app_coordinator.dart';
-import '../../common/formatters.dart';
 import '../../models/session_exercise.dart';
 import '../../models/unit_preferences.dart';
 import '../../models/workout_session.dart';
@@ -19,7 +18,6 @@ import '../../services/clock.dart';
 import '../../services/haptics_service.dart';
 import '../../services/keep_awake_service.dart';
 import '../../services/unit_conversion_service.dart';
-import '../../services/workout_calculator.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_icons.dart';
 import '../../theme/app_radii.dart';
@@ -30,11 +28,12 @@ import '../../widgets/app_card.dart';
 import '../../widgets/app_chip.dart';
 import '../../widgets/app_empty_state.dart';
 import '../../widgets/app_icon.dart';
-import '../../widgets/app_tag.dart';
+import '../../widgets/exercise_notes_sheet.dart';
 import '../../widgets/exercise_picker_sheet.dart';
 import '../../widgets/numeric_input_sheet.dart';
 import '../../widgets/plate_calculator_sheet.dart';
 import '../../widgets/rest_timer_banner.dart';
+import '../../widgets/session_stats_bar.dart';
 import '../../widgets/set_row.dart';
 import '../../widgets/workout_interruption_sheet.dart';
 import '../summary/summary_screen.dart';
@@ -144,10 +143,6 @@ class _LoggerScreenState extends State<LoggerScreen>
       });
     }
     await _syncKeepAwake();
-  }
-
-  int _elapsedSeconds(WorkoutSession session) {
-    return WorkoutCalculator.sessionDurationSeconds(session, _clock.now());
   }
 
   WorkoutSet? _previousSet(
@@ -273,12 +268,63 @@ class _LoggerScreenState extends State<LoggerScreen>
       MediaQuery.maybeDisableAnimationsOf(context) ?? false;
 
   void _startRest(SessionExercise exercise) {
+    if (!context.read<SettingsProvider>().settings.restTimerEnabled) {
+      if (_restEndsAt != null) {
+        setState(() => _restEndsAt = null);
+      }
+      return;
+    }
     final meta = context.read<ExerciseProvider>().byId(exercise.exerciseId);
     final seconds = meta?.isCompound == true ? 120 : 60;
     setState(() {
       _restTotalSeconds = seconds;
       _restEndsAt = _clock.now().add(Duration(seconds: seconds));
     });
+  }
+
+  Future<void> _toggleRestTimer(bool enabled) async {
+    final settings = context.read<SettingsProvider>();
+    final saved = await settings.setRestTimerEnabled(enabled);
+    if (!mounted) {
+      return;
+    }
+    if (!saved) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            settings.error ?? 'Could not save the rest timer setting.',
+          ),
+        ),
+      );
+      return;
+    }
+    if (!enabled && _restEndsAt != null) {
+      setState(() => _restEndsAt = null);
+    }
+  }
+
+  Future<void> _editNotes(SessionExercise exercise) async {
+    final name =
+        context.read<ExerciseProvider>().byId(exercise.exerciseId)?.name ??
+        exercise.exerciseId;
+    final notes = await showExerciseNotesSheet(
+      context,
+      exerciseName: name,
+      initialNotes: exercise.notes,
+    );
+    if (notes == null || !mounted) {
+      return;
+    }
+    final workout = context.read<WorkoutProvider>();
+    final saved = await workout.setExerciseNotes(
+      exerciseId: exercise.exerciseId,
+      notes: notes,
+    );
+    if (!saved && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(workout.error ?? 'Could not save the note.')),
+      );
+    }
   }
 
   void _skipRest() {
@@ -566,7 +612,8 @@ class _LoggerScreenState extends State<LoggerScreen>
     Navigator.of(context).pushReplacementNamed(Routes.today);
   }
 
-  Widget _buildHeader(WorkoutSession session) {
+  Widget _buildHeader(WorkoutSession session, SettingsProvider settings) {
+    final restEnabled = settings.settings.restTimerEnabled;
     return Row(
       children: <Widget>[
         IconButton(
@@ -593,7 +640,21 @@ class _LoggerScreenState extends State<LoggerScreen>
           ),
         ),
         const SizedBox(width: AppSpacing.md),
-        AppTag(label: formatDuration(_elapsedSeconds(session))),
+        IconButton(
+          key: const Key('logger-rest-toggle'),
+          tooltip: restEnabled ? 'Rest timer on' : 'Rest timer off',
+          onPressed: () => _toggleRestTimer(!restEnabled),
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints.tightFor(
+            width: AppSpacing.x5l,
+            height: AppSpacing.x5l,
+          ),
+          icon: AppIcon(
+            asset: AppIcons.clock,
+            size: AppSpacing.x3l,
+            color: restEnabled ? AppColors.lime : AppColors.muted,
+          ),
+        ),
       ],
     );
   }
@@ -678,6 +739,23 @@ class _LoggerScreenState extends State<LoggerScreen>
             ),
             const SizedBox(width: AppSpacing.sm),
             IconButton(
+              key: const Key('logger-exercise-notes'),
+              tooltip: exercise.notes.isEmpty ? 'Add note' : 'Edit note',
+              onPressed: () => _editNotes(exercise),
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints.tightFor(
+                width: AppSpacing.x5l,
+                height: AppSpacing.x5l,
+              ),
+              icon: AppIcon(
+                asset: AppIcons.document,
+                size: AppSpacing.x3l,
+                color: exercise.notes.isEmpty
+                    ? AppColors.muted
+                    : AppColors.lime,
+              ),
+            ),
+            IconButton(
               key: const Key('logger-swap-exercise'),
               tooltip: 'Swap exercise',
               onPressed: () => _swapExercise(exercise),
@@ -715,6 +793,16 @@ class _LoggerScreenState extends State<LoggerScreen>
           '${ordered.length} sets',
           style: AppTypography.caption.copyWith(color: AppColors.muted),
         ),
+        if (exercise.notes.isNotEmpty) ...<Widget>[
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            exercise.notes,
+            key: const Key('logger-exercise-note'),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: AppTypography.caption.copyWith(color: AppColors.muted),
+          ),
+        ],
         if (progression != null) ...<Widget>[
           const SizedBox(height: AppSpacing.sm),
           Text(
@@ -797,7 +885,9 @@ class _LoggerScreenState extends State<LoggerScreen>
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          _buildHeader(session),
+          _buildHeader(session, settings),
+          const SizedBox(height: AppSpacing.lg),
+          SessionStatsBar(session: session, weightUnit: unit, clock: _clock),
           const Expanded(
             child: AppEmptyState(
               assetIcon: AppIcons.dumbbell,
@@ -826,7 +916,9 @@ class _LoggerScreenState extends State<LoggerScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        _buildHeader(session),
+        _buildHeader(session, settings),
+        const SizedBox(height: AppSpacing.lg),
+        SessionStatsBar(session: session, weightUnit: unit, clock: _clock),
         if (_restEndsAt != null) ...<Widget>[
           const SizedBox(height: AppSpacing.lg),
           RestTimerBanner(

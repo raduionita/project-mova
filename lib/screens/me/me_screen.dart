@@ -12,6 +12,7 @@ import '../../navigation/routes.dart';
 import '../../providers/profile_provider.dart';
 import '../../providers/progress_provider.dart';
 import '../../providers/settings_provider.dart';
+import '../../providers/weight_provider.dart';
 import '../../services/unit_conversion_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_icons.dart';
@@ -226,6 +227,9 @@ class _MeScreenState extends State<MeScreen> {
   Widget _buildSettingsList() {
     final settings = context.watch<SettingsProvider>().settings;
     final units = settings.unitPreferences;
+    final weights = context.watch<WeightProvider>();
+    final profile = context.watch<ProfileProvider>().profile;
+    final latestWeight = weights.latest?.weightKg ?? profile?.bodyWeightKg ?? 0;
     final rows = <Widget>[
       SettingsRow(
         key: const Key('me-edit-profile-row'),
@@ -233,6 +237,15 @@ class _MeScreenState extends State<MeScreen> {
         label: 'Edit profile',
         value: 'Name, body, goals',
         onTap: () => _push(Routes.meEdit),
+      ),
+      SettingsRow(
+        key: const Key('me-weight-row'),
+        assetIcon: AppIcons.scale,
+        label: 'Body weight',
+        value: latestWeight <= 0
+            ? 'Not logged'
+            : _units.displayWeight(latestWeight, units.weightUnit),
+        onTap: () => _push(Routes.progressWeight),
       ),
       SettingsRow(
         key: const Key('me-units-row'),

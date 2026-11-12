@@ -31,4 +31,5 @@ const String kRoutinesKey = '${kStoragePrefix}routines';
 const String kPrsKey = '${kStoragePrefix}prs';
 const String kSocialKey = '${kStoragePrefix}social';
 const String kStepsKey = '${kStoragePrefix}steps';
+const String kWeightsKey = '${kStoragePrefix}weights';
 const String kOnboardingKey = '${kStoragePrefix}onboarding';

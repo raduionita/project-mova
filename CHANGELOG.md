@@ -142,3 +142,17 @@
 2026.11.10 UI-25 Replace the onboarding goal grid with described choice cards
 2026.11.10 UI-26 Default the onboarding experience step to regular
 2026.11.10 UI-27 Give every equipment group its own SVG icon
+2026.11.11 UI-28 Add live duration, volume, and set totals to the logger
+2026.11.11 UI-29 Add per-exercise notes with a saved workout preview
+2026.11.11 UI-30 Add a rest timer toggle in the logger and settings
+2026.11.11 UI-31 Add a calculator keypad to numeric input sheets
+2026.11.11 UI-32 Add a body-weight log with chart, history, and quick add
+2026.11.11 UI-33 Add a Me body-weight shortcut and keep the profile weight in sync
+2026.11.11 UI-34 Add one-tap equipment presets to onboarding and settings
+2026.11.11 UI-35 Choose training days per week when regenerating the plan
+2026.11.11 UI-36 Show equipment glyphs on exercise rows and exercise details
+2026.11.11 UI-37 Explain every Progress metric in a What counts sheet
+2026.11.12 UI-38 Use the shared calculator keypad for body weight entry
+2026.11.12 UI-39 Describe the weight trend range for screen readers
+2026.11.12 UI-40 Use the calculator keypad for manual steps
+2026.11.12 UI-41 Use the calculator keypad for the plate calculator target

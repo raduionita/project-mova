@@ -86,6 +86,24 @@ void main() {
     expect(find.textContaining('Enter a target between'), findsOneWidget);
   });
 
+  testWidgets('keypad evaluates a target expression', (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    await _open(tester);
+
+    for (final token in <String>['clear', '5', '0', '×', '2']) {
+      await tester.tap(find.byKey(ValueKey<String>('calc-key-$token')));
+      await tester.pump();
+    }
+
+    expect(find.byKey(const Key('plate-target-calc-result')), findsOneWidget);
+    expect(find.text('= 100 kg'), findsOneWidget);
+    expect(find.text('Exact load'), findsOneWidget);
+    expect(find.text('100 kg'), findsOneWidget);
+  });
+
   testWidgets('closes without changing anything', (tester) async {
     await _open(tester);
     await tester.tap(find.byTooltip('Close plate calculator'));

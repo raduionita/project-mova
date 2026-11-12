@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../common/constants.dart';
 import '../models/plan_day.dart';
+import '../models/training_plan.dart';
 import '../providers/plan_provider.dart';
 import '../providers/profile_provider.dart';
 import '../theme/app_colors.dart';
@@ -54,6 +56,7 @@ class PlanOverviewSheet extends StatefulWidget {
 class _PlanOverviewSheetState extends State<PlanOverviewSheet> {
   int? _fromWeekday;
   int? _toWeekday;
+  int? _daysPerWeek;
   bool _isWorking = false;
   String? _error;
   String? _notice;
@@ -144,8 +147,9 @@ class _PlanOverviewSheetState extends State<PlanOverviewSheet> {
       _notice = null;
     });
     final profile = context.read<ProfileProvider>().profile;
+    final daysPerWeek = _daysPerWeek ?? plan.daysPerWeek;
     final regenerated = await planProvider.updateSchedule(
-      daysPerWeek: plan.daysPerWeek,
+      daysPerWeek: daysPerWeek,
       trainingDays: plan.trainingDays,
       availableEquipment:
           profile?.availableEquipment ?? plan.availableEquipment,
@@ -165,6 +169,46 @@ class _PlanOverviewSheetState extends State<PlanOverviewSheet> {
         _error = planProvider.error ?? 'Could not regenerate the plan.';
       }
     });
+  }
+
+  Widget _buildFrequency(TrainingPlan plan) {
+    final value = _daysPerWeek ?? plan.daysPerWeek;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(
+          'Training days per week',
+          style: AppTypography.label.copyWith(color: AppColors.muted),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Wrap(
+          spacing: AppSpacing.sm,
+          runSpacing: AppSpacing.sm,
+          children: <Widget>[
+            for (var day = kMinTrainingDays; day <= kMaxTrainingDays; day++)
+              AppChip(
+                key: Key('plan-frequency-$day'),
+                label: '$day',
+                selected: value == day,
+                onTap: _isWorking
+                    ? null
+                    : () => setState(() {
+                        _daysPerWeek = day;
+                        _error = null;
+                        _notice = null;
+                      }),
+              ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          value == plan.daysPerWeek
+              ? 'Regenerate to apply a new frequency.'
+              : 'Regenerate to rebuild the week with $value training days.',
+          style: AppTypography.caption.copyWith(color: AppColors.muted),
+        ),
+      ],
+    );
   }
 
   Widget _buildWeek(List<PlanDay> days) {
@@ -287,95 +331,125 @@ class _PlanOverviewSheetState extends State<PlanOverviewSheet> {
     final maxHeight = MediaQuery.sizeOf(context).height * 0.85;
     return ConstrainedBox(
       constraints: BoxConstraints(maxHeight: maxHeight),
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.x3l,
-          AppSpacing.x2l,
-          AppSpacing.x3l,
-          AppSpacing.x3l,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            Center(
-              child: Container(
-                width: AppSpacing.x6l,
-                height: AppSpacing.xs,
-                decoration: BoxDecoration(
-                  color: AppColors.line,
-                  borderRadius: BorderRadius.circular(AppRadii.pill),
-                ),
-              ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.x3l,
+              AppSpacing.x2l,
+              AppSpacing.x3l,
+              AppSpacing.md,
             ),
-            const SizedBox(height: AppSpacing.x2l),
-            Row(
+            child: Column(
               children: <Widget>[
-                Expanded(
-                  child: Text(
-                    'Plan',
-                    style: AppTypography.h2.copyWith(color: AppColors.text),
+                Center(
+                  child: Container(
+                    width: AppSpacing.x6l,
+                    height: AppSpacing.xs,
+                    decoration: BoxDecoration(
+                      color: AppColors.line,
+                      borderRadius: BorderRadius.circular(AppRadii.pill),
+                    ),
                   ),
                 ),
-                IconButton(
-                  tooltip: 'Close plan',
-                  onPressed: () => Navigator.of(context).pop(),
-                  icon: const AppIcon(
-                    asset: AppIcons.close,
-                    color: AppColors.muted,
-                  ),
+                const SizedBox(height: AppSpacing.x2l),
+                Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: Text(
+                        'Plan',
+                        style: AppTypography.h2.copyWith(color: AppColors.text),
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: 'Close plan',
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const AppIcon(
+                        asset: AppIcons.close,
+                        color: AppColors.muted,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-            if (plan == null)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: AppSpacing.x4l),
-                child: Text(
-                  'No plan yet. Finish onboarding to build one.',
-                  style: AppTypography.body.copyWith(color: AppColors.muted),
-                ),
-              )
-            else ...<Widget>[
-              Text(
-                plan.splitName,
-                style: AppTypography.body.copyWith(color: AppColors.muted),
+          ),
+          Flexible(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.x3l,
+                0,
+                AppSpacing.x3l,
+                AppSpacing.x3l,
               ),
-              const SizedBox(height: AppSpacing.sm),
-              Text(
-                '${plan.daysPerWeek} training days this week',
-                style: AppTypography.caption.copyWith(color: AppColors.muted),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  if (plan == null)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: AppSpacing.x4l,
+                      ),
+                      child: Text(
+                        'No plan yet. Finish onboarding to build one.',
+                        style: AppTypography.body.copyWith(
+                          color: AppColors.muted,
+                        ),
+                      ),
+                    )
+                  else ...<Widget>[
+                    Text(
+                      plan.splitName,
+                      style: AppTypography.body.copyWith(color: AppColors.muted),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    Text(
+                      '${plan.daysPerWeek} training days this week',
+                      style: AppTypography.caption.copyWith(
+                        color: AppColors.muted,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.x2l),
+                    _buildFrequency(plan),
+                    const SizedBox(height: AppSpacing.x2l),
+                    _buildWeek(plan.days),
+                    const SizedBox(height: AppSpacing.x3l),
+                    _buildMoveControls(plan.days),
+                    if (_error != null) ...<Widget>[
+                      const SizedBox(height: AppSpacing.lg),
+                      Text(
+                        _error!,
+                        style: AppTypography.caption.copyWith(
+                          color: AppColors.orange,
+                        ),
+                      ),
+                    ],
+                    if (_notice != null) ...<Widget>[
+                      const SizedBox(height: AppSpacing.lg),
+                      Text(
+                        _notice!,
+                        style: AppTypography.caption.copyWith(
+                          color: AppColors.lime,
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: AppSpacing.x3l),
+                    AppButton(
+                      key: const Key('plan-regenerate'),
+                      label: 'Regenerate plan',
+                      variant: AppButtonVariant.ghost,
+                      isLoading: _isWorking,
+                      onPressed: _isWorking ? null : _confirmRegenerate,
+                    ),
+                  ],
+                ],
               ),
-              const SizedBox(height: AppSpacing.x2l),
-              _buildWeek(plan.days),
-              const SizedBox(height: AppSpacing.x3l),
-              _buildMoveControls(plan.days),
-              if (_error != null) ...<Widget>[
-                const SizedBox(height: AppSpacing.lg),
-                Text(
-                  _error!,
-                  style: AppTypography.caption.copyWith(
-                    color: AppColors.orange,
-                  ),
-                ),
-              ],
-              if (_notice != null) ...<Widget>[
-                const SizedBox(height: AppSpacing.lg),
-                Text(
-                  _notice!,
-                  style: AppTypography.caption.copyWith(color: AppColors.lime),
-                ),
-              ],
-              const SizedBox(height: AppSpacing.x3l),
-              AppButton(
-                key: const Key('plan-regenerate'),
-                label: 'Regenerate plan',
-                variant: AppButtonVariant.ghost,
-                isLoading: _isWorking,
-                onPressed: _isWorking ? null : _confirmRegenerate,
-              ),
-            ],
-          ],
-        ),
+            ),
+          ),
+        ],
       ),
     );
   }

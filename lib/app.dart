@@ -18,6 +18,7 @@ import 'providers/routine_provider.dart';
 import 'providers/settings_provider.dart';
 import 'providers/social_provider.dart';
 import 'providers/steps_provider.dart';
+import 'providers/weight_provider.dart';
 import 'providers/workout_provider.dart';
 import 'screens/onboarding/birth_date_screen.dart';
 import 'screens/onboarding/equipment_screen.dart';
@@ -41,6 +42,7 @@ import 'screens/onboarding/welcome_screen.dart';
 import 'screens/progress/history_detail_screen.dart';
 import 'screens/progress/history_screen.dart';
 import 'screens/progress/progress_screen.dart';
+import 'screens/progress/weight_log_screen.dart';
 import 'screens/shared/splash_screen.dart';
 import 'screens/social/social_feed_screen.dart';
 import 'screens/summary/summary_screen.dart';
@@ -118,6 +120,9 @@ class MovaApp extends StatelessWidget {
         ChangeNotifierProvider<StepsProvider>(
           create: (_) => StepsProvider(storage, clock: resolvedClock),
         ),
+        ChangeNotifierProvider<WeightProvider>(
+          create: (_) => WeightProvider(storage, clock: resolvedClock),
+        ),
         ChangeNotifierProvider<SocialProvider>(
           create: (_) =>
               SocialProvider(storage, seedData, clock: resolvedClock),
@@ -136,6 +141,7 @@ class MovaApp extends StatelessWidget {
             exerciseProvider: context.read<ExerciseProvider>(),
             routineProvider: context.read<RoutineProvider>(),
             stepsProvider: context.read<StepsProvider>(),
+            weightProvider: context.read<WeightProvider>(),
             clock: resolvedClock,
             idService: resolvedIds,
           ),
@@ -176,6 +182,7 @@ class _StartupGateState extends State<_StartupGate> {
       context.read<HistoryProvider>().load(),
       context.read<ProgressProvider>().load(),
       context.read<StepsProvider>().load(),
+      context.read<WeightProvider>().load(),
       context.read<SettingsProvider>().load(),
     ]);
     if (!mounted) {
@@ -302,6 +309,8 @@ Widget _screenForRoute(String? route, [Object? arguments]) {
       return const ProgressScreen();
     case Routes.progressHistory:
       return const HistoryScreen();
+    case Routes.progressWeight:
+      return const WeightLogScreen();
     case Routes.social:
       return const SocialFeedScreen();
     case Routes.me:

@@ -55,6 +55,7 @@ class AppIcons {
   static const String document = 'assets/icons/document.svg';
   static const String edit = 'assets/icons/edit.svg';
   static const String calculator = 'assets/icons/calculator.svg';
+  static const String backspace = 'assets/icons/backspace.svg';
   static const String cake = 'assets/icons/cake.svg';
   static const String minus = 'assets/icons/minus.svg';
   static const String circle = 'assets/icons/circle.svg';

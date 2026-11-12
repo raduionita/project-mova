@@ -197,4 +197,28 @@ void main() {
     );
     expect(provider.plan, isNotNull);
   });
+
+  testWidgets('regenerate uses the chosen weekly frequency', (tester) async {
+    final provider = await _provider(StorageService.inMemory());
+    await tester.pumpWidget(_wrap(provider));
+    await tester.tap(find.text('Open plan'));
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.byKey(const Key('plan-frequency-4')));
+    await tester.tap(find.byKey(const Key('plan-frequency-4')));
+    await tester.pumpAndSettle();
+    expect(
+      find.textContaining('rebuild the week with 4 training days'),
+      findsOneWidget,
+    );
+
+    await tester.ensureVisible(find.byKey(const Key('plan-regenerate')));
+    await tester.tap(find.byKey(const Key('plan-regenerate')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Regenerate'));
+    await tester.pumpAndSettle();
+
+    expect(provider.plan!.daysPerWeek, 4);
+    expect(provider.plan!.trainingDays, hasLength(4));
+  });
 }

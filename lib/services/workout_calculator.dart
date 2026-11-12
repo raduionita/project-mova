@@ -35,6 +35,19 @@ class WorkoutCalculator {
     return total;
   }
 
+  /// All working sets, including those not completed yet.
+  static int workingSetCount(List<SessionExercise> exercises) {
+    var total = 0;
+    for (final exercise in exercises) {
+      for (final set in exercise.sets) {
+        if (!set.isWarmup) {
+          total += 1;
+        }
+      }
+    }
+    return total;
+  }
+
   /// Elapsed seconds minus stored and currently running pause time.
   static int durationSeconds({
     required DateTime startedAt,

@@ -286,6 +286,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  Future<void> _setRestTimer(bool enabled) async {
+    final settings = context.read<SettingsProvider>();
+    final saved = await settings.setRestTimerEnabled(enabled);
+    if (!saved) {
+      _showMessage(settings.error ?? 'Could not save the rest timer setting.');
+    }
+  }
+
   Future<void> _hidePlaceholder() async {
     final social = context.read<SocialProvider>();
     final settings = context.read<SettingsProvider>();
@@ -328,6 +336,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
         child,
         const SizedBox(height: AppSpacing.x3l),
       ],
+    );
+  }
+
+  Widget _buildWorkoutCard(AppSettings settings) {
+    return AppCard(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+      child: SettingsRow(
+        key: const Key('settings-rest-timer-row'),
+        assetIcon: AppIcons.clock,
+        label: 'Rest timer',
+        value: settings.restTimerEnabled
+            ? 'Starts after each completed set'
+            : 'Off',
+        showChevron: false,
+        onTap: () => _setRestTimer(!settings.restTimerEnabled),
+        trailing: Switch.adaptive(
+          key: const Key('settings-rest-timer-switch'),
+          value: settings.restTimerEnabled,
+          onChanged: _setRestTimer,
+          activeTrackColor: AppColors.lime,
+          activeThumbColor: AppColors.limeInk,
+        ),
+      ),
     );
   }
 
@@ -722,8 +753,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     const SizedBox(height: AppSpacing.sm),
                     Text(
-                      'Units, equipment, reminders, health, privacy, and local '
-                      'data.',
+                      'Units, equipment, workout, reminders, health, privacy, '
+                      'and local data.',
                       style: AppTypography.body.copyWith(
                         color: AppColors.muted,
                       ),
@@ -753,6 +784,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       title: 'Units',
                       subtitle: 'Applies to every weight and body measurement.',
                       child: _buildUnitsCard(settings),
+                    ),
+                    _buildSection(
+                      title: 'Workout',
+                      subtitle: 'Applies to the live logger.',
+                      child: _buildWorkoutCard(settings),
                     ),
                     _buildSection(
                       title: 'Reminders',

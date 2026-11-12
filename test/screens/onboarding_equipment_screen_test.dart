@@ -105,6 +105,29 @@ void main() {
     expect(routes, <String>[Routes.onboardingNotifications]);
   });
 
+  testWidgets('quick start preset narrows the list and persists on continue', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(430, 1400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final provider = await _provider(StorageService.inMemory());
+    final routes = <String>[];
+
+    await tester.pumpWidget(_wrap(provider, routes.add));
+    await tester.tap(
+      find.byKey(const Key('equipment-preset-bodyweight-only')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Continue'));
+    await tester.pumpAndSettle();
+
+    expect(provider.draft.availableEquipment, <EquipmentGroup>[
+      EquipmentGroup.bodyweight,
+    ]);
+    expect(routes, <String>[Routes.onboardingNotifications]);
+  });
+
   testWidgets('back returns to the schedule step', (tester) async {
     tester.view.physicalSize = const Size(430, 1400);
     tester.view.devicePixelRatio = 1;

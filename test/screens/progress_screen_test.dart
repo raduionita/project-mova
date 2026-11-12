@@ -5,12 +5,14 @@ import 'package:mova/common/constants.dart';
 import 'package:mova/models/personal_record.dart';
 import 'package:mova/models/session_exercise.dart';
 import 'package:mova/models/user_profile.dart';
+import 'package:mova/models/weight_entry.dart';
 import 'package:mova/models/workout_session.dart';
 import 'package:mova/models/workout_set.dart';
 import 'package:mova/providers/exercise_provider.dart';
 import 'package:mova/providers/profile_provider.dart';
 import 'package:mova/providers/progress_provider.dart';
 import 'package:mova/providers/settings_provider.dart';
+import 'package:mova/providers/weight_provider.dart';
 import 'package:mova/screens/progress/progress_screen.dart';
 import 'package:mova/services/clock.dart';
 import 'package:mova/services/seed_data_service.dart';
@@ -130,6 +132,9 @@ Widget _wrap(StorageService storage) {
       ChangeNotifierProvider<SettingsProvider>(
         create: (_) => SettingsProvider(storage),
       ),
+      ChangeNotifierProvider<WeightProvider>(
+        create: (_) => WeightProvider(storage, clock: _clock),
+      ),
       ChangeNotifierProvider<ExerciseProvider>(
         create: (_) => ExerciseProvider(
           storage,
@@ -176,6 +181,8 @@ void main() {
     expect(find.text('Personal records'), findsOneWidget);
     expect(find.text('Back Squat'), findsOneWidget);
     expect(find.text('Workout history'), findsOneWidget);
+    expect(find.text('Body weight'), findsOneWidget);
+    expect(find.text('80 kg'), findsOneWidget);
   });
 
   testWidgets('score explanation avoids rankings', (tester) async {
@@ -191,6 +198,36 @@ void main() {
       find.textContaining('no gym, global, or percentile ranking'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('metrics info explains what every number counts', (
+    tester,
+  ) async {
+    final storage = await _seededStorage();
+    await tester.pumpWidget(_wrap(storage));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('progress-metrics-info')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('What counts'), findsOneWidget);
+    expect(
+      find.textContaining('Discarded or unfinished sessions never count'),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining('Weight times reps for every completed set'),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining('Consecutive days with at least one'),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.text('Got it'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('What counts'), findsNothing);
   });
 
   testWidgets('missing body weight CTA saves weight and unlocks the score', (
@@ -220,5 +257,30 @@ void main() {
     expect(profile?.bodyWeightKg, 80);
     expect(find.text('175'), findsOneWidget);
     expect(find.text('Add body weight'), findsNothing);
+  });
+
+  testWidgets('quick add records weight and updates the card', (tester) async {
+    final storage = await _seededStorage();
+    await tester.pumpWidget(_wrap(storage));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('progress-add-weight')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('body-weight-field')), '79');
+    await tester.tap(find.text('Save body weight'));
+    await tester.pumpAndSettle();
+
+    final entries = storage.readList<WeightEntry>(
+      kWeightsKey,
+      WeightEntry.fromJson,
+    );
+    expect(entries.single.weightKg, 79);
+    expect(find.text('79 kg'), findsOneWidget);
+
+    final profile = storage.readObject<UserProfile>(
+      kProfileKey,
+      UserProfile.fromJson,
+    );
+    expect(profile?.bodyWeightKg, 79);
   });
 }

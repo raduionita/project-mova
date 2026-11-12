@@ -5,7 +5,9 @@ import '../../models/equipment_group.dart';
 import '../../navigation/onboarding_flow.dart';
 import '../../navigation/routes.dart';
 import '../../providers/onboarding_provider.dart';
+import '../../theme/app_spacing.dart';
 import '../../widgets/equipment_multi_select.dart';
+import '../../widgets/equipment_preset_bar.dart';
 import 'onboarding_scaffold.dart';
 
 /// Onboarding step 9: the equipment the user can train with.
@@ -76,9 +78,21 @@ class _OnboardingEquipmentScreenState extends State<OnboardingEquipmentScreen> {
       onContinue: _equipment.isEmpty || _isBusy ? null : _continue,
       continueEnabled: _equipment.isNotEmpty,
       isBusy: _isBusy,
-      child: EquipmentMultiSelect(
-        selected: _equipment,
-        onChanged: (value) => setState(() => _equipment = value),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          EquipmentPresetBar(
+            selected: _equipment,
+            onApply: (preset) => setState(
+              () => _equipment = List<EquipmentGroup>.of(preset.groups),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.x2l),
+          EquipmentMultiSelect(
+            selected: _equipment,
+            onChanged: (value) => setState(() => _equipment = value),
+          ),
+        ],
       ),
     );
   }

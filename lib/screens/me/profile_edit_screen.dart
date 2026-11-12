@@ -12,6 +12,7 @@ import '../../models/unit_preferences.dart';
 import '../../providers/profile_provider.dart';
 import '../../providers/progress_provider.dart';
 import '../../providers/settings_provider.dart';
+import '../../providers/weight_provider.dart';
 import '../../services/clock.dart';
 import '../../services/unit_conversion_service.dart';
 import '../../theme/app_colors.dart';
@@ -272,6 +273,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     });
     final profile = context.read<ProfileProvider>();
     final progress = context.read<ProgressProvider>();
+    final weights = context.read<WeightProvider>();
+    final weightChanged = (_bodyWeightKg - current.bodyWeightKg).abs() > 0.001;
     final saved = await profile.saveProfile(
       current.copyWith(
         displayName: _nameController.text.trim(),
@@ -293,6 +296,9 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         _error = profile.error ?? 'Could not save profile.';
       });
       return;
+    }
+    if (weightChanged) {
+      await weights.logWeight(_bodyWeightKg);
     }
     await progress.recompute();
     if (mounted) {

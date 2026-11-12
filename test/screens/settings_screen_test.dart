@@ -130,6 +130,7 @@ void main() {
 
     expect(find.text('Settings'), findsOneWidget);
     expect(find.text('Units'), findsOneWidget);
+    expect(find.text('Workout'), findsOneWidget);
     expect(find.text('Reminders'), findsOneWidget);
     expect(find.text('Integrations'), findsOneWidget);
     expect(find.text('Privacy and social'), findsOneWidget);
@@ -176,6 +177,24 @@ void main() {
       harness.settings.settings.unitPreferences.heightUnit,
       HeightUnit.inches,
     );
+  });
+
+  testWidgets('rest timer switch persists the logger preference', (
+    tester,
+  ) async {
+    final harness = await _pump(tester);
+
+    expect(harness.settings.settings.restTimerEnabled, isTrue);
+    expect(find.text('Starts after each completed set'), findsOneWidget);
+
+    await tester.ensureVisible(
+      find.byKey(const Key('settings-rest-timer-switch')),
+    );
+    await tester.tap(find.byKey(const Key('settings-rest-timer-switch')));
+    await tester.pumpAndSettle();
+
+    expect(harness.settings.settings.restTimerEnabled, isFalse);
+    expect(find.text('Off'), findsWidgets);
   });
 
   testWidgets('reminder switch schedules and cancels local reminders', (
