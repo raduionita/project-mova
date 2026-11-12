@@ -13,12 +13,13 @@ import 'package:mova/models/workout_session.dart';
 import 'package:mova/models/workout_set.dart';
 import 'package:mova/navigation/routes.dart';
 import 'package:mova/screens/logger/logger_screen.dart';
+import 'package:mova/screens/calendar/calendar_screen.dart';
 import 'package:mova/screens/onboarding/goals_screen.dart';
 import 'package:mova/screens/onboarding/welcome_screen.dart';
 import 'package:mova/screens/today/today_screen.dart';
 import 'package:mova/screens/train/exercise_detail_screen.dart';
 import 'package:mova/screens/summary/summary_screen.dart';
-import 'package:mova/screens/train/train_screen.dart';
+import 'package:mova/screens/exercises/exercise_library_screen.dart';
 import 'package:mova/services/clock.dart';
 import 'package:mova/services/seed_data_service.dart';
 import 'package:mova/services/storage_service.dart';
@@ -142,7 +143,7 @@ void main() {
     await _pumpApp(tester, profile: _completeProfile());
 
     expect(find.byType(TodayScreen), findsOneWidget);
-    expect(find.text('No plan yet'), findsOneWidget);
+    expect(find.textContaining('No rotation needed'), findsOneWidget);
   });
 
   testWidgets('startup seeds one placeholder post before a workout is saved', (
@@ -243,20 +244,25 @@ void main() {
     expect(find.text('NEW PR'), findsOneWidget);
   });
 
-  testWidgets('the shell opens the Train library and exercise details', (
+  testWidgets('the shell opens Calendar and the exercise library', (
     tester,
   ) async {
     await _pumpApp(tester, profile: _completeProfile());
 
     expect(find.byType(TodayScreen), findsOneWidget);
-    expect(find.text('Train'), findsOneWidget);
+    expect(find.text('Calendar'), findsOneWidget);
 
-    await tester.tap(find.text('Train'));
+    await tester.tap(find.text('Calendar'));
     await tester.pumpAndSettle();
 
-    expect(find.byType(TrainScreen), findsOneWidget);
+    expect(find.byType(CalendarScreen), findsOneWidget);
+    expect(find.text('Calendar'), findsWidgets);
+
+    await tester.tap(find.byKey(const Key('calendar-exercises')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ExerciseLibraryScreen), findsOneWidget);
     expect(find.text('Barbell Bench Press'), findsOneWidget);
-    expect(find.text('Today'), findsOneWidget);
 
     await tester.tap(find.text('Barbell Bench Press'));
     await tester.pump();
@@ -266,7 +272,7 @@ void main() {
     expect(find.byType(ExerciseDetailScreen), findsOneWidget);
     expect(find.text('Lie on a flat bench with feet planted.'), findsOneWidget);
     expect(find.text('Previous best'), findsOneWidget);
-    expect(find.text('Train'), findsOneWidget);
+    expect(find.text('Calendar'), findsOneWidget);
   });
 }
 

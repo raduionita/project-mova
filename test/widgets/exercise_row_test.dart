@@ -51,6 +51,30 @@ void main() {
     expect(adds, 1);
   });
 
+  testWidgets('added rows show Added and View instead of add', (tester) async {
+    var views = 0;
+    await tester.pumpWidget(
+      _wrap(
+        ExerciseRow(
+          exercise: _exercise(),
+          isAdded: true,
+          onView: () => views++,
+        ),
+      ),
+    );
+
+    expect(
+      find.byKey(const Key('exercise-added-barbell-bench-press')),
+      findsOneWidget,
+    );
+    expect(find.text('Added'), findsOneWidget);
+    expect(find.text('View'), findsOneWidget);
+    expect(_assetIcon(AppIcons.plus), findsNothing);
+
+    await tester.tap(find.byKey(const Key('exercise-view-barbell-bench-press')));
+    expect(views, 1);
+  });
+
   testWidgets('the row reports taps when onTap is provided', (tester) async {
     var opens = 0;
     await tester.pumpWidget(

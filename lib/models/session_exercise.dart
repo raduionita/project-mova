@@ -6,13 +6,15 @@ const Object _noChange = Object();
 /// Exercise performed inside a workout session.
 class SessionExercise {
   const SessionExercise({
-    this.schemaVersion = 1,
+    this.schemaVersion = 2,
     required this.id,
     required this.exerciseId,
     required this.order,
     required this.sets,
     this.notes = '',
     this.progression,
+    this.primaryMuscle,
+    this.secondaryMuscles = const <String>[],
   });
 
   final int schemaVersion;
@@ -23,8 +25,13 @@ class SessionExercise {
   final String notes;
   final ProgressionSuggestion? progression;
 
+  /// Muscle snapshot captured when the exercise enters the session.
+  final String? primaryMuscle;
+  final List<String> secondaryMuscles;
+
   factory SessionExercise.fromJson(Map<String, dynamic> json) {
     final rawSets = json['sets'];
+    final rawSecondary = json['secondaryMuscles'];
     return SessionExercise(
       schemaVersion: (json['schemaVersion'] as num?)?.toInt() ?? 1,
       id: json['id'] as String? ?? '',
@@ -42,6 +49,10 @@ class SessionExercise {
               json['progression'] as Map<String, dynamic>,
             )
           : null,
+      primaryMuscle: json['primaryMuscle'] as String?,
+      secondaryMuscles: rawSecondary is List
+          ? rawSecondary.whereType<String>().toList(growable: false)
+          : const <String>[],
     );
   }
 
@@ -54,6 +65,8 @@ class SessionExercise {
       'sets': sets.map((set) => set.toJson()).toList(growable: false),
       'notes': notes,
       'progression': progression?.toJson(),
+      'primaryMuscle': primaryMuscle,
+      'secondaryMuscles': secondaryMuscles,
     };
   }
 
@@ -65,6 +78,8 @@ class SessionExercise {
     List<WorkoutSet>? sets,
     String? notes,
     Object? progression = _noChange,
+    Object? primaryMuscle = _noChange,
+    List<String>? secondaryMuscles,
   }) {
     return SessionExercise(
       schemaVersion: schemaVersion ?? this.schemaVersion,
@@ -76,6 +91,10 @@ class SessionExercise {
       progression: identical(progression, _noChange)
           ? this.progression
           : progression as ProgressionSuggestion?,
+      primaryMuscle: identical(primaryMuscle, _noChange)
+          ? this.primaryMuscle
+          : primaryMuscle as String?,
+      secondaryMuscles: secondaryMuscles ?? this.secondaryMuscles,
     );
   }
 }

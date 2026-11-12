@@ -8,6 +8,12 @@ typedef StorageMigration = Map<String, dynamic> Function(
   Map<String, dynamic> json,
 );
 
+/// Keeps a v1 payload unchanged while the shared storage schema moves to v2.
+///
+/// Models tolerate their previous shape through `fromJson`, so the migration
+/// only needs to raise the shared schema version.
+Map<String, dynamic> _identityMigration(Map<String, dynamic> json) => json;
+
 /// The only class that touches `shared_preferences`.
 ///
 /// Reads never throw. Missing, corrupt, or future-schema payloads return a
@@ -15,15 +21,25 @@ typedef StorageMigration = Map<String, dynamic> Function(
 class StorageService {
   StorageService._(
     this._preferences, {
-    this._migrations = const <StorageMigration>[],
+    this._migrations = const <StorageMigration>[
+      _identityMigration,
+      _identityMigration,
+    ],
   }) : isPersistent = true;
 
-  StorageService.inMemory({this._migrations = const <StorageMigration>[]})
-    : _preferences = null,
-      isPersistent = false;
+  StorageService.inMemory({
+    this._migrations = const <StorageMigration>[
+      _identityMigration,
+      _identityMigration,
+    ],
+  }) : _preferences = null,
+       isPersistent = false;
 
   static Future<StorageService> create({
-    List<StorageMigration> migrations = const <StorageMigration>[],
+    List<StorageMigration> migrations = const <StorageMigration>[
+      _identityMigration,
+      _identityMigration,
+    ],
   }) async {
     try {
       final preferences = await SharedPreferences.getInstance();
@@ -47,7 +63,7 @@ class StorageService {
   /// User-facing warning shown when local data could not be read or written.
   String? warning;
 
-  static const int _supportedSchemaVersion = 1;
+  static const int _supportedSchemaVersion = 2;
 
   bool contains(String key) => _readRaw(key) != null;
 

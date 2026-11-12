@@ -76,7 +76,10 @@ class AppCoordinator {
   Future<bool> completeOnboarding(OnboardingDraft draft) async {
     final experienceLevel = draft.experienceLevel;
     final daysPerWeek = draft.daysPerWeek;
-    if (experienceLevel == null || daysPerWeek == null || draft.goals.isEmpty) {
+    if (experienceLevel == null || draft.goals.isEmpty) {
+      return false;
+    }
+    if (draft.planEnabled && daysPerWeek == null) {
       return false;
     }
 
@@ -101,13 +104,13 @@ class AppCoordinator {
     if (!await settingsProvider.setUnitPreferences(draft.unitPreferences)) {
       return false;
     }
-    if (!await planProvider.generate(
-      goals: draft.goals,
-      experienceLevel: experienceLevel,
-      daysPerWeek: daysPerWeek,
-      trainingDays: draft.trainingDays,
-      availableEquipment: draft.availableEquipment,
-    )) {
+    if (draft.planEnabled &&
+        !await planProvider.generate(
+          goals: draft.goals,
+          experienceLevel: experienceLevel,
+          daysPerWeek: daysPerWeek!,
+          availableEquipment: draft.availableEquipment,
+        )) {
       return false;
     }
     await onboardingProvider.reset();
@@ -120,7 +123,11 @@ class AppCoordinator {
     if (workout == null) {
       return false;
     }
-    return workout.startFromPlanDay(day, suggest: suggestionForExercise);
+    return workout.startFromPlanDay(
+      day,
+      suggest: suggestionForExercise,
+      findExercise: (exerciseId) => exerciseProvider?.byId(exerciseId),
+    );
   }
 
   /// Starts a routine with progression prefills when available.
@@ -129,7 +136,11 @@ class AppCoordinator {
     if (workout == null) {
       return false;
     }
-    return workout.startFromRoutine(routine, suggest: suggestionForExercise);
+    return workout.startFromRoutine(
+      routine,
+      suggest: suggestionForExercise,
+      findExercise: (exerciseId) => exerciseProvider?.byId(exerciseId),
+    );
   }
 
   /// Adds an exercise to the active workout with a progression prefill.
@@ -141,6 +152,7 @@ class AppCoordinator {
     return workout.addExercise(
       exerciseId,
       suggestion: suggestionForExercise(exerciseId, 8, 12),
+      exercise: exerciseProvider?.byId(exerciseId),
     );
   }
 
@@ -203,7 +215,6 @@ class AppCoordinator {
     }
     return planProvider.updateSchedule(
       daysPerWeek: plan.daysPerWeek,
-      trainingDays: plan.trainingDays,
       availableEquipment: equipment,
     );
   }
@@ -265,6 +276,22 @@ class AppCoordinator {
     return WorkoutCompletionResult(session: completed, records: records);
   }
 
+  /// Replaces an edited completed workout and rebuilds derived metrics.
+  Future<bool> updateCompletedWorkout(WorkoutSession updated) async {
+    if (updated.status != SessionStatus.completed) {
+      return false;
+    }
+    if (!await historyProvider.addCompleted(updated)) {
+      return false;
+    }
+    final records = prService.recompute(historyProvider.workouts);
+    if (!await progressProvider.replaceRecords(records)) {
+      return false;
+    }
+    await progressProvider.recompute();
+    return true;
+  }
+
   /// Deletes a workout and rebuilds every derived metric from what remains.
   Future<bool> deleteWorkout(String sessionId) async {
     if (!await historyProvider.delete(sessionId)) {
@@ -314,7 +341,10 @@ class AppCoordinator {
     }
     final sets = WorkoutCalculator.completedSetCount(session.exercises);
     final volume = WorkoutCalculator.volumeKg(session.exercises);
-    final name = session.name.trim().isEmpty ? 'Workout' : session.name.trim();
+    final title = session.displayTitle.trim().isEmpty
+        ? session.name.trim()
+        : session.displayTitle.trim();
+    final name = title.isEmpty ? 'Workout' : title;
     final author = profileDisplayName(profileProvider.profile);
     await social.addPost(
       ActivityPost(

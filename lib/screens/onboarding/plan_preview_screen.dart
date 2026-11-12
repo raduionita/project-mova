@@ -51,17 +51,6 @@ class PlanPreviewScreen extends StatefulWidget {
 }
 
 class _PlanPreviewScreenState extends State<PlanPreviewScreen> {
-  static const List<String> _weekdayLabels = <String>[
-    '',
-    'MON',
-    'TUE',
-    'WED',
-    'THU',
-    'FRI',
-    'SAT',
-    'SUN',
-  ];
-
   static const Map<ExperienceLevel, String> _experienceLabels =
       <ExperienceLevel, String>{
         ExperienceLevel.beginner: 'Beginner',
@@ -86,12 +75,22 @@ class _PlanPreviewScreenState extends State<PlanPreviewScreen> {
   }
 
   Future<void> _generatePreview() async {
+    final draft = _draft;
+    if (!draft.planEnabled) {
+      if (mounted) {
+        setState(() {
+          _plan = null;
+          _loading = false;
+          _failure = null;
+        });
+      }
+      return;
+    }
     setState(() {
       _loading = true;
       _failure = null;
     });
     try {
-      final draft = _draft;
       final plan =
           widget.previewBuilder?.call(draft) ?? await _generatePlan(draft);
       if (!mounted) {
@@ -130,8 +129,7 @@ class _PlanPreviewScreenState extends State<PlanPreviewScreen> {
     final plan = generator.generate(
       goals: draft.goals,
       experienceLevel: draft.experienceLevel ?? ExperienceLevel.beginner,
-      daysPerWeek: draft.daysPerWeek ?? draft.trainingDays.length,
-      trainingDays: draft.trainingDays,
+      daysPerWeek: draft.daysPerWeek ?? 3,
       availableEquipment: draft.availableEquipment,
     );
     _warning = generator.lastWarning;
@@ -188,9 +186,12 @@ class _PlanPreviewScreenState extends State<PlanPreviewScreen> {
     final goal = draft.goals.isEmpty
         ? goalLabel(Goal.buildMuscle)
         : goalLabel(draft.goals.first);
-    final days = draft.daysPerWeek ?? draft.trainingDays.length;
     final level =
         _experienceLabels[draft.experienceLevel ?? ExperienceLevel.beginner]!;
+    if (!draft.planEnabled) {
+      return '$goal · $level';
+    }
+    final days = draft.daysPerWeek ?? 3;
     return '$goal · $days days · $level';
   }
 
@@ -204,9 +205,7 @@ class _PlanPreviewScreenState extends State<PlanPreviewScreen> {
   }
 
   Widget _buildDayCard(PlanDay day) {
-    final label = day.weekday >= 1 && day.weekday <= 7
-        ? _weekdayLabels[day.weekday]
-        : '';
+    final label = 'DAY ${day.order + 1}';
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.md),
       child: AppCard(
@@ -284,7 +283,7 @@ class _PlanPreviewScreenState extends State<PlanPreviewScreen> {
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(
-            'The starter plan is still available. Try again to build a full week.',
+            'The starter plan is still available. Try again to build your rotation.',
             style: AppTypography.caption.copyWith(color: AppColors.muted),
           ),
           const SizedBox(height: AppSpacing.lg),
@@ -319,6 +318,58 @@ class _PlanPreviewScreenState extends State<PlanPreviewScreen> {
             ),
           ),
         for (final day in plan.days) _buildDayCard(day),
+        const SizedBox(height: AppSpacing.sm),
+        AppCard(
+          child: Text(
+            'Sessions run in order and repeat as a rotation. Start on any '
+            'day. Days you do not train count as rest, and rest never '
+            'blocks your next session.',
+            style: AppTypography.caption.copyWith(color: AppColors.muted),
+          ),
+        ),
+        if (_confirmError != null)
+          Padding(
+            padding: const EdgeInsets.only(top: AppSpacing.sm),
+            child: Text(
+              _confirmError!,
+              style: AppTypography.caption.copyWith(color: AppColors.orange),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildTrackingSummary() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        AppCard(
+          key: const Key('onboarding-tracking-summary'),
+          featured: true,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(
+                'Start with any workout',
+                style: AppTypography.h2.copyWith(color: AppColors.text),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                'Empty workouts, saved workouts, walks, and runs all live in '
+                'Today. Pick a focus and Mova suggests exercises as you go.',
+                style: AppTypography.body.copyWith(color: AppColors.muted),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        AppCard(
+          child: Text(
+            'History, streaks, steps, and progress still work without a '
+            'rotation. You can create one from Plan whenever you want.',
+            style: AppTypography.caption.copyWith(color: AppColors.muted),
+          ),
+        ),
         if (_confirmError != null)
           Padding(
             padding: const EdgeInsets.only(top: AppSpacing.sm),
@@ -335,22 +386,25 @@ class _PlanPreviewScreenState extends State<PlanPreviewScreen> {
   Widget build(BuildContext context) {
     final draft = _draft;
     final plan = _plan;
+    final tracking = !draft.planEnabled;
     final busy = _loading || _confirming;
     return OnboardingScaffold(
-      title: 'Your Week 1',
+      title: tracking ? 'Your Mova' : 'Your plan',
       subtitle: _subtitle(draft),
       currentStep: 11,
       onBack: _back,
       onContinue: _confirm,
-      continueEnabled: plan != null && !_loading,
-      continueLabel: 'Start using Mova',
+      continueEnabled: tracking || (plan != null && !_loading),
+      continueLabel: tracking ? 'Begin your Mova' : 'Start using Mova',
       isBusy: busy,
       onSkip: _editSchedule,
       skipLabel: 'Edit schedule',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          if (_loading)
+          if (tracking)
+            _buildTrackingSummary()
+          else if (_loading)
             _buildLoading()
           else if (_failure != null)
             _buildFailure()

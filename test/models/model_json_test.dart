@@ -115,7 +115,6 @@ void main() {
       goals: const <Goal>[Goal.loseWeight],
       experienceLevel: ExperienceLevel.beginner,
       daysPerWeek: 3,
-      trainingDays: const <int>[1, 3, 5],
       notificationsAsked: true,
       reminderHour: 7,
       reminderMinute: 45,
@@ -167,12 +166,12 @@ void main() {
       goals: const <Goal>[Goal.buildMuscle, Goal.getStronger],
       experienceLevel: ExperienceLevel.gymRat,
       daysPerWeek: 1,
-      trainingDays: const <int>[1],
       splitName: 'Upper',
       days: <PlanDay>[
         PlanDay(
           id: 'day-1',
-          weekday: 1,
+          order: 0,
+          slotKey: 'full',
           name: 'Upper',
           muscleGroups: const <String>['Chest', 'Back'],
           estimatedMinutes: 45,

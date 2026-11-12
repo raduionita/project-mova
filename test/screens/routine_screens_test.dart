@@ -118,14 +118,14 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Routines'), findsOneWidget);
-    expect(find.text('No routines yet'), findsOneWidget);
-    expect(find.text('0 saved routines'), findsOneWidget);
+    expect(find.text('Saved workouts'), findsOneWidget);
+    expect(find.text('No saved workouts yet'), findsOneWidget);
+    expect(find.text('0 saved workouts'), findsOneWidget);
 
-    await tester.tap(find.text('Create routine'));
+    await tester.tap(find.text('Create saved workout'));
     await tester.pumpAndSettle();
     expect(find.byType(RoutineBuilderScreen), findsOneWidget);
-    expect(find.text('New routine'), findsOneWidget);
+    expect(find.text('New saved workout'), findsOneWidget);
   });
 
   testWidgets('the list shows routines and opens the detail route', (
@@ -212,28 +212,28 @@ void main() {
       find.widgetWithText(AppButton, 'Start now'),
     );
     final edit = tester.widget<AppButton>(
-      find.widgetWithText(AppButton, 'Edit routine'),
+      find.widgetWithText(AppButton, 'Edit saved workout'),
     );
     expect(start.onPressed, isNotNull);
     expect(edit.onPressed, isNotNull);
 
-    await tester.tap(find.text('Edit routine'));
+    await tester.tap(find.text('Edit saved workout'));
     await tester.pumpAndSettle();
     expect(find.byType(RoutineBuilderScreen), findsOneWidget);
-    expect(find.text('Edit routine'), findsOneWidget);
+    expect(find.text('Edit saved workout'), findsOneWidget);
     await tester.tap(find.byTooltip('Back'));
     await tester.pumpAndSettle();
     expect(find.byType(RoutineDetailScreen), findsOneWidget);
 
-    await tester.tap(find.text('Delete routine'));
+    await tester.tap(find.text('Delete saved workout'));
     await tester.pumpAndSettle();
-    expect(find.text('Delete routine?'), findsOneWidget);
+    expect(find.text('Delete saved workout?'), findsOneWidget);
     await tester.tap(find.text('Cancel'));
     await tester.pumpAndSettle();
     expect(routines.routines, hasLength(1));
     expect(find.byType(RoutineDetailScreen), findsOneWidget);
 
-    await tester.tap(find.text('Delete routine'));
+    await tester.tap(find.text('Delete saved workout'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Delete'));
     await tester.pumpAndSettle();
@@ -306,7 +306,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Routine not found'), findsOneWidget);
+    expect(find.text('Saved workout not found'), findsOneWidget);
   });
 }
 

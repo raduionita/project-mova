@@ -81,13 +81,13 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('New routine'), findsOneWidget);
+    expect(find.text('New saved workout'), findsOneWidget);
     expect(find.text('No exercises yet'), findsOneWidget);
 
-    await tester.tap(find.widgetWithText(AppButton, 'Save routine'));
+    await tester.tap(find.widgetWithText(AppButton, 'Save workout'));
     await tester.pump();
 
-    expect(find.text('Name your routine.'), findsOneWidget);
+    expect(find.text('Name your saved workout.'), findsOneWidget);
     expect(find.text('Add at least one exercise.'), findsOneWidget);
     expect(routines.routines, isEmpty);
   });
@@ -113,10 +113,10 @@ void main() {
     await tester.tap(find.text('Add exercise'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Add to routine'), findsWidgets);
+    expect(find.text('Add to saved workout'), findsWidgets);
     await tester.tap(find.text('Barbell Bench Press'));
     await tester.pump();
-    await tester.tap(find.widgetWithText(AppButton, 'Add to routine'));
+    await tester.tap(find.widgetWithText(AppButton, 'Add to saved workout'));
     await tester.pumpAndSettle();
 
     expect(find.text('Barbell Bench Press'), findsOneWidget);
@@ -126,7 +126,7 @@ void main() {
     await tester.pump();
     expect(find.text('4 sets · 8-12 reps'), findsOneWidget);
 
-    await tester.tap(find.widgetWithText(AppButton, 'Save routine'));
+    await tester.tap(find.widgetWithText(AppButton, 'Save workout'));
     await tester.pumpAndSettle();
 
     expect(find.text('Open builder'), findsOneWidget);
@@ -158,7 +158,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Barbell Bench Press'));
     await tester.pump();
-    await tester.tap(find.widgetWithText(AppButton, 'Add to routine'));
+    await tester.tap(find.widgetWithText(AppButton, 'Add to saved workout'));
     await tester.pumpAndSettle();
 
     await tester.tap(find.byTooltip('Remove Barbell Bench Press'));
@@ -199,7 +199,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Dumbbell Fly'));
     await tester.pump();
-    await tester.tap(find.widgetWithText(AppButton, 'Add to routine'));
+    await tester.tap(find.widgetWithText(AppButton, 'Add to saved workout'));
     await tester.pumpAndSettle();
 
     final bench = tester.getTopLeft(find.text('Barbell Bench Press')).dy;
@@ -218,7 +218,7 @@ void main() {
     final movedBench = tester.getTopLeft(find.text('Barbell Bench Press')).dy;
     expect(movedFly, lessThan(movedBench));
 
-    await tester.tap(find.widgetWithText(AppButton, 'Save routine'));
+    await tester.tap(find.widgetWithText(AppButton, 'Save workout'));
     await tester.pumpAndSettle();
 
     final routine = routines.routines.single;
@@ -252,13 +252,13 @@ void main() {
     await tester.tap(find.text('Open builder'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Edit routine'), findsOneWidget);
+    expect(find.text('Edit saved workout'), findsOneWidget);
     final field = tester.widget<TextField>(find.byType(TextField));
     expect(field.controller?.text, 'Push day');
     expect(find.text('3 sets · 8-10 reps'), findsOneWidget);
 
     await tester.enterText(find.byType(TextField), 'Push day v2');
-    await tester.tap(find.widgetWithText(AppButton, 'Save routine'));
+    await tester.tap(find.widgetWithText(AppButton, 'Save workout'));
     await tester.pumpAndSettle();
 
     expect(find.text('Open builder'), findsOneWidget);
@@ -289,7 +289,7 @@ void main() {
     expect(find.text('Discard changes?'), findsOneWidget);
     await tester.tap(find.text('Keep editing'));
     await tester.pumpAndSettle();
-    expect(find.text('New routine'), findsOneWidget);
+    expect(find.text('New saved workout'), findsOneWidget);
 
     await tester.tap(find.byTooltip('Back'));
     await tester.pumpAndSettle();

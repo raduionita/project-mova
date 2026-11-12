@@ -2,18 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mova/common/constants.dart';
+import 'package:mova/models/exercise.dart';
 import 'package:mova/models/personal_record.dart';
 import 'package:mova/models/session_exercise.dart';
 import 'package:mova/models/user_profile.dart';
+import 'package:mova/models/wellness_entry.dart';
 import 'package:mova/models/weight_entry.dart';
 import 'package:mova/models/workout_session.dart';
 import 'package:mova/models/workout_set.dart';
 import 'package:mova/providers/exercise_provider.dart';
+import 'package:mova/providers/plan_provider.dart';
 import 'package:mova/providers/profile_provider.dart';
 import 'package:mova/providers/progress_provider.dart';
 import 'package:mova/providers/settings_provider.dart';
 import 'package:mova/providers/weight_provider.dart';
+import 'package:mova/providers/wellness_provider.dart';
 import 'package:mova/screens/progress/progress_screen.dart';
+import 'package:mova/widgets/progress_placeholder_card.dart';
 import 'package:mova/services/clock.dart';
 import 'package:mova/services/seed_data_service.dart';
 import 'package:mova/services/storage_service.dart';
@@ -142,6 +147,16 @@ Widget _wrap(StorageService storage) {
           clock: _clock,
         ),
       ),
+      ChangeNotifierProvider<WellnessProvider>(
+        create: (_) => WellnessProvider(storage, clock: _clock),
+      ),
+      ChangeNotifierProvider<PlanProvider>(
+        create: (_) => PlanProvider(
+          storage,
+          loadExercises: () async => const <Exercise>[],
+          clock: _clock,
+        ),
+      ),
     ],
     child: MaterialApp(
       theme: AppTheme.dark,
@@ -155,13 +170,39 @@ void main() {
     await tester.pumpWidget(_wrap(StorageService.inMemory()));
     await tester.pumpAndSettle();
 
-    expect(find.text('No workouts yet'), findsOneWidget);
-    expect(
-      find.text('Finish a workout to see your progress here.'),
-      findsOneWidget,
-    );
-    expect(find.text('Start your first workout'), findsOneWidget);
-    expect(find.text('Strength score'), findsNothing);
+    expect(find.text('No workouts yet'), findsNothing);
+    expect(find.text('Strength score'), findsOneWidget);
+    expect(find.text('Weekly consistency'), findsOneWidget);
+    expect(find.text('Weekly volume'), findsOneWidget);
+    expect(find.text('Muscle balance'), findsOneWidget);
+    expect(find.text('Personal records'), findsOneWidget);
+    expect(find.text('Measurements'), findsOneWidget);
+    expect(find.text('Progress photos'), findsOneWidget);
+    expect(find.text('Nutrition'), findsOneWidget);
+    expect(find.text('Sleep'), findsOneWidget);
+    expect(find.text('Resting heart rate'), findsOneWidget);
+    expect(find.byKey(const Key('progress-consistency-start')), findsOneWidget);
+    expect(find.byKey(const Key('progress-pr-start')), findsOneWidget);
+    expect(find.byType(ProgressPlaceholderCard), findsWidgets);
+  });
+
+  testWidgets('compact progress cards share one height', (tester) async {
+    await tester.pumpWidget(_wrap(StorageService.inMemory()));
+    await tester.pumpAndSettle();
+
+    const keys = <Key>[
+      Key('progress-measurements-card'),
+      Key('progress-photos-card'),
+      Key('progress-nutrition-card'),
+      Key('progress-sleep-card'),
+      Key('progress-rhr-card'),
+    ];
+    final heights = <double>[
+      for (final key in keys) tester.getSize(find.byKey(key)).height,
+    ];
+
+    expect(heights.toSet().length, 1);
+    expect(heights.first, 168);
   });
 
   testWidgets('dashboard shows hand-calculated lifetime metrics', (
@@ -183,6 +224,15 @@ void main() {
     expect(find.text('Workout history'), findsOneWidget);
     expect(find.text('Body weight'), findsOneWidget);
     expect(find.text('80 kg'), findsOneWidget);
+    expect(find.text('3 of 3'), findsOneWidget);
+    expect(find.text('Target reached for this week.'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('progress-week-streak')),
+        matching: find.text('1'),
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('score explanation avoids rankings', (tester) async {
@@ -224,6 +274,8 @@ void main() {
       findsOneWidget,
     );
 
+    await tester.ensureVisible(find.text('Got it'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Got it'));
     await tester.pumpAndSettle();
 
@@ -259,11 +311,74 @@ void main() {
     expect(find.text('Add body weight'), findsNothing);
   });
 
+  testWidgets('measurement quick add persists and updates the card', (
+    tester,
+  ) async {
+    final storage = await _seededStorage();
+    await tester.pumpWidget(_wrap(storage));
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(
+      find.byKey(const Key('progress-measurements-add')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('progress-measurements-add')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Measurements'), findsWidgets);
+    expect(find.text('Waist (cm)'), findsOneWidget);
+    await tester.enterText(find.byType(TextField), '82');
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
+
+    final entries = storage.readList<WellnessEntry>(
+      kWellnessKey,
+      WellnessEntry.fromJson,
+    );
+    expect(entries.single.waistCm, 82);
+    expect(find.text('82.0 cm'), findsOneWidget);
+  });
+
+  testWidgets('nutrition quick add saves calories and protein', (tester) async {
+    final storage = await _seededStorage();
+    await tester.pumpWidget(_wrap(storage));
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(
+      find.byKey(const Key('progress-nutrition-add')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('progress-nutrition-add')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Calories'), findsOneWidget);
+    await tester.enterText(find.byType(TextField), '2100');
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Protein (g)'), findsOneWidget);
+    await tester.enterText(find.byType(TextField), '140');
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
+
+    final entries = storage.readList<WellnessEntry>(
+      kWellnessKey,
+      WellnessEntry.fromJson,
+    );
+    expect(entries.single.calories, 2100);
+    expect(entries.single.proteinGrams, 140);
+    expect(find.text('2100 kcal'), findsOneWidget);
+  });
+
   testWidgets('quick add records weight and updates the card', (tester) async {
     final storage = await _seededStorage();
     await tester.pumpWidget(_wrap(storage));
     await tester.pumpAndSettle();
 
+    await tester.ensureVisible(
+      find.byKey(const Key('progress-add-weight')),
+    );
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('progress-add-weight')));
     await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const Key('body-weight-field')), '79');

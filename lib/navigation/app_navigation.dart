@@ -5,7 +5,7 @@ import 'routes.dart';
 enum AppPhase { foundation, training, progress, social, profile }
 
 /// Top-level destinations in the bottom navigation bar.
-enum AppTab { today, train, progress, social, me }
+enum AppTab { today, calendar, progress, social, me }
 
 /// A single bottom navigation destination.
 class AppTabItem {
@@ -45,10 +45,10 @@ class AppNavigation {
       releasePhase: AppPhase.foundation,
     ),
     AppTabItem(
-      tab: AppTab.train,
-      label: 'Train',
-      route: Routes.train,
-      iconAsset: AppIcons.navTrain,
+      tab: AppTab.calendar,
+      label: 'Calendar',
+      route: Routes.calendar,
+      iconAsset: AppIcons.calendar,
       releasePhase: AppPhase.training,
     ),
     AppTabItem(
@@ -82,9 +82,26 @@ class AppNavigation {
   }
 
   /// The tab that owns [route], including nested routes such as
-  /// `/train/routines`. Returns null for onboarding, logger, and summary.
+  /// `/train/exercises`. Returns null for onboarding, logger, summary, plan,
+  /// and routine routes.
   static AppTabItem? tabForRoute(String? route) {
     if (route == null) {
+      return null;
+    }
+    final calendar = allTabs.firstWhere(
+      (item) => item.tab == AppTab.calendar,
+    );
+    if (route == Routes.calendar ||
+        route == Routes.train ||
+        route == Routes.exercises ||
+        route == Routes.trainExercises ||
+        route.startsWith('${Routes.trainExercises}/')) {
+      return calendar;
+    }
+    // Routine routes belong to the Plan surface, which is a secondary screen
+    // without a bottom destination.
+    if (route == Routes.routines ||
+        route.startsWith('${Routes.routines}/')) {
       return null;
     }
     for (final item in allTabs) {

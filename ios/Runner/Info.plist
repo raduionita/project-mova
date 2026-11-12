@@ -71,4 +71,9 @@
 		<key>UIStatusBarHidden</key>
 		<false/>
 	</dict>
+	<key>NSCameraUsageDescription</key>
+	<string>Take progress photos stored only on this device.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Choose progress photos stored only on this device.</string>
+</dict>
 </plist>

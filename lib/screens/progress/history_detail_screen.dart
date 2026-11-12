@@ -27,6 +27,7 @@ import '../../widgets/app_card.dart';
 import '../../widgets/app_empty_state.dart';
 import '../../widgets/app_stat_tile.dart';
 import '../../widgets/app_tag.dart';
+import '../../widgets/edit_workout_sheet.dart';
 import '../../widgets/share_card_sheet.dart';
 
 /// One completed workout with exercises, sets, notes, and deletion.
@@ -145,6 +146,15 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
     Navigator.of(context).pop();
   }
 
+  Future<void> _editWorkout(WorkoutSession session) async {
+    final saved = await showEditWorkoutSheet(context, session: session);
+    if (saved == true && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Workout updated.')),
+      );
+    }
+  }
+
   String _formatWeight(double weightKg, WeightUnit unit) {
     if (weightKg <= 0) {
       return '-';
@@ -230,6 +240,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
     WorkoutSession session,
     ExerciseProvider library,
     WeightUnit unit,
+    DistanceUnit distanceUnit,
   ) {
     final date = session.completedAt ?? session.startedAt;
     final duration = WorkoutCalculator.sessionDurationSeconds(session, _now);
@@ -237,6 +248,10 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
     final sets = WorkoutCalculator.completedSetCount(session.exercises);
     final exercises = <SessionExercise>[...session.exercises]
       ..sort((a, b) => a.order.compareTo(b.order));
+    final isActivity =
+        session.source == SessionSource.run ||
+        session.source == SessionSource.walk;
+    final distance = session.distanceMeters;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
@@ -253,33 +268,59 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
                   style: AppTypography.h1.copyWith(color: AppColors.text),
                 ),
                 const SizedBox(height: AppSpacing.x2l),
-                Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: AppStatTile(
-                        value: formatDuration(duration),
-                        label: 'time',
-                        assetIcon: AppIcons.clock,
+                if (isActivity)
+                  Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: AppStatTile(
+                          value: formatDuration(duration),
+                          label: 'time',
+                          assetIcon: AppIcons.clock,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: AppSpacing.md),
-                    Expanded(
-                      child: AppStatTile(
-                        value: formatVolume(volume, unit: unit),
-                        label: 'volume',
-                        assetIcon: AppIcons.scale,
+                      const SizedBox(width: AppSpacing.md),
+                      Expanded(
+                        child: AppStatTile(
+                          value: distance == null || distance <= 0
+                              ? '--'
+                              : _units.displayDistance(
+                                  distance / 1000,
+                                  distanceUnit,
+                                ),
+                          label: 'distance',
+                          assetIcon: AppIcons.run,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: AppSpacing.md),
-                    Expanded(
-                      child: AppStatTile(
-                        value: '$sets',
-                        label: 'sets',
-                        assetIcon: AppIcons.check,
+                    ],
+                  )
+                else
+                  Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: AppStatTile(
+                          value: formatDuration(duration),
+                          label: 'time',
+                          assetIcon: AppIcons.clock,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
+                      const SizedBox(width: AppSpacing.md),
+                      Expanded(
+                        child: AppStatTile(
+                          value: formatVolume(volume, unit: unit),
+                          label: 'volume',
+                          assetIcon: AppIcons.scale,
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.md),
+                      Expanded(
+                        child: AppStatTile(
+                          value: '$sets',
+                          label: 'sets',
+                          assetIcon: AppIcons.check,
+                        ),
+                      ),
+                    ],
+                  ),
                 const SizedBox(height: AppSpacing.x2l),
                 for (
                   var index = 0;
@@ -318,6 +359,13 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
         ),
         const SizedBox(height: AppSpacing.xl),
         AppButton(
+          key: const Key('history-edit-workout'),
+          label: 'Edit workout',
+          variant: AppButtonVariant.ghost,
+          onPressed: () => _editWorkout(session),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        AppButton(
           label: 'Share card',
           variant: AppButtonVariant.ghost,
           onPressed: () => _share(session),
@@ -338,7 +386,9 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
     final library = context.watch<ExerciseProvider>();
     final settings = context.watch<SettingsProvider>();
     final session = history.byId(widget.sessionId);
-    final unit = settings.settings.unitPreferences.weightUnit;
+    final preferences = settings.settings.unitPreferences;
+    final unit = preferences.weightUnit;
+    final distanceUnit = preferences.distanceUnit;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -368,7 +418,12 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
                                   'This workout was deleted or is no longer '
                                   'on this device.',
                             ))
-                    : _buildContent(session, library, unit),
+                    : _buildContent(
+                        session,
+                        library,
+                        unit,
+                        distanceUnit,
+                      ),
               ),
             ],
           ),

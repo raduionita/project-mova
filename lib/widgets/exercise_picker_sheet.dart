@@ -35,6 +35,8 @@ Future<ExercisePickerResult?> showExercisePicker(
   List<EquipmentGroup>? availableEquipment,
   Set<String> excludedExerciseIds = const <String>{},
   String? initialMuscle,
+  List<String>? initialFocusMuscles,
+  String? focusLabel,
   String? title,
 }) {
   return showModalBottomSheet<ExercisePickerResult>(
@@ -52,6 +54,8 @@ Future<ExercisePickerResult?> showExercisePicker(
       availableEquipment: availableEquipment,
       excludedExerciseIds: excludedExerciseIds,
       initialMuscle: initialMuscle,
+      initialFocusMuscles: initialFocusMuscles,
+      focusLabel: focusLabel,
       title: title,
     ),
   );
@@ -118,6 +122,8 @@ class ExercisePickerSheet extends StatefulWidget {
     this.availableEquipment,
     this.excludedExerciseIds = const <String>{},
     this.initialMuscle,
+    this.initialFocusMuscles,
+    this.focusLabel,
     this.title,
   });
 
@@ -127,6 +133,10 @@ class ExercisePickerSheet extends StatefulWidget {
   final List<EquipmentGroup>? availableEquipment;
   final Set<String> excludedExerciseIds;
   final String? initialMuscle;
+
+  /// Optional multi-muscle focus filter, for example Upper or Push.
+  final List<String>? initialFocusMuscles;
+  final String? focusLabel;
   final String? title;
 
   @override
@@ -138,12 +148,17 @@ class _ExercisePickerSheetState extends State<ExercisePickerSheet> {
   final Set<String> _selectedIds = <String>{};
   String _query = '';
   String? _muscleFilter;
+  List<String>? _focusMuscles;
 
   @override
   void initState() {
     super.initState();
     _selectedIds.addAll(widget.initialExerciseIds);
     _muscleFilter = widget.initialMuscle;
+    final focus = widget.initialFocusMuscles;
+    _focusMuscles = focus == null || focus.isEmpty
+        ? null
+        : List<String>.unmodifiable(focus);
     WidgetsBinding.instance.addPostFrameCallback((_) => _load());
   }
 
@@ -182,8 +197,15 @@ class _ExercisePickerSheetState extends State<ExercisePickerSheet> {
     bool ignoreMuscle = false,
   }) {
     final query = _query.trim().toLowerCase();
+    final focus = _focusMuscles;
     return exercises
         .where((exercise) {
+          if (focus != null &&
+              focus.isNotEmpty &&
+              !focus.contains(exercise.primaryMuscle) &&
+              !exercise.secondaryMuscles.any(focus.contains)) {
+            return false;
+          }
           if (!ignoreMuscle &&
               _muscleFilter != null &&
               exercise.primaryMuscle.toLowerCase() !=
@@ -223,7 +245,7 @@ class _ExercisePickerSheetState extends State<ExercisePickerSheet> {
       case ExercisePickerMode.session:
         return 'Add exercise';
       case ExercisePickerMode.routine:
-        return 'Add to routine';
+        return 'Add to saved workout';
     }
   }
 
@@ -234,7 +256,7 @@ class _ExercisePickerSheetState extends State<ExercisePickerSheet> {
       case ExercisePickerMode.session:
         return 'Add to workout';
       case ExercisePickerMode.routine:
-        return 'Add to routine';
+        return 'Add to saved workout';
     }
   }
 
@@ -353,21 +375,34 @@ class _ExercisePickerSheetState extends State<ExercisePickerSheet> {
 
   Widget _buildFilterChips(List<Exercise> exercises) {
     final muscles = _muscleOptions(exercises);
+    final hasFocus = _focusMuscles != null && _focusMuscles!.isNotEmpty;
+    final focusOffset = hasFocus ? 1 : 0;
     return SizedBox(
       height: AppSpacing.x5l,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        itemCount: muscles.length + 1,
+        itemCount: muscles.length + 1 + focusOffset,
         separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.sm),
         itemBuilder: (context, index) {
           if (index == 0) {
             return AppChip(
               label: 'All',
-              selected: _muscleFilter == null,
-              onTap: () => setState(() => _muscleFilter = null),
+              selected: _muscleFilter == null && !hasFocus,
+              onTap: () => setState(() {
+                _muscleFilter = null;
+                _focusMuscles = null;
+              }),
             );
           }
-          final muscle = muscles[index - 1];
+          if (hasFocus && index == 1) {
+            return AppChip(
+              key: const Key('exercise-filter-focus'),
+              label: widget.focusLabel ?? 'Focus',
+              selected: true,
+              onTap: () => setState(() => _focusMuscles = null),
+            );
+          }
+          final muscle = muscles[index - 1 - focusOffset];
           return AppChip(
             label: muscle,
             selected: _muscleFilter == muscle,

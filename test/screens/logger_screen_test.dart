@@ -629,6 +629,43 @@ void main() {
     expect(find.text('Pause at the chest'), findsOneWidget);
   });
 
+  testWidgets('shows the focus drawer once for an empty workout', (
+    tester,
+  ) async {
+    final clock = FakeClock(now);
+    final storage = StorageService.inMemory();
+    final workout = WorkoutProvider(
+      storage,
+      clock: clock,
+      idService: IdService(generator: _sequentialIds()),
+    );
+    await workout.startEmpty();
+
+    await pumpLogger(tester, workout: workout, clock: clock);
+
+    expect(find.byKey(const Key('focus-sheet')), findsOneWidget);
+    expect(workout.activeSession!.focusPromptShown, isFalse);
+
+    await tester.tap(find.byKey(const Key('focus-done')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('focus-sheet')), findsNothing);
+    expect(workout.activeSession!.focusPromptShown, isTrue);
+
+    await pumpLogger(tester, workout: workout, clock: clock);
+
+    expect(find.byKey(const Key('focus-sheet')), findsNothing);
+  });
+
+  testWidgets('routine workouts do not show the focus drawer', (
+    tester,
+  ) async {
+    final workout = await pumpLogger(tester);
+
+    expect(find.byKey(const Key('focus-sheet')), findsNothing);
+    expect(workout.activeSession!.focusPromptShown, isTrue);
+  });
+
   testWidgets('rest timer toggle suppresses the rest banner', (tester) async {
     await pumpLogger(tester);
 

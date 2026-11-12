@@ -14,7 +14,6 @@ import 'package:mova/services/seed_data_service.dart';
 import 'package:mova/services/storage_service.dart';
 import 'package:mova/theme/app_theme.dart';
 import 'package:mova/widgets/app_button.dart';
-import 'package:mova/widgets/exercise_picker_sheet.dart';
 import 'package:provider/provider.dart';
 
 final DateTime _now = DateTime.utc(2026, 11, 6, 12);
@@ -44,6 +43,11 @@ Widget _wrap({
     ],
     child: MaterialApp(
       theme: AppTheme.dark,
+      onGenerateRoute: (settings) => MaterialPageRoute<void>(
+        builder: (_) => const Scaffold(
+          body: Text('logger-stub', key: Key('logger-stub')),
+        ),
+      ),
       home: ExerciseDetailScreen(exerciseId: exerciseId),
     ),
   );
@@ -95,10 +99,12 @@ void main() {
       findsOneWidget,
     );
 
-    final add = tester.widget<AppButton>(
-      find.widgetWithText(AppButton, 'Add to workout'),
+    final start = tester.widget<AppButton>(
+      find.widgetWithText(AppButton, 'Start workout with this exercise'),
     );
-    expect(add.onPressed, isNull);
+    expect(start.onPressed, isNotNull);
+    expect(find.text('Add to saved workout'), findsOneWidget);
+    expect(find.text('View history'), findsOneWidget);
   });
 
   testWidgets('renders the previous best weight, reps, and date', (
@@ -148,7 +154,7 @@ void main() {
     expect(find.text('First time? Log a set to start tracking.'), findsNothing);
   });
 
-  testWidgets('add to workout opens the picker and adds the exercise', (
+  testWidgets('add to current workout appends the exercise directly', (
     tester,
   ) async {
     final storage = StorageService.inMemory();
@@ -177,25 +183,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.widgetWithText(AppButton, 'Add to workout'));
-    await tester.pumpAndSettle();
-
-    expect(find.byType(ExercisePickerSheet), findsOneWidget);
-    expect(find.text('Add exercise'), findsOneWidget);
-    expect(
-      find.descendant(
-        of: find.byType(ExercisePickerSheet),
-        matching: find.text('Barbell Bench Press'),
-      ),
-      findsOneWidget,
-    );
-
-    await tester.tap(
-      find.descendant(
-        of: find.byType(ExercisePickerSheet),
-        matching: find.widgetWithText(AppButton, 'Add to workout'),
-      ),
-    );
+    await tester.tap(find.byKey(const Key('exercise-action-primary')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));
 
@@ -205,6 +193,125 @@ void main() {
       'barbell-bench-press',
     );
     expect(find.text('Added Barbell Bench Press.'), findsOneWidget);
+  });
+
+  testWidgets('start workout with this exercise starts and adds it', (
+    tester,
+  ) async {
+    final storage = StorageService.inMemory();
+    final exercises = ExerciseProvider(
+      storage,
+      _StaticSeedDataService(library),
+      clock: FakeClock(_now),
+    );
+    await exercises.load();
+    final progress = ProgressProvider(storage);
+    final settings = SettingsProvider(storage);
+    final workout = WorkoutProvider(
+      storage,
+      clock: FakeClock(_now),
+      idService: IdService(),
+    );
+
+    await tester.pumpWidget(
+      _wrap(
+        exercises: exercises,
+        progress: progress,
+        settings: settings,
+        workout: workout,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('exercise-action-primary')));
+    await tester.pumpAndSettle();
+
+    expect(workout.activeSession, isNotNull);
+    expect(
+      workout.activeSession?.exercises.single.exerciseId,
+      'barbell-bench-press',
+    );
+    expect(find.byKey(const Key('logger-stub')), findsOneWidget);
+  });
+
+  testWidgets('already logged exercise offers view in workout', (tester) async {
+    final storage = StorageService.inMemory();
+    final exercises = ExerciseProvider(
+      storage,
+      _StaticSeedDataService(library),
+      clock: FakeClock(_now),
+    );
+    await exercises.load();
+    final progress = ProgressProvider(storage);
+    final settings = SettingsProvider(storage);
+    final workout = WorkoutProvider(
+      storage,
+      clock: FakeClock(_now),
+      idService: IdService(),
+    );
+    await workout.startEmpty();
+    await workout.addExercise('barbell-bench-press');
+
+    await tester.pumpWidget(
+      _wrap(
+        exercises: exercises,
+        progress: progress,
+        settings: settings,
+        workout: workout,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Already in workout'), findsOneWidget);
+    expect(
+      find.widgetWithText(AppButton, 'View in workout'),
+      findsOneWidget,
+    );
+    expect(
+      find.widgetWithText(AppButton, 'Add to current workout'),
+      findsNothing,
+    );
+
+    await tester.tap(find.byKey(const Key('exercise-action-primary')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('logger-stub')), findsOneWidget);
+  });
+
+  testWidgets('view history opens the recent sets sheet', (tester) async {
+    final storage = StorageService.inMemory();
+    final exercises = ExerciseProvider(
+      storage,
+      _StaticSeedDataService(library),
+      clock: FakeClock(_now),
+    );
+    await exercises.load();
+    final progress = ProgressProvider(storage);
+    final settings = SettingsProvider(storage);
+    final workout = WorkoutProvider(
+      storage,
+      clock: FakeClock(_now),
+      idService: IdService(),
+    );
+
+    await tester.pumpWidget(
+      _wrap(
+        exercises: exercises,
+        progress: progress,
+        settings: settings,
+        workout: workout,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('exercise-action-history')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('exercise-history-sheet')), findsOneWidget);
+    expect(
+      find.text('No sets logged yet. Finish a workout to see history.'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('an unknown exercise id shows the not found state', (

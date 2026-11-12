@@ -9,7 +9,6 @@ import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
 
-const List<String> _dayInitials = <String>['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 const double _maxBarHeight = 54;
 
 /// Seven day volume chart from DESIGN.md section 8.11.
@@ -22,11 +21,15 @@ class VolumeBars extends StatefulWidget {
     required this.volumeByDay,
     required this.now,
     this.unit = WeightUnit.kg,
+    this.weekStart = DateTime.monday,
   });
 
   final Map<String, double> volumeByDay;
   final DateTime now;
   final WeightUnit unit;
+
+  /// ISO weekday, 1=Monday through 7=Sunday.
+  final int weekStart;
 
   @override
   State<VolumeBars> createState() => _VolumeBarsState();
@@ -50,7 +53,8 @@ class _VolumeBarsState extends State<VolumeBars>
     super.didUpdateWidget(oldWidget);
     if (oldWidget.volumeByDay != widget.volumeByDay ||
         oldWidget.now != widget.now ||
-        oldWidget.unit != widget.unit) {
+        oldWidget.unit != widget.unit ||
+        oldWidget.weekStart != widget.weekStart) {
       _controller
         ..reset()
         ..forward();
@@ -64,10 +68,7 @@ class _VolumeBarsState extends State<VolumeBars>
   }
 
   List<DateTime> get _days {
-    return <DateTime>[
-      for (var offset = 6; offset >= 0; offset--)
-        DateTime(widget.now.year, widget.now.month, widget.now.day - offset),
-    ];
+    return DateKeys.weekDates(widget.now, weekStart: widget.weekStart);
   }
 
   String get _summary {
@@ -81,7 +82,7 @@ class _VolumeBarsState extends State<VolumeBars>
     return '${formatVolume(total, unit: widget.unit)} this week';
   }
 
-  Widget _buildBar(DateTime day, double maxVolume) {
+  Widget _buildBar(BuildContext context, DateTime day, double maxVolume) {
     final volume = widget.volumeByDay[DateKeys.dayKey(day)] ?? 0;
     final isEmpty = volume <= 0;
     final target = isEmpty
@@ -132,7 +133,7 @@ class _VolumeBarsState extends State<VolumeBars>
           ),
           const SizedBox(height: AppSpacing.sm),
           Text(
-            _dayInitials[day.weekday - 1],
+            MaterialLocalizations.of(context).narrowWeekdays[day.weekday % 7],
             style: AppTypography.micro.copyWith(color: AppColors.muted),
           ),
         ],
@@ -162,7 +163,7 @@ class _VolumeBarsState extends State<VolumeBars>
             children: <Widget>[
               for (var index = 0; index < days.length; index++) ...<Widget>[
                 if (index > 0) const SizedBox(width: AppSpacing.sm),
-                _buildBar(days[index], maxVolume),
+                _buildBar(context, days[index], maxVolume),
               ],
             ],
           ),

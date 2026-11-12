@@ -42,6 +42,20 @@ String formatDuration(int seconds) {
   return '$hours:${minutes.toString().padLeft(2, '0')}';
 }
 
+/// Formats a sleep duration, for example `7h 30m` or `45m`.
+String formatSleep(int minutes) {
+  final safe = minutes < 0 ? 0 : minutes;
+  final hours = safe ~/ 60;
+  final remainder = safe % 60;
+  if (hours == 0) {
+    return '${remainder}m';
+  }
+  if (remainder == 0) {
+    return '${hours}h';
+  }
+  return '${hours}h ${remainder}m';
+}
+
 /// Formats a step count with thousands separators, for example `8,240`.
 String formatSteps(int steps) {
   return _stepFormat.format(steps < 0 ? 0 : steps);

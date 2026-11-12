@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mova/models/exercise.dart';
-import 'package:mova/models/routine.dart';
-import 'package:mova/models/routine_exercise.dart';
+import 'package:mova/models/focus_area.dart';
 import 'package:mova/providers/exercise_provider.dart';
 import 'package:mova/providers/routine_provider.dart';
 import 'package:mova/providers/workout_provider.dart';
-import 'package:mova/screens/train/train_screen.dart';
+import 'package:mova/screens/exercises/exercise_library_screen.dart';
 import 'package:mova/widgets/app_icon.dart';
 import 'package:mova/services/clock.dart';
 import 'package:mova/services/id_service.dart';
@@ -53,7 +52,15 @@ Widget _wrap(
         value: routines ?? RoutineProvider(StorageService.inMemory()),
       ),
     ],
-    child: MaterialApp(theme: AppTheme.dark, home: const TrainScreen()),
+    child: MaterialApp(
+      theme: AppTheme.dark,
+      onGenerateRoute: (settings) => MaterialPageRoute<void>(
+        builder: (_) => const Scaffold(
+          body: Text('logger-stub', key: Key('logger-stub')),
+        ),
+      ),
+      home: const ExerciseLibraryScreen(),
+    ),
   );
 }
 
@@ -105,7 +112,7 @@ void main() {
     expect(_assetIcon(AppIcons.plus), findsWidgets);
   });
 
-  testWidgets('add without an active workout explains how to start', (
+  testWidgets('add without an active workout opens the exercise choices', (
     tester,
   ) async {
     final storage = StorageService.inMemory();
@@ -133,10 +140,20 @@ void main() {
     await tester.pump(const Duration(milliseconds: 500));
 
     expect(workout.activeSession, isNull);
+    expect(find.byKey(const Key('exercise-choice-sheet')), findsOneWidget);
+    expect(find.text('Start workout with this'), findsOneWidget);
+    expect(find.text('Add to saved workout'), findsOneWidget);
+    expect(find.text('View details'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('exercise-choice-start')));
+    await tester.pumpAndSettle();
+
+    expect(workout.activeSession?.exercises, hasLength(1));
     expect(
-      find.text('Start a workout to add Barbell Bench Press.'),
-      findsOneWidget,
+      workout.activeSession?.exercises.single.exerciseId,
+      'barbell-bench-press',
     );
+    expect(find.byKey(const Key('logger-stub')), findsOneWidget);
   });
 
   testWidgets('add appends the exercise to the active workout', (tester) async {
@@ -234,6 +251,35 @@ void main() {
     expect(find.text('Chest · Barbell'), findsWidgets);
   });
 
+  testWidgets('focus chips filter and All turns filtering off', (tester) async {
+    final storage = StorageService.inMemory();
+    final exercises = ExerciseProvider(
+      storage,
+      _StaticSeedDataService(library),
+    );
+    await exercises.load();
+    final workout = WorkoutProvider(
+      storage,
+      clock: FakeClock(_now),
+      idService: IdService(generator: _sequentialIds()),
+    );
+
+    await tester.pumpWidget(_wrap(exercises, workout));
+    await tester.pump();
+
+    await tester.tap(find.byKey(const Key('exercise-focus-chest')));
+    await tester.pump();
+
+    expect(exercises.focusFilter, FocusArea.chest);
+    expect(find.text('10 exercises'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('exercise-focus-all')));
+    await tester.pump();
+
+    expect(exercises.focusFilter, isNull);
+    expect(find.text('${library.length} exercises'), findsOneWidget);
+  });
+
   testWidgets('an unmatched search offers to clear the filters', (
     tester,
   ) async {
@@ -262,50 +308,6 @@ void main() {
 
     expect(find.text('${library.length} exercises'), findsOneWidget);
     expect(find.text('Barbell Bench Press'), findsOneWidget);
-  });
-
-  testWidgets('shows saved routines in the My routines section', (
-    tester,
-  ) async {
-    final storage = StorageService.inMemory();
-    final exercises = ExerciseProvider(
-      storage,
-      _StaticSeedDataService(library),
-    );
-    await exercises.load();
-    final workout = WorkoutProvider(
-      storage,
-      clock: FakeClock(_now),
-      idService: IdService(generator: _sequentialIds()),
-    );
-    final routines = RoutineProvider(storage);
-    await routines.load();
-    await routines.save(
-      Routine(
-        id: 'routine-1',
-        name: 'Push day',
-        exercises: const <RoutineExercise>[
-          RoutineExercise(
-            exerciseId: 'barbell-bench-press',
-            sets: 3,
-            repsLow: 8,
-            repsHigh: 10,
-            restSeconds: 90,
-            order: 0,
-          ),
-        ],
-        createdAt: _now,
-        updatedAt: _now,
-      ),
-    );
-
-    await tester.pumpWidget(_wrap(exercises, workout, routines: routines));
-    await tester.pump();
-
-    expect(find.text('My routines'), findsOneWidget);
-    expect(find.text('Push day'), findsOneWidget);
-    expect(find.text('1 exercise'), findsOneWidget);
-    expect(find.text('View all'), findsOneWidget);
   });
 
   testWidgets('an empty library renders its empty state', (tester) async {

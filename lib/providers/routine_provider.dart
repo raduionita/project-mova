@@ -51,6 +51,41 @@ class RoutineProvider extends ChangeNotifier {
     return _write(next);
   }
 
+  /// Appends an exercise with default sets to a saved routine.
+  Future<bool> addExercise({
+    required String routineId,
+    required String exerciseId,
+  }) {
+    final routine = _routines.where((item) => item.id == routineId).firstOrNull;
+    if (routine == null) {
+      _error = 'Routine not found.';
+      notifyListeners();
+      return Future<bool>.value(false);
+    }
+    if (routine.exercises.any((item) => item.exerciseId == exerciseId)) {
+      return Future<bool>.value(true);
+    }
+    if (routine.exercises.length >= 20) {
+      _error = 'A routine can hold at most 20 exercises.';
+      notifyListeners();
+      return Future<bool>.value(false);
+    }
+    final next = <RoutineExercise>[
+      ...routine.exercises,
+      RoutineExercise(
+        exerciseId: exerciseId,
+        sets: 3,
+        repsLow: 8,
+        repsHigh: 12,
+        restSeconds: 90,
+        order: routine.exercises.length,
+      ),
+    ];
+    return save(
+      routine.copyWith(exercises: next, updatedAt: DateTime.now()),
+    );
+  }
+
   Future<bool> reorder({
     required String routineId,
     required int oldIndex,

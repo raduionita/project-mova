@@ -30,6 +30,7 @@ import '../../widgets/app_empty_state.dart';
 import '../../widgets/app_icon.dart';
 import '../../widgets/exercise_notes_sheet.dart';
 import '../../widgets/exercise_picker_sheet.dart';
+import '../../widgets/focus_sheet.dart';
 import '../../widgets/numeric_input_sheet.dart';
 import '../../widgets/plate_calculator_sheet.dart';
 import '../../widgets/rest_timer_banner.dart';
@@ -143,6 +144,20 @@ class _LoggerScreenState extends State<LoggerScreen>
       });
     }
     await _syncKeepAwake();
+    await _maybeShowFocus();
+  }
+
+  Future<void> _maybeShowFocus() async {
+    final workout = context.read<WorkoutProvider>();
+    final session = workout.activeSession;
+    if (session == null ||
+        session.source != SessionSource.empty ||
+        session.exercises.isNotEmpty ||
+        session.focusPromptShown) {
+      return;
+    }
+    await showFocusSheet(context);
+    await workout.markFocusPromptShown();
   }
 
   WorkoutSet? _previousSet(

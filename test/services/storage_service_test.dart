@@ -77,7 +77,7 @@ void main() {
       final preferences = await SharedPreferences.getInstance();
       await preferences.setString(
         'profile',
-        jsonEncode(<String, dynamic>{'schemaVersion': 2, 'id': 'future'}),
+        jsonEncode(<String, dynamic>{'schemaVersion': 3, 'id': 'future'}),
       );
 
       final storage = await StorageService.create();
@@ -93,6 +93,7 @@ void main() {
             next['displayName'] = next.remove('name');
             return next;
           },
+          (json) => json,
         ],
       );
       await storage.writeObject('profile', <String, dynamic>{
@@ -110,7 +111,9 @@ void main() {
     });
 
     test('a legacy payload without a migration is ignored and kept', () async {
-      final storage = StorageService.inMemory();
+      final storage = StorageService.inMemory(
+        migrations: const <StorageMigration>[],
+      );
       await storage.writeObject('profile', <String, dynamic>{
         'schemaVersion': 0,
         'id': 'legacy-1',
@@ -128,6 +131,7 @@ void main() {
             next['displayName'] = next.remove('name');
             return next;
           },
+          (json) => json,
         ],
       );
       await storage.writeList('profiles', <Map<String, dynamic>>[

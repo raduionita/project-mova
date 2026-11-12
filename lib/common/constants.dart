@@ -32,4 +32,6 @@ const String kPrsKey = '${kStoragePrefix}prs';
 const String kSocialKey = '${kStoragePrefix}social';
 const String kStepsKey = '${kStoragePrefix}steps';
 const String kWeightsKey = '${kStoragePrefix}weights';
+const String kWellnessKey = '${kStoragePrefix}wellness';
+const String kPhotosKey = '${kStoragePrefix}photos';
 const String kOnboardingKey = '${kStoragePrefix}onboarding';

@@ -85,7 +85,6 @@ void main() {
       goals: const <Goal>[Goal.buildMuscle],
       experienceLevel: ExperienceLevel.regular,
       daysPerWeek: 3,
-      trainingDays: const <int>[1, 3, 5],
       notificationsAsked: true,
       updatedAt: _fixedNow,
     );

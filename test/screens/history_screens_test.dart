@@ -305,4 +305,32 @@ void main() {
       closeTo(85 * (1 + 5 / 30), 0.0001),
     );
   });
+
+  testWidgets('editing a completed workout updates history and records', (
+    tester,
+  ) async {
+    final harness = await _historyHarness();
+    await tester.pumpWidget(
+      harness.wrap(const HistoryDetailScreen(sessionId: 'november')),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('history-edit-workout')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('edit-workout-sheet')), findsOneWidget);
+
+    await tester.enterText(
+      find.byKey(const Key('edit-workout-title')),
+      'November Push edited',
+    );
+    await tester.ensureVisible(find.byKey(const Key('edit-workout-save')));
+    await tester.tap(find.byKey(const Key('edit-workout-save')));
+    await tester.pumpAndSettle();
+
+    final updated = harness.history.byId('november');
+    expect(updated, isNotNull);
+    expect(updated!.displayTitle, 'November Push edited');
+    expect(harness.progress.totalWorkouts, 2);
+    expect(harness.progress.prs['barbell-bench-press'], isNotNull);
+  });
 }

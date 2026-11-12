@@ -153,8 +153,7 @@ class _UnitSelectionScreenState extends State<UnitSelectionScreen> {
           ),
           AppCard(
             child: Text(
-              'Distance is saved for later cardio tracking. '
-              'No distance entry ships in v1.',
+              'Distance is used for walks and runs.',
               style: AppOnboardingType.caption.copyWith(color: AppColors.muted),
             ),
           ),

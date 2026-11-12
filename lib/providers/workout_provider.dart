@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../common/constants.dart';
+import '../models/exercise.dart';
 import '../models/plan_day.dart';
 import '../models/plan_exercise.dart';
 import '../models/progression_suggestion.dart';
@@ -56,6 +57,7 @@ class WorkoutProvider extends ChangeNotifier {
       int repsHigh,
     )?
     suggest,
+    Exercise? Function(String exerciseId)? findExercise,
   }) {
     final exercises = <PlanExercise>[...planDay.exercises]
       ..sort((a, b) => a.order.compareTo(b.order));
@@ -63,8 +65,13 @@ class WorkoutProvider extends ChangeNotifier {
       WorkoutSession(
         id: _idService.next(),
         name: planDay.name,
+        displayTitle: planDay.name,
+        sourceLabel: 'Plan',
         source: SessionSource.plan,
         planDayId: planDay.id,
+        slotKey: planDay.slotKey,
+        muscleGroups: planDay.muscleGroups,
+        focusPromptShown: true,
         startedAt: _clock.now(),
         status: SessionStatus.active,
         exercises: <SessionExercise>[
@@ -77,6 +84,7 @@ class WorkoutProvider extends ChangeNotifier {
                 exercises[index].repsLow,
                 exercises[index].repsHigh,
               ),
+              findExercise?.call(exercises[index].exerciseId),
             ),
         ],
       ),
@@ -91,6 +99,7 @@ class WorkoutProvider extends ChangeNotifier {
       int repsHigh,
     )?
     suggest,
+    Exercise? Function(String exerciseId)? findExercise,
   }) {
     final exercises = <RoutineExercise>[...routine.exercises]
       ..sort((a, b) => a.order.compareTo(b.order));
@@ -98,8 +107,11 @@ class WorkoutProvider extends ChangeNotifier {
       WorkoutSession(
         id: _idService.next(),
         name: routine.name,
+        displayTitle: routine.name,
+        sourceLabel: 'Routine',
         source: SessionSource.routine,
         routineId: routine.id,
+        focusPromptShown: true,
         startedAt: _clock.now(),
         status: SessionStatus.active,
         exercises: <SessionExercise>[
@@ -112,6 +124,7 @@ class WorkoutProvider extends ChangeNotifier {
                 exercises[index].repsLow,
                 exercises[index].repsHigh,
               ),
+              findExercise?.call(exercises[index].exerciseId),
             ),
         ],
       ),
@@ -123,7 +136,10 @@ class WorkoutProvider extends ChangeNotifier {
       WorkoutSession(
         id: _idService.next(),
         name: 'Empty workout',
+        displayTitle: 'Empty workout',
+        sourceLabel: 'Empty',
         source: SessionSource.empty,
+        focusPromptShown: false,
         startedAt: _clock.now(),
         status: SessionStatus.active,
         exercises: const <SessionExercise>[],
@@ -136,7 +152,26 @@ class WorkoutProvider extends ChangeNotifier {
       WorkoutSession(
         id: _idService.next(),
         name: 'Walk',
+        displayTitle: 'Walk',
+        sourceLabel: 'Walk',
         source: SessionSource.walk,
+        focusPromptShown: true,
+        startedAt: _clock.now(),
+        status: SessionStatus.active,
+        exercises: const <SessionExercise>[],
+      ),
+    );
+  }
+
+  Future<bool> startRun() {
+    return _start(
+      WorkoutSession(
+        id: _idService.next(),
+        name: 'Run',
+        displayTitle: 'Run',
+        sourceLabel: 'Run',
+        source: SessionSource.run,
+        focusPromptShown: true,
         startedAt: _clock.now(),
         status: SessionStatus.active,
         exercises: const <SessionExercise>[],
@@ -147,28 +182,51 @@ class WorkoutProvider extends ChangeNotifier {
   Future<bool> addExercise(
     String exerciseId, {
     ProgressionSuggestion? suggestion,
+    Exercise? exercise,
   }) {
     final session = _activeSession;
     if (session == null) {
       return _fail('No active workout.');
     }
-    final exercise = SessionExercise(
+    final entry = SessionExercise(
       id: _idService.next(),
       exerciseId: exerciseId,
       order: session.exercises.length,
       sets: _newSets(3, 8, suggestion: suggestion),
       progression: suggestion,
+      primaryMuscle: exercise?.primaryMuscle,
+      secondaryMuscles: exercise?.secondaryMuscles ?? const <String>[],
     );
     return _replace(
       session.copyWith(
-        exercises: <SessionExercise>[...session.exercises, exercise],
+        exercises: <SessionExercise>[...session.exercises, entry],
       ),
     );
+  }
+
+  Future<bool> setDistance(double? meters) {
+    final session = _activeSession;
+    if (session == null) {
+      return _fail('No active workout.');
+    }
+    return _replace(session.copyWith(distanceMeters: meters));
+  }
+
+  Future<bool> markFocusPromptShown() {
+    final session = _activeSession;
+    if (session == null) {
+      return _fail('No active workout.');
+    }
+    if (session.focusPromptShown) {
+      return Future<bool>.value(true);
+    }
+    return _replace(session.copyWith(focusPromptShown: true));
   }
 
   Future<bool> replaceExercise({
     required String exerciseId,
     required String replacementExerciseId,
+    Exercise? replacement,
   }) {
     final session = _activeSession;
     if (session == null) {
@@ -199,6 +257,8 @@ class WorkoutProvider extends ChangeNotifier {
             exerciseId: replacementExerciseId,
             sets: sets,
             progression: null,
+            primaryMuscle: replacement?.primaryMuscle,
+            secondaryMuscles: replacement?.secondaryMuscles ?? const <String>[],
           ),
         ),
       ),
@@ -403,6 +463,7 @@ class WorkoutProvider extends ChangeNotifier {
     PlanExercise exercise,
     int order,
     ProgressionSuggestion? suggestion,
+    Exercise? libraryExercise,
   ) {
     return SessionExercise(
       id: _idService.next(),
@@ -410,6 +471,8 @@ class WorkoutProvider extends ChangeNotifier {
       order: order,
       sets: _newSets(exercise.sets, exercise.repsLow, suggestion: suggestion),
       progression: suggestion,
+      primaryMuscle: libraryExercise?.primaryMuscle,
+      secondaryMuscles: libraryExercise?.secondaryMuscles ?? const <String>[],
     );
   }
 
@@ -417,6 +480,7 @@ class WorkoutProvider extends ChangeNotifier {
     RoutineExercise exercise,
     int order,
     ProgressionSuggestion? suggestion,
+    Exercise? libraryExercise,
   ) {
     return SessionExercise(
       id: _idService.next(),
@@ -424,6 +488,8 @@ class WorkoutProvider extends ChangeNotifier {
       order: order,
       sets: _newSets(exercise.sets, exercise.repsLow, suggestion: suggestion),
       progression: suggestion,
+      primaryMuscle: libraryExercise?.primaryMuscle,
+      secondaryMuscles: libraryExercise?.secondaryMuscles ?? const <String>[],
     );
   }
 

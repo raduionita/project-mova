@@ -16,7 +16,7 @@ void main() {
     expect(AppNavigation.currentPhase, AppPhase.profile);
     expect(AppNavigation.visibleTabs().map((item) => item.tab), <AppTab>[
       AppTab.today,
-      AppTab.train,
+      AppTab.calendar,
       AppTab.progress,
       AppTab.social,
       AppTab.me,
@@ -27,23 +27,23 @@ void main() {
     expect(
       AppNavigation.visibleTabs(phase: AppPhase.training)
           .map((item) => item.tab),
-      <AppTab>[AppTab.today, AppTab.train],
+      <AppTab>[AppTab.today, AppTab.calendar],
     );
     expect(
       AppNavigation.visibleTabs(phase: AppPhase.progress)
           .map((item) => item.tab),
-      <AppTab>[AppTab.today, AppTab.train, AppTab.progress],
+      <AppTab>[AppTab.today, AppTab.calendar, AppTab.progress],
     );
     expect(
       AppNavigation.visibleTabs(phase: AppPhase.social).map((item) => item.tab),
-      <AppTab>[AppTab.today, AppTab.train, AppTab.progress, AppTab.social],
+      <AppTab>[AppTab.today, AppTab.calendar, AppTab.progress, AppTab.social],
     );
     expect(
       AppNavigation.visibleTabs(phase: AppPhase.profile)
           .map((item) => item.tab),
       <AppTab>[
         AppTab.today,
-        AppTab.train,
+        AppTab.calendar,
         AppTab.progress,
         AppTab.social,
         AppTab.me,
@@ -53,10 +53,16 @@ void main() {
 
   test('routes resolve to their owning tab, including nested routes', () {
     expect(AppNavigation.tabForRoute(Routes.today)?.tab, AppTab.today);
-    expect(AppNavigation.tabForRoute(Routes.train)?.tab, AppTab.train);
+    expect(AppNavigation.tabForRoute(Routes.train)?.tab, AppTab.calendar);
+    expect(AppNavigation.tabForRoute(Routes.calendar)?.tab, AppTab.calendar);
+    expect(AppNavigation.tabForRoute(Routes.exercises)?.tab, AppTab.calendar);
     expect(
-      AppNavigation.tabForRoute('/train/routines/routine-1')?.tab,
-      AppTab.train,
+      AppNavigation.tabForRoute('/train/exercises/barbell-bench-press')?.tab,
+      AppTab.calendar,
+    );
+    expect(
+      AppNavigation.tabForRoute('/train/routines/routine-1'),
+      isNull,
     );
     expect(AppNavigation.tabForRoute(Routes.progress)?.tab, AppTab.progress);
     expect(
@@ -81,7 +87,7 @@ void main() {
       AppNavigation.selectedTab(Routes.train, phase: AppPhase.foundation),
       isNull,
     );
-    expect(AppNavigation.selectedTab(Routes.train)?.tab, AppTab.train);
+    expect(AppNavigation.selectedTab(Routes.train)?.tab, AppTab.calendar);
     expect(AppNavigation.selectedTab(Routes.me)?.tab, AppTab.me);
     expect(
       AppNavigation.selectedTab(Routes.me, phase: AppPhase.social),

@@ -11,6 +11,7 @@ import 'package:mova/models/workout_session.dart';
 import 'package:mova/navigation/routes.dart';
 import 'package:mova/providers/plan_provider.dart';
 import 'package:mova/providers/progress_provider.dart';
+import 'package:mova/providers/routine_provider.dart';
 import 'package:mova/providers/settings_provider.dart';
 import 'package:mova/providers/steps_provider.dart';
 import 'package:mova/providers/workout_provider.dart';
@@ -122,6 +123,9 @@ Widget _wrap(
         ChangeNotifierProvider<SettingsProvider>(
           create: (_) => SettingsProvider(storage),
         ),
+      ChangeNotifierProvider<RoutineProvider>(
+        create: (_) => RoutineProvider(storage),
+      ),
       ChangeNotifierProvider<StepsProvider>(
         create: (_) => StepsProvider(storage, clock: activeClock),
       ),
@@ -156,9 +160,10 @@ void main() {
 
     await tester.pumpWidget(_wrap(provider));
 
-    expect(find.text('Thursday · Week 1'), findsOneWidget);
+    expect(find.text('Thursday'), findsOneWidget);
     expect(find.text('Push Day'), findsOneWidget);
-    expect(find.text('Planned'), findsOneWidget);
+    expect(find.text('Next up'), findsOneWidget);
+    expect(find.text('Start your rotation with Day 1.'), findsOneWidget);
     expect(find.text('Chest · Shoulders · Triceps'), findsOneWidget);
     expect(find.text('6 exercises · ~55 min'), findsOneWidget);
     expect(find.text('1'), findsOneWidget);
@@ -166,7 +171,7 @@ void main() {
     expect(find.text('Custom'), findsOneWidget);
   });
 
-  testWidgets('rest state appears when today is not a training day', (
+  testWidgets('unlogged days still suggest the next rotation session', (
     tester,
   ) async {
     final provider = _provider();
@@ -174,24 +179,26 @@ void main() {
 
     await tester.pumpWidget(_wrap(provider));
 
-    expect(find.text('Rest day'), findsOneWidget);
-    expect(find.text('Recovery'), findsOneWidget);
-    expect(find.text('Recover and come back stronger.'), findsOneWidget);
-    expect(find.text('Push Day'), findsNothing);
+    expect(find.byKey(const Key('today-next-up')), findsOneWidget);
+    expect(find.text('Next up'), findsOneWidget);
+    expect(find.text('Push Day'), findsOneWidget);
+    expect(find.text('Rest day'), findsNothing);
     expect(find.text('3'), findsOneWidget);
   });
 
-  testWidgets('no-plan state explains onboarding is required', (tester) async {
+  testWidgets('no-plan state starts tracking without a rotation', (
+    tester,
+  ) async {
     final provider = _provider();
 
     await tester.pumpWidget(_wrap(provider));
 
     expect(find.text('Thursday'), findsOneWidget);
-    expect(find.text('No plan yet'), findsOneWidget);
-    expect(
-      find.text('Finish onboarding to build your weekly training plan.'),
-      findsOneWidget,
-    );
+    expect(find.textContaining('No rotation needed'), findsOneWidget);
+    expect(find.text('Start workout'), findsOneWidget);
+    expect(find.text('Choose saved workout'), findsOneWidget);
+    expect(find.text('Streak badges'), findsOneWidget);
+    expect(find.text('Running'), findsOneWidget);
   });
 
   testWidgets('storage warnings are dismissible', (tester) async {
@@ -250,7 +257,7 @@ void main() {
     expect(find.text('1 day streak'), findsOneWidget);
   });
 
-  testWidgets('week label counts weeks since the plan was generated', (
+  testWidgets('header shows the weekday without a week counter', (
     tester,
   ) async {
     final provider = _provider();
@@ -270,7 +277,8 @@ void main() {
 
     await tester.pumpWidget(_wrap(provider));
 
-    expect(find.text('Thursday · Week 3'), findsOneWidget);
+    expect(find.text('Thursday'), findsOneWidget);
+    expect(find.textContaining('Week 3'), findsNothing);
   });
 
   testWidgets('fallback plans are labelled Starter', (tester) async {
@@ -314,16 +322,15 @@ void main() {
     expect(find.text('Logger route'), findsOneWidget);
   });
 
-  testWidgets('rest day quick actions start an empty workout', (tester) async {
+  testWidgets('no-plan start workout starts an empty session', (tester) async {
     final provider = _provider();
-    await provider.replacePlan(_plan());
     final workout = WorkoutProvider(
       StorageService.inMemory(),
       clock: FakeClock(_now),
     );
 
     await tester.pumpWidget(_wrap(provider, workout: workout));
-    await tester.tap(find.text('Empty workout'));
+    await tester.tap(find.byKey(const Key('today-start-workout')));
     await tester.pumpAndSettle();
 
     expect(workout.activeSession?.name, 'Empty workout');
@@ -340,7 +347,7 @@ void main() {
     );
 
     await tester.pumpWidget(_wrap(provider, workout: workout));
-    await tester.tap(find.text('Walk'));
+    await tester.tap(find.byKey(const Key('today-start-walk')));
     await tester.pumpAndSettle();
 
     expect(workout.activeSession?.name, 'Walk');
@@ -348,16 +355,18 @@ void main() {
     expect(find.text('Logger route'), findsOneWidget);
   });
 
-  testWidgets('no-plan state offers quick actions', (tester) async {
+  testWidgets('no-plan state offers positive tracking actions', (
+    tester,
+  ) async {
     final provider = _provider();
 
     await tester.pumpWidget(_wrap(provider));
 
-    expect(find.text('No plan yet'), findsOneWidget);
-    expect(find.text('Empty workout'), findsOneWidget);
-    expect(find.text('Walk'), findsOneWidget);
-    expect(find.text('Routine'), findsOneWidget);
-    expect(find.text('Start workout'), findsNothing);
+    expect(find.textContaining('No rotation needed'), findsOneWidget);
+    expect(find.text('Track your training'), findsOneWidget);
+    expect(find.text('Start workout'), findsOneWidget);
+    expect(find.text('Choose saved workout'), findsOneWidget);
+    expect(find.text('Streak badges'), findsOneWidget);
   });
 
   testWidgets('paused session shows resume and reopens the logger', (
@@ -453,15 +462,15 @@ void main() {
     );
 
     await tester.pumpWidget(_wrap(provider, clock: clock));
-    expect(find.text('Thursday · Week 1'), findsOneWidget);
+    expect(find.text('Thursday'), findsOneWidget);
     expect(find.text('Push Day'), findsOneWidget);
 
     clock.advance(const Duration(minutes: 1));
     await tester.pump(const Duration(minutes: 1));
 
-    expect(find.text('Friday · Week 1'), findsOneWidget);
-    expect(find.text('Leg Day'), findsOneWidget);
-    expect(find.text('Push Day'), findsNothing);
+    expect(find.text('Friday'), findsOneWidget);
+    expect(find.text('Push Day'), findsOneWidget);
+    expect(find.text('Leg Day'), findsNothing);
   });
 
   testWidgets('stored plan changes rebuild the screen', (tester) async {
@@ -485,19 +494,60 @@ void main() {
     await provider.replacePlan(_plan());
     await tester.pumpAndSettle();
 
-    expect(find.text('Rest day'), findsOneWidget);
-    expect(find.text('Push Day'), findsNothing);
+    expect(find.byKey(const Key('today-next-up')), findsOneWidget);
+    expect(find.text('Push Day'), findsOneWidget);
+    expect(find.text('Rest day'), findsNothing);
   });
 
   testWidgets('a moved plan day appears on Today', (tester) async {
     final provider = _provider();
-    await provider.replacePlan(_plan());
-
-    expect(await provider.movePlanDay(fromWeekday: 1, toWeekday: 4), isTrue);
+    await provider.replacePlan(
+      _plan(
+        days: <PlanDay>[
+          _day(
+            weekday: 4,
+            name: 'Push Day',
+            muscles: const <String>['Chest'],
+            minutes: 55,
+          ),
+        ],
+      ),
+    );
     await tester.pumpWidget(_wrap(provider));
 
-    expect(find.text('Thursday · Week 1'), findsOneWidget);
+    expect(find.text('Thursday'), findsOneWidget);
     expect(find.text('Push Day'), findsOneWidget);
-    expect(find.text('Planned'), findsOneWidget);
+    expect(find.text('Next up'), findsOneWidget);
+  });
+
+  testWidgets('choose another session lists options and starts empty', (
+    tester,
+  ) async {
+    final provider = _provider();
+    final workout = WorkoutProvider(
+      StorageService.inMemory(),
+      clock: FakeClock(_now),
+    );
+    await provider.replacePlan(_plan());
+    await tester.pumpWidget(_wrap(provider, workout: workout));
+
+    final choose = find.byKey(const Key('today-choose-session'));
+    await tester.ensureVisible(choose);
+    await tester.tap(choose);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Choose another session'), findsNWidgets(2));
+    expect(find.byKey(const Key('choose-session-sheet')), findsOneWidget);
+    expect(find.byKey(const Key('choose-session-day-0')), findsOneWidget);
+    expect(find.byKey(const Key('choose-session-day-2')), findsOneWidget);
+    expect(find.byKey(const Key('choose-session-empty')), findsOneWidget);
+    expect(find.byKey(const Key('choose-session-walk')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('choose-session-empty')));
+    await tester.pumpAndSettle();
+
+    expect(workout.activeSession?.displayTitle, 'Empty workout');
+    expect(find.byKey(const Key('choose-session-sheet')), findsNothing);
+    expect(find.text('Logger route'), findsOneWidget);
   });
 }

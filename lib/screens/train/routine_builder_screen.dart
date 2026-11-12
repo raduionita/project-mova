@@ -169,7 +169,7 @@ class _RoutineBuilderScreenState extends State<RoutineBuilderScreen> {
 
   Future<void> _save() async {
     final name = _nameController.text.trim();
-    final nameError = name.isEmpty ? 'Name your routine.' : null;
+    final nameError = name.isEmpty ? 'Name your saved workout.' : null;
     final exercisesError = _exercises.isEmpty
         ? 'Add at least one exercise.'
         : null;
@@ -197,7 +197,7 @@ class _RoutineBuilderScreenState extends State<RoutineBuilderScreen> {
     setState(() => _saving = false);
     if (!saved) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(provider.error ?? 'Could not save routine.')),
+        SnackBar(content: Text(provider.error ?? 'Could not save workout.')),
       );
       return;
     }
@@ -222,7 +222,7 @@ class _RoutineBuilderScreenState extends State<RoutineBuilderScreen> {
           style: AppTypography.h2.copyWith(color: AppColors.text),
         ),
         content: Text(
-          'Your routine changes have not been saved.',
+          'Your saved workout changes have not been saved.',
           style: AppTypography.body.copyWith(color: AppColors.muted),
         ),
         actions: <Widget>[
@@ -268,7 +268,7 @@ class _RoutineBuilderScreenState extends State<RoutineBuilderScreen> {
           }),
           style: AppTypography.body.copyWith(color: AppColors.text),
           decoration: InputDecoration(
-            labelText: 'Routine name',
+            labelText: 'Saved workout name',
             hintText: 'Push day',
             labelStyle: AppTypography.caption.copyWith(color: AppColors.muted),
             hintStyle: AppTypography.body.copyWith(color: AppColors.muted),
@@ -307,7 +307,7 @@ class _RoutineBuilderScreenState extends State<RoutineBuilderScreen> {
     return AppEmptyState(
       assetIcon: AppIcons.list,
       title: 'No exercises yet',
-      message: 'Add exercises to build this routine.',
+      message: 'Add exercises to build this saved workout.',
     );
   }
 
@@ -514,10 +514,10 @@ class _RoutineBuilderScreenState extends State<RoutineBuilderScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        AppBackBar(label: 'Routines', onBack: _requestClose),
+        AppBackBar(label: 'Saved workouts', onBack: _requestClose),
         const SizedBox(height: AppSpacing.xl),
         Text(
-          _isEditing ? 'Edit routine' : 'New routine',
+          _isEditing ? 'Edit saved workout' : 'New saved workout',
           style: AppTypography.h1.copyWith(color: AppColors.text),
         ),
         const SizedBox(height: AppSpacing.x2l),
@@ -540,7 +540,7 @@ class _RoutineBuilderScreenState extends State<RoutineBuilderScreen> {
         Expanded(child: _buildExerciseList()),
         const SizedBox(height: AppSpacing.xl),
         AppButton(
-          label: 'Save routine',
+          label: 'Save workout',
           onPressed: _saving ? null : _save,
           isLoading: _saving,
         ),
@@ -570,7 +570,7 @@ class _RoutineBuilderScreenState extends State<RoutineBuilderScreen> {
       return _buildScaffold(
         Column(
           children: <Widget>[
-            AppBackBar(label: 'Routines', onBack: _requestClose),
+            AppBackBar(label: 'Saved workouts', onBack: _requestClose),
             const Expanded(
               child: Center(
                 child: CircularProgressIndicator(color: AppColors.lime),
@@ -584,13 +584,13 @@ class _RoutineBuilderScreenState extends State<RoutineBuilderScreen> {
       return _buildScaffold(
         Column(
           children: <Widget>[
-            AppBackBar(label: 'Routines', onBack: _requestClose),
+            AppBackBar(label: 'Saved workouts', onBack: _requestClose),
             Expanded(
               child: AppEmptyState(
                 assetIcon: AppIcons.search,
-                title: 'Routine not found',
-                message: 'This routine is no longer saved on this device.',
-                actionLabel: 'Back to routines',
+                title: 'Saved workout not found',
+                message: 'This saved workout is no longer on this device.',
+                actionLabel: 'Back to saved workouts',
                 onAction: () => Navigator.of(context).maybePop(),
               ),
             ),

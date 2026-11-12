@@ -1,4 +1,4 @@
-/// Local calendar keys. Weeks start on Monday.
+/// Local calendar keys. Week starts are configurable, defaulting to Monday.
 class DateKeys {
   const DateKeys._();
 
@@ -9,9 +9,33 @@ class DateKeys {
     return '${date.year}-$month-$day';
   }
 
-  /// Local Monday at midnight for the week containing [date].
-  static DateTime weekStart(DateTime date) {
-    return DateTime(date.year, date.month, date.day - (date.weekday - 1));
+  /// Local midnight for the week containing [date].
+  ///
+  /// [weekStart] is an ISO weekday, 1=Monday through 7=Sunday.
+  static DateTime weekStart(DateTime date, {int weekStart = DateTime.monday}) {
+    final start = weekStart.clamp(1, 7);
+    final offset = (date.weekday - start + 7) % 7;
+    return DateTime(date.year, date.month, date.day - offset);
+  }
+
+  /// ISO weekdays in display order for [weekStart].
+  static List<int> weekdayOrder(int weekStart) {
+    final start = weekStart.clamp(1, 7);
+    return <int>[
+      for (var index = 0; index < 7; index++) ((start - 1 + index) % 7) + 1,
+    ];
+  }
+
+  /// Seven local dates for the week containing [date].
+  static List<DateTime> weekDates(
+    DateTime date, {
+    int weekStart = DateTime.monday,
+  }) {
+    final start = DateKeys.weekStart(date, weekStart: weekStart);
+    return <DateTime>[
+      for (var index = 0; index < 7; index++)
+        DateTime(start.year, start.month, start.day + index),
+    ];
   }
 
   /// Local month key in `YYYY-MM` form.

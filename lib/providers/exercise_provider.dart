@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../models/exercise.dart';
+import '../models/focus_area.dart';
 import '../services/clock.dart';
 import '../services/seed_data_service.dart';
 import '../services/storage_service.dart';
@@ -18,22 +19,33 @@ class ExerciseProvider extends ChangeNotifier {
   bool _isLoading = false;
   String _query = '';
   String? _muscleFilter;
+  FocusArea? _focusFilter;
   String? _error;
 
   List<Exercise> get exercises => _exercises;
   bool get isLoading => _isLoading;
   String get query => _query;
   String? get muscleFilter => _muscleFilter;
+  FocusArea? get focusFilter => _focusFilter;
   String? get error => _error;
 
   List<Exercise> get filtered {
     final query = _query.trim().toLowerCase();
     final muscle = _muscleFilter?.toLowerCase();
-    if (query.isEmpty && muscle == null) {
+    final focus = _focusFilter;
+    if (query.isEmpty && muscle == null && focus == null) {
       return _exercises;
     }
+    final focusMuscles = focus?.muscles
+        .map((value) => value.toLowerCase())
+        .toSet();
     return _exercises
         .where((exercise) {
+          if (focusMuscles != null &&
+              focusMuscles.isNotEmpty &&
+              !focusMuscles.contains(exercise.primaryMuscle.toLowerCase())) {
+            return false;
+          }
           if (muscle != null &&
               exercise.primaryMuscle.toLowerCase() != muscle) {
             return false;
@@ -83,19 +95,31 @@ class ExerciseProvider extends ChangeNotifier {
     final normalized = (muscle == null || muscle.trim().isEmpty)
         ? null
         : muscle.trim();
-    if (normalized == _muscleFilter) {
+    if (normalized == _muscleFilter && _focusFilter == null) {
       return;
     }
     _muscleFilter = normalized;
+    _focusFilter = null;
+    notifyListeners();
+  }
+
+  void setFocusFilter(FocusArea? focus) {
+    final normalized = focus == FocusArea.all ? null : focus;
+    if (normalized == _focusFilter && _muscleFilter == null) {
+      return;
+    }
+    _focusFilter = normalized;
+    _muscleFilter = null;
     notifyListeners();
   }
 
   void clearFilters() {
-    if (_query.isEmpty && _muscleFilter == null) {
+    if (_query.isEmpty && _muscleFilter == null && _focusFilter == null) {
       return;
     }
     _query = '';
     _muscleFilter = null;
+    _focusFilter = null;
     notifyListeners();
   }
 

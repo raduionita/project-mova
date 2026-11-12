@@ -16,6 +16,11 @@ class Routes {
   static const String onboardingPlan = '/onboarding/plan';
 
   static const String today = '/today';
+  static const String calendar = '/calendar';
+  static const String plan = '/plan';
+  static const String exercises = '/exercises';
+
+  /// Legacy Train tab route. It now opens the Calendar screen.
   static const String train = '/train';
 
   /// Exercise detail routes are `/train/exercises/:id`.
@@ -91,6 +96,7 @@ class Routes {
   /// `/progress/history/:id`.
   static const String progressHistory = '$progress/history';
   static const String progressWeight = '$progress/weight';
+  static const String progressPhotos = '$progress/photos';
 
   static String progressHistoryDetail(String sessionId) {
     return '$progressHistory/${Uri.encodeComponent(sessionId)}';
@@ -139,6 +145,7 @@ class Routes {
   static const String meLicenses = '$me/licenses';
 
   static const String logger = '/logger';
+  static const String run = '/run';
   static const String summary = '/summary';
 
   /// Ordered onboarding steps after the welcome screen.

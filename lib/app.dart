@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
 import 'app_coordinator.dart';
@@ -13,12 +14,14 @@ import 'providers/history_provider.dart';
 import 'providers/onboarding_provider.dart';
 import 'providers/plan_provider.dart';
 import 'providers/profile_provider.dart';
+import 'providers/progress_photo_provider.dart';
 import 'providers/progress_provider.dart';
 import 'providers/routine_provider.dart';
 import 'providers/settings_provider.dart';
 import 'providers/social_provider.dart';
 import 'providers/steps_provider.dart';
 import 'providers/weight_provider.dart';
+import 'providers/wellness_provider.dart';
 import 'providers/workout_provider.dart';
 import 'screens/onboarding/birth_date_screen.dart';
 import 'screens/onboarding/equipment_screen.dart';
@@ -39,8 +42,12 @@ import 'screens/me/me_screen.dart';
 import 'screens/me/profile_edit_screen.dart';
 import 'screens/me/settings_screen.dart';
 import 'screens/onboarding/welcome_screen.dart';
+import 'screens/calendar/calendar_screen.dart';
+import 'screens/plan/plan_screen.dart';
 import 'screens/progress/history_detail_screen.dart';
 import 'screens/progress/history_screen.dart';
+import 'screens/run/run_screen.dart';
+import 'screens/progress/progress_photos_screen.dart';
 import 'screens/progress/progress_screen.dart';
 import 'screens/progress/weight_log_screen.dart';
 import 'screens/shared/splash_screen.dart';
@@ -51,7 +58,7 @@ import 'screens/train/exercise_detail_screen.dart';
 import 'screens/train/routine_builder_screen.dart';
 import 'screens/train/routine_detail_screen.dart';
 import 'screens/train/routine_list_screen.dart';
-import 'screens/train/train_screen.dart';
+import 'screens/exercises/exercise_library_screen.dart';
 import 'services/clock.dart';
 import 'services/id_service.dart';
 import 'services/seed_data_service.dart';
@@ -117,11 +124,17 @@ class MovaApp extends StatelessWidget {
         ChangeNotifierProvider<ProgressProvider>(
           create: (_) => ProgressProvider(storage, clock: resolvedClock),
         ),
+        ChangeNotifierProvider<ProgressPhotoProvider>(
+          create: (_) => ProgressPhotoProvider(storage, clock: resolvedClock),
+        ),
         ChangeNotifierProvider<StepsProvider>(
           create: (_) => StepsProvider(storage, clock: resolvedClock),
         ),
         ChangeNotifierProvider<WeightProvider>(
           create: (_) => WeightProvider(storage, clock: resolvedClock),
+        ),
+        ChangeNotifierProvider<WellnessProvider>(
+          create: (_) => WellnessProvider(storage, clock: resolvedClock),
         ),
         ChangeNotifierProvider<SocialProvider>(
           create: (_) =>
@@ -151,6 +164,10 @@ class MovaApp extends StatelessWidget {
         title: 'Mova',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.dark,
+        localizationsDelegates: GlobalMaterialLocalizations.delegates,
+        supportedLocales: <Locale>[
+          for (final language in kMaterialSupportedLanguages) Locale(language),
+        ],
         home: const _StartupGate(),
         onGenerateRoute: _generateRoute,
       ),
@@ -178,11 +195,13 @@ class _StartupGateState extends State<_StartupGate> {
       context.read<ProfileProvider>().load(),
       context.read<OnboardingProvider>().load(),
       context.read<PlanProvider>().load(),
+      context.read<RoutineProvider>().load(),
       context.read<WorkoutProvider>().loadActive(),
       context.read<HistoryProvider>().load(),
       context.read<ProgressProvider>().load(),
       context.read<StepsProvider>().load(),
       context.read<WeightProvider>().load(),
+      context.read<WellnessProvider>().load(),
       context.read<SettingsProvider>().load(),
     ]);
     if (!mounted) {
@@ -299,8 +318,14 @@ Widget _screenForRoute(String? route, [Object? arguments]) {
       return const PlanPreviewScreen();
     case Routes.today:
       return const TodayScreen();
+    case Routes.calendar:
     case Routes.train:
-      return const TrainScreen();
+      return const CalendarScreen();
+    case Routes.plan:
+      return const PlanScreen();
+    case Routes.exercises:
+    case Routes.trainExercises:
+      return const ExerciseLibraryScreen();
     case Routes.routines:
       return const RoutineListScreen();
     case Routes.routineNew:
@@ -311,6 +336,8 @@ Widget _screenForRoute(String? route, [Object? arguments]) {
       return const HistoryScreen();
     case Routes.progressWeight:
       return const WeightLogScreen();
+    case Routes.progressPhotos:
+      return const ProgressPhotosScreen();
     case Routes.social:
       return const SocialFeedScreen();
     case Routes.me:
@@ -325,6 +352,8 @@ Widget _screenForRoute(String? route, [Object? arguments]) {
       return const LicensesScreen();
     case Routes.logger:
       return const LoggerScreen();
+    case Routes.run:
+      return const RunScreen();
     case Routes.summary:
       if (arguments is SummaryArgs) {
         return SummaryScreen(

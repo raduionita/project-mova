@@ -7,8 +7,8 @@ import 'package:mova/providers/onboarding_provider.dart';
 import 'package:mova/screens/onboarding/schedule_screen.dart';
 import 'package:mova/services/clock.dart';
 import 'package:mova/services/storage_service.dart';
-import 'package:mova/theme/app_theme.dart';
 import 'package:mova/theme/app_icons.dart';
+import 'package:mova/theme/app_theme.dart';
 import 'package:mova/widgets/app_button.dart';
 import 'package:mova/widgets/app_icon.dart';
 import 'package:mova/widgets/day_selector.dart';
@@ -38,20 +38,19 @@ Widget _wrap(OnboardingProvider provider, ValueChanged<String> onRoute) {
   );
 }
 
-List<int> _selectedDays(WidgetTester tester) {
-  return tester.widget<DaySelector>(find.byType(DaySelector)).selectedDays;
-}
-
 bool _canContinue(WidgetTester tester) {
   return tester.widget<AppButton>(find.byType(AppButton)).onPressed != null;
 }
 
-Finder _assetIcon(String asset) => find.byWidgetPredicate(
-  (widget) => widget is AppIcon && widget.asset == asset,
+Finder _assetIcon(String asset) => find.descendant(
+  of: find.byType(StepperRow),
+  matching: find.byWidgetPredicate(
+    (widget) => widget is AppIcon && widget.asset == asset,
+  ),
 );
 
 void main() {
-  testWidgets('defaults to 3 days on Monday, Wednesday, and Friday', (
+  testWidgets('defaults to an average of 3 days with no weekday selector', (
     tester,
   ) async {
     final provider = await _providerWith(StorageService.inMemory());
@@ -59,72 +58,48 @@ void main() {
     await tester.pumpWidget(_wrap(provider, (_) {}));
 
     expect(tester.widget<StepperRow>(find.byType(StepperRow)).value, 3);
-    expect(_selectedDays(tester), <int>[1, 3, 5]);
+    expect(find.byType(DaySelector), findsNothing);
     expect(_canContinue(tester), isTrue);
     expect(
-      find.textContaining('Monday, Wednesday, and Friday'),
+      find.textContaining('average target, not fixed weekdays'),
       findsOneWidget,
     );
   });
 
-  testWidgets('the day count must match the selected weekdays', (tester) async {
+  testWidgets('the stepper changes the average frequency', (tester) async {
     final provider = await _providerWith(StorageService.inMemory());
 
     await tester.pumpWidget(_wrap(provider, (_) {}));
 
-    await tester.tap(find.text('S').first);
-    await tester.pump();
-    expect(_selectedDays(tester), <int>[1, 3, 5]);
-
     await tester.tap(_assetIcon(AppIcons.plus));
     await tester.pump();
-    expect(_selectedDays(tester), <int>[1, 2, 3, 5]);
-
-    await tester.tap(find.text('S').first);
-    await tester.pump();
-    expect(_selectedDays(tester), <int>[1, 2, 3, 5]);
-
-    await tester.tap(_assetIcon(AppIcons.plus));
-    await tester.pump();
-    expect(_selectedDays(tester), <int>[1, 2, 3, 4, 5]);
-
-    await tester.tap(find.text('W'));
-    await tester.pump();
-    await tester.tap(find.text('S').first);
-    await tester.pump();
-    expect(_selectedDays(tester), <int>[1, 2, 4, 5, 6]);
-  });
-
-  testWidgets('lowering the day count trims the selected days', (tester) async {
-    final provider = await _providerWith(StorageService.inMemory());
-
-    await tester.pumpWidget(_wrap(provider, (_) {}));
+    expect(tester.widget<StepperRow>(find.byType(StepperRow)).value, 4);
 
     await tester.tap(_assetIcon(AppIcons.minus));
     await tester.pump();
     await tester.tap(_assetIcon(AppIcons.minus));
     await tester.pump();
-
-    expect(tester.widget<StepperRow>(find.byType(StepperRow)).value, 1);
-    expect(_selectedDays(tester), <int>[1]);
+    expect(tester.widget<StepperRow>(find.byType(StepperRow)).value, 2);
     expect(_canContinue(tester), isTrue);
   });
 
-  testWidgets('deselecting a day blocks continue until the count matches', (
-    tester,
-  ) async {
+  testWidgets('frequency stays within the supported range', (tester) async {
     final provider = await _providerWith(StorageService.inMemory());
 
     await tester.pumpWidget(_wrap(provider, (_) {}));
-    await tester.tap(find.text('W'));
-    await tester.pump();
 
-    expect(_selectedDays(tester), <int>[1, 5]);
-    expect(_canContinue(tester), isFalse);
-    expect(find.text('Select 1 more day to continue.'), findsOneWidget);
+    for (var index = 0; index < 6; index++) {
+      await tester.tap(_assetIcon(AppIcons.plus));
+      await tester.pump();
+    }
+
+    expect(
+      tester.widget<StepperRow>(find.byType(StepperRow)).value,
+      kMaxTrainingDays,
+    );
   });
 
-  testWidgets('continue persists the schedule and opens equipment', (
+  testWidgets('continue persists the frequency and opens equipment', (
     tester,
   ) async {
     final storage = StorageService.inMemory();
@@ -143,23 +118,20 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(provider.draft.daysPerWeek, 3);
-    expect(provider.draft.trainingDays, <int>[1, 3, 5]);
     expect(provider.draft.currentStep, OnboardingStep.equipment);
     expect(routes, <String>[Routes.onboardingEquipment]);
 
     final reloaded = await _providerWith(storage);
     expect(reloaded.draft.daysPerWeek, 3);
-    expect(reloaded.draft.trainingDays, <int>[1, 3, 5]);
   });
 
-  testWidgets('a saved schedule is restored', (tester) async {
+  testWidgets('a saved frequency is restored', (tester) async {
     final storage = StorageService.inMemory();
     await storage.writeObject(
       kOnboardingKey,
       OnboardingDraft(
         currentStep: OnboardingStep.schedule,
         daysPerWeek: 2,
-        trainingDays: const <int>[2, 4],
         updatedAt: _fixedNow,
       ).toJson(),
     );
@@ -168,7 +140,6 @@ void main() {
     await tester.pumpWidget(_wrap(provider, (_) {}));
 
     expect(tester.widget<StepperRow>(find.byType(StepperRow)).value, 2);
-    expect(_selectedDays(tester), <int>[2, 4]);
   });
 
   testWidgets('back returns to the experience step', (tester) async {
@@ -182,8 +153,29 @@ void main() {
     expect(routes, <String>[Routes.onboardingExperience]);
   });
 
+  testWidgets('tracking mode hides the frequency and can continue', (
+    tester,
+  ) async {
+    final provider = await _providerWith(StorageService.inMemory());
+    final routes = <String>[];
+
+    await tester.pumpWidget(_wrap(provider, routes.add));
+    await tester.tap(find.byKey(const Key('onboarding-track-choice')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(StepperRow), findsNothing);
+    expect(find.text('Track on my own'), findsOneWidget);
+
+    await tester.tap(find.text('Continue'));
+    await tester.pumpAndSettle();
+
+    expect(provider.draft.planEnabled, isFalse);
+    expect(provider.draft.daysPerWeek, 3);
+    expect(routes, <String>[Routes.onboardingEquipment]);
+  });
+
   testWidgets(
-    'editing from plan returns to the preview with the schedule kept',
+    'editing from plan returns to the preview with the frequency kept',
     (tester) async {
       final storage = StorageService.inMemory();
       await storage.writeObject(
@@ -191,7 +183,6 @@ void main() {
         OnboardingDraft(
           currentStep: OnboardingStep.plan,
           daysPerWeek: 4,
-          trainingDays: const <int>[1, 2, 3, 5],
           updatedAt: _fixedNow,
         ).toJson(),
       );
@@ -200,7 +191,6 @@ void main() {
 
       provider.beginPlanEdit();
       await tester.pumpWidget(_wrap(provider, routes.add));
-      expect(_selectedDays(tester), <int>[1, 2, 3, 5]);
 
       await tester.tap(find.text('Continue'));
       await tester.pumpAndSettle();
@@ -208,7 +198,6 @@ void main() {
       expect(routes, <String>[Routes.onboardingPlan]);
       expect(provider.draft.currentStep, OnboardingStep.plan);
       expect(provider.draft.daysPerWeek, 4);
-      expect(provider.draft.trainingDays, <int>[1, 2, 3, 5]);
     },
   );
 }

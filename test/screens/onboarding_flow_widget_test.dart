@@ -49,12 +49,12 @@ TrainingPlan _fixturePlan() {
     goals: const <Goal>[Goal.buildMuscle],
     experienceLevel: ExperienceLevel.regular,
     daysPerWeek: 3,
-    trainingDays: const <int>[1, 3, 5],
     splitName: 'Push Pull Legs',
     days: <PlanDay>[
       const PlanDay(
         id: 'day-push',
-        weekday: 1,
+        order: 0,
+        slotKey: 'push',
         name: 'Push Day',
         muscleGroups: <String>['Chest', 'Shoulders', 'Triceps'],
         estimatedMinutes: 55,
@@ -62,7 +62,8 @@ TrainingPlan _fixturePlan() {
       ),
       const PlanDay(
         id: 'day-pull',
-        weekday: 3,
+        order: 1,
+        slotKey: 'pull',
         name: 'Pull Day',
         muscleGroups: <String>['Back', 'Biceps'],
         estimatedMinutes: 50,
@@ -70,7 +71,8 @@ TrainingPlan _fixturePlan() {
       ),
       const PlanDay(
         id: 'day-legs',
-        weekday: 5,
+        order: 2,
+        slotKey: 'legs',
         name: 'Leg Day',
         muscleGroups: <String>['Quads', 'Hamstrings', 'Glutes'],
         estimatedMinutes: 60,
@@ -250,13 +252,13 @@ void main() {
     await tester.tap(find.text('Not now'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Your Week 1'), findsOneWidget);
+    expect(find.text('Your plan'), findsOneWidget);
     expect(find.text('Push Day'), findsOneWidget);
     await tester.tap(find.text('Start using Mova'));
     await tester.pumpAndSettle();
 
     expect(find.byType(TodayScreen), findsOneWidget);
-    expect(find.text('Rest day'), findsOneWidget);
+    expect(find.byKey(const Key('today-next-up')), findsOneWidget);
     expect(storage.contains(kOnboardingKey), isFalse);
     expect(storage.contains(kProfileKey), isTrue);
     expect(storage.contains(kSettingsKey), isTrue);
@@ -278,7 +280,13 @@ void main() {
 
     final plan = PlanProvider(storage, loadExercises: () async => const []);
     await plan.load();
-    expect(plan.plan?.trainingDays, const <int>[1, 3, 5]);
+    expect(plan.plan?.trainingDays, isEmpty);
+    expect(plan.plan?.days.map((day) => day.weekday), everyElement(0));
+    expect(plan.plan?.days, hasLength(3));
+    expect(
+      plan.plan?.days.every((day) => day.slotKey.isNotEmpty),
+      isTrue,
+    );
     expect(plan.plan?.daysPerWeek, 3);
   });
 
@@ -362,7 +370,7 @@ void main() {
 
     await tester.tap(find.text('Not now'));
     await tester.pumpAndSettle();
-    expect(find.text('Your Week 1'), findsOneWidget);
+    expect(find.text('Your plan'), findsOneWidget);
     expect(harness.onboarding.draft.currentStep, OnboardingStep.plan);
   });
 
@@ -383,7 +391,7 @@ void main() {
         .state<NavigatorState>(find.byType(Navigator))
         .pushNamed(Routes.onboardingPlan);
     await tester.pumpAndSettle();
-    expect(find.text('Your Week 1'), findsOneWidget);
+    expect(find.text('Your plan'), findsOneWidget);
 
     await tester.tap(find.text('Edit schedule'));
     await tester.pumpAndSettle();
@@ -391,7 +399,7 @@ void main() {
     expect(harness.onboarding.editingPlan, isTrue);
 
     await _tapContinue(tester);
-    expect(find.text('Your Week 1'), findsOneWidget);
+    expect(find.text('Your plan'), findsOneWidget);
     expect(harness.onboarding.editingPlan, isFalse);
     expect(harness.onboarding.draft.currentStep, OnboardingStep.plan);
   });

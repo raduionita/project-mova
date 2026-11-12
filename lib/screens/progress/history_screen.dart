@@ -10,6 +10,7 @@ import '../../providers/history_provider.dart';
 import '../../providers/progress_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../../services/clock.dart';
+import '../../services/unit_conversion_service.dart';
 import '../../services/workout_calculator.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_icons.dart';
@@ -61,10 +62,19 @@ class _HistoryScreenState extends State<HistoryScreen> {
     WorkoutSession session,
     ProgressProvider progress,
     WeightUnit unit,
+    DistanceUnit distanceUnit,
   ) {
     final date = session.completedAt ?? session.startedAt;
     final duration = WorkoutCalculator.sessionDurationSeconds(session, _now);
     final volume = WorkoutCalculator.volumeKg(session.exercises);
+    final distance = session.distanceMeters;
+    final isActivity =
+        session.source == SessionSource.run ||
+        session.source == SessionSource.walk;
+    final detail = isActivity
+        ? '${formatDuration(duration)} · '
+              '${distance == null || distance <= 0 ? '--' : const UnitConversionService().displayDistance(distance / 1000, distanceUnit)}'
+        : '${formatDuration(duration)} · ${formatVolume(volume, unit: unit)}';
     final prs = _prCount(progress, session.id);
     return AppCard(
       onTap: () =>
@@ -101,7 +111,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           ),
           const SizedBox(height: AppSpacing.sm),
           Text(
-            '${formatDuration(duration)} · ${formatVolume(volume, unit: unit)}',
+            detail,
             style: AppTypography.caption.copyWith(color: AppColors.muted),
           ),
         ],
@@ -113,6 +123,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     List<WorkoutSession> workouts,
     ProgressProvider progress,
     WeightUnit unit,
+    DistanceUnit distanceUnit,
   ) {
     final groups = <String, List<WorkoutSession>>{};
     for (final workout in workouts) {
@@ -139,7 +150,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
               index++
             ) ...<Widget>[
               if (index > 0) const SizedBox(height: AppSpacing.md),
-              _buildRow(groups[month]![index], progress, unit),
+              _buildRow(
+                groups[month]![index],
+                progress,
+                unit,
+                distanceUnit,
+              ),
             ],
             const SizedBox(height: AppSpacing.x3l),
           ],
@@ -152,11 +168,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Widget build(BuildContext context) {
     final history = context.watch<HistoryProvider>();
     final progress = context.watch<ProgressProvider>();
-    final unit = context
+    final preferences = context
         .watch<SettingsProvider>()
         .settings
-        .unitPreferences
-        .weightUnit;
+        .unitPreferences;
+    final unit = preferences.weightUnit;
+    final distanceUnit = preferences.distanceUnit;
     final workouts = history.workouts;
 
     Widget body;
@@ -174,7 +191,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
             Navigator.of(context).pushReplacementNamed(Routes.today),
       );
     } else {
-      body = _buildGroups(workouts, progress, unit);
+      body = _buildGroups(workouts, progress, unit, distanceUnit);
     }
 
     return Scaffold(

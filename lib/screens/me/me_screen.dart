@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../common/display_name.dart';
 import '../../common/experience_display.dart';
 import '../../common/formatters.dart';
+import '../../common/week_start_context.dart';
 import '../../models/app_settings.dart';
 import '../../models/experience_level.dart';
 import '../../models/goal.dart';
@@ -24,6 +25,7 @@ import '../../widgets/app_card.dart';
 import '../../widgets/app_stat_tile.dart';
 import '../../widgets/app_tag.dart';
 import '../../widgets/settings_row.dart';
+import '../../widgets/week_start_sheet.dart';
 
 /// Me tab: identity, lifetime totals, and the entry to settings.
 class MeScreen extends StatefulWidget {
@@ -256,6 +258,16 @@ class _MeScreenState extends State<MeScreen> {
             '${_units.distanceLabel(units.distanceUnit)} · '
             '${_units.heightLabel(units.heightUnit)}',
         onTap: () => _push(Routes.meSettings),
+      ),
+      SettingsRow(
+        key: const Key('me-week-start-row'),
+        assetIcon: AppIcons.calendar,
+        label: 'Week starts on',
+        value: weekStartValueLabel(
+          override: settings.weekStart,
+          effective: effectiveWeekStart(context),
+        ),
+        onTap: () => showWeekStartSheet(context),
       ),
       SettingsRow(
         key: const Key('me-reminders-row'),

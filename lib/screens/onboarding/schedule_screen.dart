@@ -6,15 +6,18 @@ import '../../navigation/onboarding_flow.dart';
 import '../../navigation/routes.dart';
 import '../../providers/onboarding_provider.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_icons.dart';
 import '../../theme/app_onboarding_type.dart';
 import '../../theme/app_spacing.dart';
 import '../../widgets/app_card.dart';
-import '../../widgets/day_selector.dart';
+import '../../widgets/app_choice_card.dart';
 import '../../widgets/stepper_row.dart';
 import 'onboarding_scaffold.dart';
 
-/// Onboarding step 8: weekly schedule. The number of training days must match
-/// the selected weekdays.
+/// Onboarding step 8: average training frequency.
+///
+/// The plan is an ordered rotation, so this value is a weekly average rather
+/// than a fixed set of weekdays.
 class ScheduleScreen extends StatefulWidget {
   const ScheduleScreen({super.key, this.onRoute});
 
@@ -27,59 +30,24 @@ class ScheduleScreen extends StatefulWidget {
 }
 
 class _ScheduleScreenState extends State<ScheduleScreen> {
-  static const List<int> _defaultDays = <int>[1, 3, 5];
-  static const List<int> _fillOrder = <int>[1, 3, 5, 2, 4, 6, 7];
-
   late int _daysPerWeek;
-  late List<int> _days;
+  late bool _planEnabled;
+  late bool _editingPlan;
   bool _isBusy = false;
 
   @override
   void initState() {
     super.initState();
-    final draft = context.read<OnboardingProvider>().draft;
-    final storedCount = draft.daysPerWeek;
+    final onboarding = context.read<OnboardingProvider>();
+    final storedCount = onboarding.draft.daysPerWeek;
     _daysPerWeek =
         storedCount != null &&
             storedCount >= kMinTrainingDays &&
             storedCount <= kMaxTrainingDays
         ? storedCount
         : 3;
-    final storedDays =
-        draft.trainingDays.where((day) => day >= 1 && day <= 7).toSet().toList()
-          ..sort();
-    _days = _resize(
-      storedDays.isEmpty ? _defaultDays : storedDays,
-      _daysPerWeek,
-    );
-  }
-
-  List<int> _resize(List<int> current, int count) {
-    final next = current.take(count).toList();
-    for (final day in _fillOrder) {
-      if (next.length >= count) {
-        break;
-      }
-      if (!next.contains(day)) {
-        next.add(day);
-      }
-    }
-    next.sort();
-    return next;
-  }
-
-  void _setDaysPerWeek(int value) {
-    setState(() {
-      _daysPerWeek = value;
-      _days = _resize(_days, value);
-    });
-  }
-
-  void _setDays(List<int> next) {
-    if (next.length > _daysPerWeek) {
-      return;
-    }
-    setState(() => _days = next);
+    _editingPlan = onboarding.editingPlan;
+    _planEnabled = _editingPlan || onboarding.draft.planEnabled;
   }
 
   void _open(BuildContext context, String route) {
@@ -91,20 +59,16 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     Navigator.of(context).pushNamed(route);
   }
 
-  bool get _canContinue => _days.isNotEmpty && _days.length == _daysPerWeek;
-
   Future<void> _continue() async {
-    if (_isBusy || !_canContinue) {
+    if (_isBusy) {
       return;
     }
     setState(() => _isBusy = true);
     final onboarding = context.read<OnboardingProvider>();
     final editingPlan = onboarding.editingPlan;
 
-    await onboarding.setSchedule(
-      daysPerWeek: _daysPerWeek,
-      trainingDays: _days,
-    );
+    await onboarding.setPlanEnabled(_planEnabled);
+    await onboarding.setSchedule(daysPerWeek: _daysPerWeek);
     final next = editingPlan
         ? Routes.onboardingPlan
         : OnboardingFlow.nextRoute(Routes.onboardingSchedule)!;
@@ -127,15 +91,30 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     _open(context, previous);
   }
 
-  String get _helper {
-    if (_days.length == _daysPerWeek) {
-      return 'Default is 3 days on Monday, Wednesday, and Friday. '
-          'The day count must match the selected weekdays.';
-    }
-    final remaining = _daysPerWeek - _days.length;
-    return remaining == 1
-        ? 'Select 1 more day to continue.'
-        : 'Select $remaining more days to continue.';
+  Widget _buildPlanChoice() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        AppChoiceCard(
+          key: const Key('onboarding-plan-choice'),
+          label: 'Plan with Mova',
+          description: 'Build a rotation and start the next session in one tap.',
+          assetIcon: AppIcons.plan,
+          selected: _planEnabled,
+          onTap: () => setState(() => _planEnabled = true),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        AppChoiceCard(
+          key: const Key('onboarding-track-choice'),
+          label: 'Track on my own',
+          description: 'Log any workout. Add a rotation later if you want one.',
+          assetIcon: AppIcons.plus,
+          selected: !_planEnabled,
+          onTap: () => setState(() => _planEnabled = false),
+        ),
+        const SizedBox(height: AppSpacing.x2l),
+      ],
+    );
   }
 
   Widget _buildScheduleCard() {
@@ -148,18 +127,14 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           min: kMinTrainingDays,
           max: kMaxTrainingDays,
           labelStyle: AppOnboardingType.caption,
-          onChanged: _setDaysPerWeek,
-        ),
-        const SizedBox(height: AppSpacing.x2l),
-        DaySelector(
-          selectedDays: _days,
-          textStyle: AppOnboardingType.micro,
-          onChanged: _setDays,
+          onChanged: (value) => setState(() => _daysPerWeek = value),
         ),
         const SizedBox(height: AppSpacing.x2l),
         AppCard(
           child: Text(
-            _helper,
+            'This is your average target, not fixed weekdays. Train on any '
+            'day, and any day you do not log counts as rest. Mova rotates '
+            'through your sessions so a missed day never breaks the plan.',
             style: AppOnboardingType.caption.copyWith(color: AppColors.muted),
           ),
         ),
@@ -167,17 +142,37 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     );
   }
 
+  Widget _buildTrackingCard() {
+    return AppCard(
+      child: Text(
+        'You can start any workout from Today. Your history, steps, and '
+        'streaks still count. A rotation is optional and can be created '
+        'from the Plan screen whenever you want one.',
+        style: AppOnboardingType.caption.copyWith(color: AppColors.muted),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final showChoice = !_editingPlan;
     return OnboardingScaffold(
-      title: 'How often do you train?',
-      subtitle: 'Your plan is built around this week.',
+      title: _planEnabled ? 'How often do you train?' : 'Track on your terms',
+      subtitle: _planEnabled
+          ? 'An average week, not a fixed schedule.'
+          : 'No rotation needed to start.',
       currentStep: OnboardingFlow.stepForRoute(Routes.onboardingSchedule),
       onBack: () => _back(context),
-      onContinue: _canContinue ? _continue : null,
-      continueEnabled: _canContinue,
+      onContinue: _continue,
+      continueEnabled: true,
       isBusy: _isBusy,
-      child: _buildScheduleCard(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          if (showChoice) _buildPlanChoice(),
+          if (_planEnabled) _buildScheduleCard() else _buildTrackingCard(),
+        ],
+      ),
     );
   }
 }

@@ -212,7 +212,7 @@ void main() {
     expect(storage.contains(kSettingsKey), isTrue);
   });
 
-  test('plan provider generates, saves, and moves days', () async {
+  test('plan provider generates, saves, and reorders sessions', () async {
     final storage = StorageService.inMemory();
     final seed = SeedDataService();
     final provider = PlanProvider(
@@ -232,21 +232,18 @@ void main() {
       isTrue,
     );
     expect(provider.plan, isNotNull);
-    expect(provider.plan?.days.map((day) => day.weekday), <int>[1, 3, 5]);
+    expect(provider.plan?.daysPerWeek, 3);
 
     final names = provider.plan!.days.map((day) => day.name).toList();
-    expect(await provider.movePlanDay(fromWeekday: 3, toWeekday: 4), isTrue);
-    expect(provider.plan?.trainingDays, <int>[1, 4, 5]);
-    expect(provider.plan?.days.map((day) => day.name), names);
-
-    expect(await provider.movePlanDay(fromWeekday: 1, toWeekday: 4), isTrue);
-    expect(provider.plan?.trainingDays, <int>[1, 4, 5]);
+    expect(await provider.reorderPlanDay(fromIndex: 0, toIndex: 1), isTrue);
     expect(provider.plan?.days[0].name, names[1]);
     expect(provider.plan?.days[1].name, names[0]);
+    expect(provider.plan?.days[0].order, 0);
+    expect(provider.plan?.days[1].order, 1);
 
     final reloaded = PlanProvider(storage, loadExercises: seed.loadExercises);
     await reloaded.load();
-    expect(reloaded.plan?.trainingDays, <int>[1, 4, 5]);
+    expect(reloaded.plan?.days[0].name, names[1]);
   });
 
   test('exercise library loads and searches', () async {

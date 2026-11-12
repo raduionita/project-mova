@@ -28,7 +28,9 @@ class AppIcons {
 
   static const String plus = 'assets/icons/plus.svg';
   static const String play = 'assets/icons/play.svg';
+  static const String pause = 'assets/icons/pause.svg';
   static const String walk = 'assets/icons/walk.svg';
+  static const String run = 'assets/icons/run.svg';
   static const String list = 'assets/icons/list.svg';
   static const String seedling = 'assets/icons/seedling.svg';
   static const String chevronLeft = 'assets/icons/chevron_left.svg';

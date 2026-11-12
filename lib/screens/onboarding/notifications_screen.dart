@@ -46,9 +46,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     Navigator.of(context).pushNamed(route);
   }
 
-  List<int> _reminderDays(OnboardingProvider onboarding) {
-    final days = onboarding.draft.trainingDays;
-    return days.isEmpty ? const <int>[1, 3, 5] : days;
+  List<int> _reminderDays() {
+    // Reminders stay weekday based even though the plan is a rotation.
+    return const <int>[1, 3, 5];
   }
 
   Future<void> _finish({required bool enable}) async {
@@ -72,7 +72,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
     await settings.setReminders(
       enabled: granted,
-      weekdays: _reminderDays(onboarding),
+      weekdays: _reminderDays(),
       hour: reminderHour,
       minute: reminderMinute,
     );

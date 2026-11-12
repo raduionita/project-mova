@@ -6,6 +6,7 @@ import '../../common/formatters.dart';
 import '../../models/exercise.dart';
 import '../../models/personal_record.dart';
 import '../../models/unit_preferences.dart';
+import '../../navigation/routes.dart';
 import '../../providers/exercise_provider.dart';
 import '../../providers/progress_provider.dart';
 import '../../providers/settings_provider.dart';
@@ -22,7 +23,8 @@ import '../../widgets/app_card.dart';
 import '../../widgets/app_empty_state.dart';
 import '../../widgets/app_icon.dart';
 import '../../widgets/app_tag.dart';
-import '../../widgets/exercise_picker_sheet.dart';
+import '../../widgets/add_to_routine_sheet.dart';
+import '../../widgets/exercise_history_sheet.dart';
 
 /// Exercise details. Renders instructions, muscle and equipment tags, and the
 /// previous best set. The add actions are enabled by TRN-21.
@@ -202,19 +204,77 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
     );
   }
 
-  Future<void> _openPicker(Exercise exercise) async {
-    final result = await showExercisePicker(
-      context,
-      mode: ExercisePickerMode.session,
-      initialExerciseIds: <String>{exercise.id},
+  Future<void> _addToCurrent(Exercise exercise) async {
+    final workout = context.read<WorkoutProvider>();
+    final messenger = ScaffoldMessenger.of(context);
+    final added = await workout.addExercise(
+      exercise.id,
+      exercise: exercise,
     );
-    if (result == null || result.exercises.isEmpty || !mounted) {
+    if (!mounted) {
       return;
     }
-    await addExercisesToWorkout(context, result.exercises);
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          added
+              ? 'Added ${exercise.name}.'
+              : workout.error ?? 'Could not add ${exercise.name}.',
+        ),
+      ),
+    );
   }
 
-  Widget _buildActions(Exercise exercise, bool canAdd) {
+  Future<void> _startWithExercise(Exercise exercise) async {
+    final workout = context.read<WorkoutProvider>();
+    final messenger = ScaffoldMessenger.of(context);
+    final started = await workout.startEmpty();
+    if (!started) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(workout.error ?? 'Could not start workout.')),
+      );
+      return;
+    }
+    final added = await workout.addExercise(
+      exercise.id,
+      exercise: exercise,
+    );
+    if (!mounted) {
+      return;
+    }
+    if (!added) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            workout.error ?? 'Could not add ${exercise.name}.',
+          ),
+        ),
+      );
+      return;
+    }
+    Navigator.of(context).pushNamed(Routes.logger);
+  }
+
+  void _openWorkout() {
+    Navigator.of(context).pushNamed(Routes.logger);
+  }
+
+  void _openHistory(Exercise exercise) {
+    showExerciseHistorySheet(
+      context,
+      exerciseId: exercise.id,
+      exerciseName: exercise.name,
+    );
+  }
+
+  Widget _buildActions(Exercise exercise) {
+    final workout = context.watch<WorkoutProvider>();
+    final active = workout.activeSession;
+    final inWorkout =
+        active?.exercises.any(
+          (entry) => entry.exerciseId == exercise.id,
+        ) ??
+        false;
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.x2l,
@@ -225,16 +285,59 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
+          if (inWorkout) ...<Widget>[
+            Align(
+              alignment: Alignment.centerLeft,
+              child: AppTag(
+                label: 'Already in workout',
+                variant: AppTagVariant.lime,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+          ],
+          if (active == null)
+            AppButton(
+              key: const Key('exercise-action-primary'),
+              label: 'Start workout with this exercise',
+              assetIcon: AppIcons.play,
+              onPressed: () => _startWithExercise(exercise),
+            )
+          else if (inWorkout)
+            AppButton(
+              key: const Key('exercise-action-primary'),
+              label: 'View in workout',
+              assetIcon: AppIcons.play,
+              onPressed: _openWorkout,
+            )
+          else
+            AppButton(
+              key: const Key('exercise-action-primary'),
+              label: 'Add to current workout',
+              assetIcon: AppIcons.plus,
+              onPressed: () => _addToCurrent(exercise),
+            ),
+          const SizedBox(height: AppSpacing.sm),
           AppButton(
-            label: 'Add to workout',
-            onPressed: canAdd ? () => _openPicker(exercise) : null,
+            key: const Key('exercise-action-routine'),
+            label: 'Add to saved workout',
+            variant: AppButtonVariant.ghost,
+            assetIcon: AppIcons.list,
+            onPressed: () => addExerciseToRoutine(context, exercise),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          AppButton(
+            key: const Key('exercise-action-history'),
+            label: 'View history',
+            variant: AppButtonVariant.ghost,
+            assetIcon: AppIcons.history,
+            onPressed: () => _openHistory(exercise),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildContent(Exercise exercise, bool canAdd) {
+  Widget _buildContent(Exercise exercise) {
     final progress = context.watch<ProgressProvider>();
     final settings = context.watch<SettingsProvider>();
     final unit = settings.settings.unitPreferences.weightUnit;
@@ -268,7 +371,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
             ),
           ),
         ),
-        _buildActions(exercise, canAdd),
+        _buildActions(exercise),
       ],
     );
   }
@@ -276,9 +379,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final exercises = context.watch<ExerciseProvider>();
-    final workout = context.watch<WorkoutProvider>();
     final exercise = exercises.byId(widget.exerciseId);
-    final canAdd = workout.activeSession != null;
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -300,7 +401,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                                 'This exercise is no longer in the local '
                                 'library.',
                           ))
-                  : _buildContent(exercise, canAdd),
+                  : _buildContent(exercise),
             ),
           ],
         ),

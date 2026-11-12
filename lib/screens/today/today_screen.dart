@@ -4,18 +4,25 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../common/formatters.dart';
+import '../../common/week_start_context.dart';
 import '../../models/app_settings.dart';
 import '../../models/plan_day.dart';
 import '../../models/step_entry.dart';
 import '../../models/training_plan.dart';
 import '../../models/workout_session.dart';
 import '../../navigation/routes.dart';
+import '../../providers/history_provider.dart';
 import '../../providers/plan_provider.dart';
 import '../../providers/progress_provider.dart';
+import '../../providers/routine_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../../providers/steps_provider.dart';
 import '../../providers/workout_provider.dart';
 import '../../services/clock.dart';
+import '../../services/session_suggestion_service.dart';
+import '../../services/unit_conversion_service.dart';
+import '../../services/week_streak_service.dart';
+import '../../services/workout_calculator.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_icons.dart';
 import '../../theme/app_radii.dart';
@@ -23,13 +30,13 @@ import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_card.dart';
-import '../../widgets/app_empty_state.dart';
 import '../../widgets/app_icon.dart';
-import '../../widgets/app_quick_action.dart';
 import '../../widgets/app_stat_tile.dart';
 import '../../widgets/app_tag.dart';
+import '../../widgets/choose_session_sheet.dart';
+import '../../widgets/edit_workout_sheet.dart';
 import '../../widgets/manual_steps_sheet.dart';
-import '../../widgets/plan_overview_sheet.dart';
+import '../../widgets/streak_badge_row.dart';
 
 const List<String> _weekdayNames = <String>[
   'Monday',
@@ -125,6 +132,7 @@ class _TodayScreenState extends State<TodayScreen> with WidgetsBindingObserver {
 
   Widget _buildStepsCard() {
     final provider = context.watch<StepsProvider>();
+    final hasActive = context.watch<WorkoutProvider>().activeSession != null;
     final entry = provider.todayEntry;
     final hasSteps = entry != null && entry.steps > 0;
     final isHealth = entry?.source == StepSource.health;
@@ -181,47 +189,123 @@ class _TodayScreenState extends State<TodayScreen> with WidgetsBindingObserver {
             ],
           ),
           const SizedBox(height: AppSpacing.md),
-          Align(
-            alignment: Alignment.centerRight,
-            child: TextButton.icon(
-              key: const Key('today-add-steps'),
-              onPressed: _addSteps,
-              icon: const AppIcon(
-                asset: AppIcons.plus,
-                size: 18,
-                color: AppColors.lime,
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: TextButton.icon(
+                  key: const Key('today-start-walk'),
+                  onPressed: hasActive ? null : _startWalk,
+                  icon: const AppIcon(
+                    asset: AppIcons.walk,
+                    size: 18,
+                    color: AppColors.lime,
+                  ),
+                  label: const Text('Start walk'),
+                  style: TextButton.styleFrom(
+                    minimumSize: const Size(44, 44),
+                    foregroundColor: AppColors.lime,
+                    disabledForegroundColor: AppColors.muted,
+                  ),
+                ),
               ),
-              label: Text(hasSteps ? 'Update steps' : 'Add steps'),
-              style: TextButton.styleFrom(
-                minimumSize: const Size(44, 44),
-                foregroundColor: AppColors.lime,
+              Expanded(
+                child: TextButton.icon(
+                  key: const Key('today-add-steps'),
+                  onPressed: _addSteps,
+                  icon: const AppIcon(
+                    asset: AppIcons.edit,
+                    size: 18,
+                    color: AppColors.lime,
+                  ),
+                  label: Text(hasSteps ? 'Edit steps' : 'Add steps'),
+                  style: TextButton.styleFrom(
+                    minimumSize: const Size(44, 44),
+                    foregroundColor: AppColors.lime,
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  PlanDay? _dayFor(TrainingPlan plan, DateTime now) {
-    for (final day in plan.days) {
-      if (day.weekday == now.weekday) {
-        return day;
+  bool _isSameDay(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month && a.day == b.day;
+  }
+
+  List<WorkoutSession> _completedToday(
+    DateTime now,
+    HistoryProvider? history,
+  ) {
+    if (history == null) {
+      return const <WorkoutSession>[];
+    }
+    return history.workouts
+        .where((session) {
+          if (session.status != SessionStatus.completed) {
+            return false;
+          }
+          final at = session.completedAt ?? session.startedAt;
+          return _isSameDay(at, now);
+        })
+        .toList(growable: false);
+  }
+
+  WorkoutSession? _completedRun(
+    DateTime now,
+    HistoryProvider? history,
+  ) {
+    for (final session in _completedToday(now, history)) {
+      if (session.source == SessionSource.run) {
+        return session;
       }
     }
     return null;
   }
 
-  String _weekLabel(TrainingPlan plan, DateTime now) {
-    final generated = DateTime(
-      plan.generatedAt.year,
-      plan.generatedAt.month,
-      plan.generatedAt.day,
-    );
-    final today = DateTime(now.year, now.month, now.day);
-    final elapsed = today.difference(generated).inDays;
-    final week = elapsed < 0 ? 1 : elapsed ~/ 7 + 1;
-    return '${_weekdayNames[now.weekday - 1]} · Week $week';
+  Future<void> _editWorkout(WorkoutSession session) async {
+    final saved = await showEditWorkoutSheet(context, session: session);
+    if (!mounted || saved != true) {
+      return;
+    }
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Workout updated.')));
+  }
+
+  String _sessionSummary(WorkoutSession session) {
+    final unit = context
+        .watch<SettingsProvider>()
+        .settings
+        .unitPreferences
+        .weightUnit;
+    final distanceUnit = context
+        .watch<SettingsProvider>()
+        .settings
+        .unitPreferences
+        .distanceUnit;
+    final seconds = WorkoutCalculator.sessionDurationSeconds(session, _now);
+    final parts = <String>[formatDuration(seconds)];
+    if (session.source == SessionSource.run ||
+        session.source == SessionSource.walk) {
+      final meters = session.distanceMeters;
+      if (meters != null && meters > 0) {
+        parts.add(
+          const UnitConversionService().displayDistance(
+            meters / 1000,
+            distanceUnit,
+          ),
+        );
+      }
+      return parts.join(' · ');
+    }
+    final volume = WorkoutCalculator.volumeKg(session.exercises);
+    if (volume > 0) {
+      parts.add(formatVolume(volume, unit: unit));
+    }
+    return parts.join(' · ');
   }
 
   Future<void> _startFromPlan(PlanDay day) async {
@@ -246,6 +330,20 @@ class _TodayScreenState extends State<TodayScreen> with WidgetsBindingObserver {
 
   Future<void> _startWalk() {
     return _runStart((workout) => workout.startWalk());
+  }
+
+  Future<void> _chooseAnotherSession({SessionSuggestion? suggestion}) {
+    return showChooseSessionSheet(
+      context,
+      plan: context.read<PlanProvider>().plan,
+      routines: context.read<RoutineProvider>().routines,
+      nextIndex: suggestion?.dayIndex,
+      onStartPlanDay: _startFromPlan,
+      onStartRoutine: (routine) =>
+          _runStart((workout) => workout.startFromRoutine(routine)),
+      onStartEmpty: () => _runStart((workout) => workout.startEmpty()),
+      onStartWalk: () => _runStart((workout) => workout.startWalk()),
+    );
   }
 
   Future<void> _runStart(Future<bool> Function(WorkoutProvider) start) async {
@@ -284,38 +382,117 @@ class _TodayScreenState extends State<TodayScreen> with WidgetsBindingObserver {
       }
     }
     if (mounted) {
-      Navigator.of(context).pushNamed(Routes.logger);
+      Navigator.of(
+        context,
+      ).pushNamed(session.source == SessionSource.run ? Routes.run : Routes.logger);
     }
   }
 
-  Widget _buildQuickActions() {
-    return Row(
-      children: <Widget>[
-        Expanded(
-          child: AppQuickAction(
-            label: 'Empty workout',
-            assetIcon: AppIcons.plus,
-            onPressed: _startEmpty,
+  Widget _buildRunningCard(WorkoutSession? run) {
+    final active = context.watch<WorkoutProvider>().activeSession;
+    final canStart = active == null;
+    final runActive =
+        active != null && active.source == SessionSource.run;
+    final distance = run?.distanceMeters;
+    final distanceLabel = distance == null || distance <= 0
+        ? null
+        : const UnitConversionService().displayDistance(
+            distance / 1000,
+            context
+                .watch<SettingsProvider>()
+                .settings
+                .unitPreferences
+                .distanceUnit,
+          );
+    return AppCard(
+      key: const Key('today-running-card'),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              Container(
+                width: 38,
+                height: 38,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: AppColors.blueSoft,
+                  borderRadius: BorderRadius.circular(AppSpacing.xl),
+                ),
+                child: const AppIcon(
+                  asset: AppIcons.run,
+                  size: 20,
+                  color: AppColors.blue,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.xl),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      run == null ? 'Running' : 'Ran today',
+                      style: AppTypography.bodyStrong.copyWith(
+                        color: AppColors.text,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.xxs),
+                    Text(
+                      run == null
+                          ? 'Track time and distance. No GPS needed.'
+                          : _sessionSummary(run),
+                      style: AppTypography.caption.copyWith(
+                        color: AppColors.muted,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (distanceLabel != null)
+                AppTag(label: distanceLabel, variant: AppTagVariant.neutral),
+            ],
           ),
-        ),
-        const SizedBox(width: AppSpacing.md),
-        Expanded(
-          child: AppQuickAction(
-            label: 'Walk',
-            assetIcon: AppIcons.walk,
-            onPressed: _startWalk,
+          const SizedBox(height: AppSpacing.md),
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: AppButton(
+                  key: const Key('today-start-run'),
+                  label: runActive
+                      ? 'Continue run'
+                      : run == null
+                      ? 'Start run'
+                      : 'Run again',
+                  assetIcon: runActive ? AppIcons.play : AppIcons.run,
+                  onPressed: runActive
+                      ? () => Navigator.of(context).pushNamed(Routes.run)
+                      : canStart
+                      ? () {
+                          Navigator.of(context).pushNamed(Routes.run);
+                        }
+                      : null,
+                ),
+              ),
+              if (run != null) ...<Widget>[
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: AppButton(
+                    key: const Key('today-edit-run'),
+                    label: 'Edit run',
+                    variant: AppButtonVariant.ghost,
+                    onPressed: () => _editWorkout(run),
+                  ),
+                ),
+              ],
+            ],
           ),
-        ),
-        const SizedBox(width: AppSpacing.md),
-        Expanded(
-          child: AppQuickAction(
-            label: 'Routine',
-            assetIcon: AppIcons.list,
-            onPressed: () => Navigator.of(context).pushNamed(Routes.routines),
-          ),
-        ),
-      ],
+        ],
+      ),
     );
+  }
+
+  Widget _buildBadges(int dayStreak, int weekStreak) {
+    return StreakBadgeRow(dayStreak: dayStreak, weekStreak: weekStreak);
   }
 
   Widget _buildSessionCard(WorkoutSession session) {
@@ -368,7 +545,7 @@ class _TodayScreenState extends State<TodayScreen> with WidgetsBindingObserver {
             children: <Widget>[
               IconButton(
                 tooltip: 'Edit plan',
-                onPressed: () => PlanOverviewSheet.show(context),
+                onPressed: () => Navigator.of(context).pushNamed(Routes.plan),
                 icon: const AppIcon(
                   asset: AppIcons.calendar,
                   size: 20,
@@ -443,12 +620,10 @@ class _TodayScreenState extends State<TodayScreen> with WidgetsBindingObserver {
     );
   }
 
-  Widget _buildWorkoutCard(
-    PlanDay day, {
-    required bool canStart,
-    int streak = 0,
-  }) {
+  Widget _buildNextUpCard(SessionSuggestion suggestion, {int streak = 0}) {
+    final day = suggestion.day;
     return AppCard(
+      key: const Key('today-next-up'),
       featured: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -466,34 +641,117 @@ class _TodayScreenState extends State<TodayScreen> with WidgetsBindingObserver {
                 _buildStreakTag(streak),
                 const SizedBox(width: AppSpacing.sm),
               ],
-              const AppTag(label: 'Planned', variant: AppTagVariant.lime),
+              const AppTag(label: 'Next up', variant: AppTagVariant.lime),
             ],
           ),
           const SizedBox(height: AppSpacing.md),
           Text(
-            day.muscleGroups.join(' · '),
+            suggestion.reason,
             style: AppTypography.body.copyWith(color: AppColors.muted),
+          ),
+          if (suggestion.recoveryWarning != null) ...<Widget>[
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              suggestion.recoveryWarning!,
+              style: AppTypography.caption.copyWith(color: AppColors.gold),
+            ),
+          ],
+          const SizedBox(height: AppSpacing.md),
+          Text(
+            day.muscleGroups.join(' · '),
+            style: AppTypography.body.copyWith(color: AppColors.text),
           ),
           const SizedBox(height: AppSpacing.sm),
           Text(
             '${day.exercises.length} exercises · ~${day.estimatedMinutes} min',
             style: AppTypography.caption.copyWith(color: AppColors.muted),
           ),
-          if (canStart) ...<Widget>[
-            const SizedBox(height: AppSpacing.lg),
-            AppButton(
-              label: 'Start workout',
-              assetIcon: AppIcons.play,
-              onPressed: () => _startFromPlan(day),
-            ),
-          ],
+          const SizedBox(height: AppSpacing.lg),
+          AppButton(
+            key: const Key('today-start-workout'),
+            label: 'Start workout',
+            assetIcon: AppIcons.play,
+            onPressed: () => _startFromPlan(day),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          AppButton(
+            key: const Key('today-choose-session'),
+            label: 'Choose another session',
+            variant: AppButtonVariant.ghost,
+            onPressed: () => _chooseAnotherSession(suggestion: suggestion),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildRestCard({int streak = 0}) {
+  Widget _buildCompletedRow(WorkoutSession session) {
+    final title = session.displayTitle.trim().isEmpty
+        ? session.name
+        : session.displayTitle;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      child: Container(
+        key: Key('today-completed-row-${session.id}'),
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceAlt,
+          borderRadius: BorderRadius.circular(AppRadii.md),
+        ),
+        child: Row(
+          children: <Widget>[
+            const AppIcon(
+              asset: AppIcons.check,
+              size: 18,
+              color: AppColors.lime,
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTypography.bodyStrong.copyWith(
+                      color: AppColors.text,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xxs),
+                  Text(
+                    '${session.sourceLabel} · ${_sessionSummary(session)}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTypography.caption.copyWith(
+                      color: AppColors.muted,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            TextButton(
+              key: Key('today-edit-workout-${session.id}'),
+              onPressed: () => _editWorkout(session),
+              style: TextButton.styleFrom(
+                minimumSize: const Size(44, 44),
+                foregroundColor: AppColors.lime,
+              ),
+              child: const Text('Edit'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCompletedCard(
+    List<WorkoutSession> sessions,
+    SessionSuggestion? suggestion, {
+    int streak = 0,
+  }) {
     return AppCard(
+      key: const Key('today-completed'),
       featured: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -502,7 +760,7 @@ class _TodayScreenState extends State<TodayScreen> with WidgetsBindingObserver {
             children: <Widget>[
               Expanded(
                 child: Text(
-                  'Rest day',
+                  'Trained today',
                   style: AppTypography.h2.copyWith(color: AppColors.text),
                 ),
               ),
@@ -511,13 +769,33 @@ class _TodayScreenState extends State<TodayScreen> with WidgetsBindingObserver {
                 _buildStreakTag(streak),
                 const SizedBox(width: AppSpacing.sm),
               ],
-              const AppTag(label: 'Recovery', variant: AppTagVariant.gold),
+              const AppTag(label: 'Done', variant: AppTagVariant.gold),
             ],
           ),
           const SizedBox(height: AppSpacing.md),
           Text(
-            'Recover and come back stronger.',
+            sessions.length == 1
+                ? 'Your session is in the books. Nice work.'
+                : '${sessions.length} sessions logged today. Nice work.',
             style: AppTypography.body.copyWith(color: AppColors.muted),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          for (final session in sessions) _buildCompletedRow(session),
+          const SizedBox(height: AppSpacing.xs),
+          AppButton(
+            key: const Key('today-train-again'),
+            label: 'Train again',
+            assetIcon: AppIcons.play,
+            onPressed: suggestion == null
+                ? _startEmpty
+                : () => _startFromPlan(suggestion.day),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          AppButton(
+            key: const Key('today-choose-session'),
+            label: 'Choose another session',
+            variant: AppButtonVariant.ghost,
+            onPressed: () => _chooseAnotherSession(suggestion: suggestion),
           ),
         ],
       ),
@@ -546,53 +824,74 @@ class _TodayScreenState extends State<TodayScreen> with WidgetsBindingObserver {
     );
   }
 
-  Widget _buildPlanned(
-    PlanDay day,
+  Widget _buildActive(
     TrainingPlan plan,
-    WorkoutSession? session, {
-    int streak = 0,
+    WorkoutSession session, {
+    required int dayStreak,
+    required int weekStreak,
+    WorkoutSession? run,
   }) {
-    final canStart = session == null;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        if (session != null) ...<Widget>[
-          _buildSessionCard(session),
-          const SizedBox(height: AppSpacing.x2l),
-        ],
-        _buildWorkoutCard(day, canStart: canStart, streak: streak),
+        _buildSessionCard(session),
         const SizedBox(height: AppSpacing.x2l),
         _buildStepsCard(),
-        if (canStart) ...<Widget>[
-          const SizedBox(height: AppSpacing.x2l),
-          _buildQuickActions(),
-        ],
+        const SizedBox(height: AppSpacing.x2l),
+        _buildRunningCard(run),
+        const SizedBox(height: AppSpacing.x2l),
+        _buildBadges(dayStreak, weekStreak),
         const SizedBox(height: AppSpacing.x2l),
         _buildStats(plan),
       ],
     );
   }
 
-  Widget _buildRest(
+  Widget _buildNextUp(
     TrainingPlan plan,
-    WorkoutSession? session, {
-    int streak = 0,
+    SessionSuggestion suggestion, {
+    required int dayStreak,
+    required int weekStreak,
+    WorkoutSession? run,
   }) {
-    final canStart = session == null;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        if (session != null) ...<Widget>[
-          _buildSessionCard(session),
-          const SizedBox(height: AppSpacing.x2l),
-        ],
-        _buildRestCard(streak: streak),
+        _buildNextUpCard(suggestion, streak: dayStreak),
         const SizedBox(height: AppSpacing.x2l),
         _buildStepsCard(),
-        if (canStart) ...<Widget>[
-          const SizedBox(height: AppSpacing.x2l),
-          _buildQuickActions(),
-        ],
+        const SizedBox(height: AppSpacing.x2l),
+        _buildRunningCard(run),
+        const SizedBox(height: AppSpacing.x2l),
+        _buildBadges(dayStreak, weekStreak),
+        const SizedBox(height: AppSpacing.x2l),
+        _buildStats(plan),
+      ],
+    );
+  }
+
+  Widget _buildCompletedToday(
+    TrainingPlan plan,
+    List<WorkoutSession> sessions,
+    SessionSuggestion? suggestion, {
+    required int dayStreak,
+    required int weekStreak,
+    WorkoutSession? run,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        _buildCompletedCard(
+          sessions,
+          suggestion,
+          streak: dayStreak,
+        ),
+        const SizedBox(height: AppSpacing.x2l),
+        _buildStepsCard(),
+        const SizedBox(height: AppSpacing.x2l),
+        _buildRunningCard(run),
+        const SizedBox(height: AppSpacing.x2l),
+        _buildBadges(dayStreak, weekStreak),
         const SizedBox(height: AppSpacing.x2l),
         _buildStats(plan),
       ],
@@ -603,12 +902,30 @@ class _TodayScreenState extends State<TodayScreen> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final planProvider = context.watch<PlanProvider>();
     final workout = context.watch<WorkoutProvider>();
+    final history = context.watch<HistoryProvider?>();
     final plan = planProvider.plan;
     final session = workout.activeSession;
     final now = _now;
     final storageWarning = context.watch<SettingsProvider>().storageWarning;
     final warning = _warningDismissed ? null : storageWarning;
     final streak = context.watch<ProgressProvider?>()?.streak ?? 0;
+    final completed = _completedToday(now, history);
+    final run = _completedRun(now, history);
+    final weekStart = effectiveWeekStart(context);
+    final target = (plan?.daysPerWeek ?? 3).clamp(1, 7);
+    final weekStreak = const WeekStreakService().currentWeekStreak(
+      history?.workouts ?? const <WorkoutSession>[],
+      now,
+      weekStart: weekStart,
+      target: target,
+    );
+    final suggestion = plan == null
+        ? null
+        : const SessionSuggestionService().suggest(
+            plan: plan,
+            history: history?.workouts ?? const <WorkoutSession>[],
+            now: now,
+          );
 
     if (plan == null) {
       return Scaffold(
@@ -627,21 +944,93 @@ class _TodayScreenState extends State<TodayScreen> with WidgetsBindingObserver {
                   const SizedBox(height: AppSpacing.xl),
                   _buildWarningBanner(warning),
                 ],
-                if (session != null) ...<Widget>[
-                  const SizedBox(height: AppSpacing.x2l),
-                  _buildSessionCard(session),
-                ],
                 const SizedBox(height: AppSpacing.x2l),
-                _buildStepsCard(),
-                const Expanded(
-                  child: AppEmptyState(
-                    assetIcon: AppIcons.calendar,
-                    title: 'No plan yet',
-                    message:
-                        'Finish onboarding to build your weekly training plan.',
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: <Widget>[
+                        if (session != null) ...<Widget>[
+                          _buildSessionCard(session),
+                          const SizedBox(height: AppSpacing.x2l),
+                          _buildStepsCard(),
+                          const SizedBox(height: AppSpacing.x2l),
+                          _buildRunningCard(run),
+                          const SizedBox(height: AppSpacing.x2l),
+                          _buildBadges(streak, weekStreak),
+                        ] else if (completed.isNotEmpty) ...<Widget>[
+                          _buildCompletedCard(
+                            completed,
+                            null,
+                            streak: streak,
+                          ),
+                          const SizedBox(height: AppSpacing.x2l),
+                          _buildStepsCard(),
+                          const SizedBox(height: AppSpacing.x2l),
+                          _buildRunningCard(run),
+                          const SizedBox(height: AppSpacing.x2l),
+                          _buildBadges(streak, weekStreak),
+                        ] else ...<Widget>[
+                          AppCard(
+                            key: const Key('today-no-plan'),
+                            featured: true,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: <Widget>[
+                                Row(
+                                  children: <Widget>[
+                                    const AppIcon(
+                                      asset: AppIcons.dumbbell,
+                                      size: 22,
+                                      color: AppColors.lime,
+                                    ),
+                                    const SizedBox(width: AppSpacing.md),
+                                    Expanded(
+                                      child: Text(
+                                        'Track your training',
+                                        style: AppTypography.h2.copyWith(
+                                          color: AppColors.text,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: AppSpacing.md),
+                                Text(
+                                  'No rotation needed. Start with any focus, '
+                                  'saved workout, or activity.',
+                                  style: AppTypography.body.copyWith(
+                                    color: AppColors.muted,
+                                  ),
+                                ),
+                                const SizedBox(height: AppSpacing.lg),
+                                AppButton(
+                                  key: const Key('today-start-workout'),
+                                  label: 'Start workout',
+                                  assetIcon: AppIcons.play,
+                                  onPressed: _startEmpty,
+                                ),
+                                const SizedBox(height: AppSpacing.sm),
+                                AppButton(
+                                  key: const Key('today-choose-session'),
+                                  label: 'Choose saved workout',
+                                  variant: AppButtonVariant.ghost,
+                                  onPressed: _chooseAnotherSession,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.x2l),
+                          _buildStepsCard(),
+                          const SizedBox(height: AppSpacing.x2l),
+                          _buildRunningCard(run),
+                          const SizedBox(height: AppSpacing.x2l),
+                          _buildBadges(streak, weekStreak),
+                        ],
+                      ],
+                    ),
                   ),
                 ),
-                if (session == null) _buildQuickActions(),
               ],
             ),
           ),
@@ -649,7 +1038,6 @@ class _TodayScreenState extends State<TodayScreen> with WidgetsBindingObserver {
       );
     }
 
-    final day = _dayFor(plan, now);
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -661,7 +1049,7 @@ class _TodayScreenState extends State<TodayScreen> with WidgetsBindingObserver {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              _buildHeader(label: _weekLabel(plan, now)),
+              _buildHeader(label: _weekdayNames[now.weekday - 1]),
               if (warning != null) ...<Widget>[
                 const SizedBox(height: AppSpacing.xl),
                 _buildWarningBanner(warning),
@@ -669,9 +1057,42 @@ class _TodayScreenState extends State<TodayScreen> with WidgetsBindingObserver {
               const SizedBox(height: AppSpacing.x3l),
               Expanded(
                 child: SingleChildScrollView(
-                  child: day == null
-                      ? _buildRest(plan, session, streak: streak)
-                      : _buildPlanned(day, plan, session, streak: streak),
+                  child: session != null
+                      ? _buildActive(
+                          plan,
+                          session,
+                          dayStreak: streak,
+                          weekStreak: weekStreak,
+                          run: run,
+                        )
+                      : completed.isNotEmpty
+                      ? _buildCompletedToday(
+                          plan,
+                          completed,
+                          suggestion,
+                          dayStreak: streak,
+                          weekStreak: weekStreak,
+                          run: run,
+                        )
+                      : suggestion == null
+                      ? _buildNextUp(
+                          plan,
+                          SessionSuggestion(
+                            day: plan.days.first,
+                            dayIndex: 0,
+                            reason: 'Start your rotation.',
+                          ),
+                          dayStreak: streak,
+                          weekStreak: weekStreak,
+                          run: run,
+                        )
+                      : _buildNextUp(
+                          plan,
+                          suggestion,
+                          dayStreak: streak,
+                          weekStreak: weekStreak,
+                          run: run,
+                        ),
                 ),
               ),
             ],

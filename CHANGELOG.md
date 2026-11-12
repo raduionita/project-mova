@@ -156,3 +156,18 @@
 2026.11.12 UI-39 Describe the weight trend range for screen readers
 2026.11.12 UI-40 Use the calculator keypad for manual steps
 2026.11.12 UI-41 Use the calculator keypad for the plate calculator target
+2026.11.12 RCP-01 Add ordered rotation plans with frequency-only onboarding and a rotation preview
+2026.11.12 RCP-09 Rebuild the plan editor around staged frequency, split, reorder, and regeneration
+2026.11.12 RCP-16 Make Today a rotation hub with next-up, completed-today, and choose-session states
+2026.11.12 RCP-18 Add the empty-workout focus drawer with filtered exercise suggestions
+2026.11.12 RCP-23 Replace Train with Calendar and add month history, today, and dashed suggestions
+2026.11.12 RCP-27 Add actionable exercise library rows, an always-enabled detail action, and filtered history
+2026.11.12 RCP-31 Expand Progress with both streaks, consistency, weekly volume, muscle balance, wellness, and photos
+2026.11.12 RCP-39 Add locale-aware week start to Calendar and every weekly metric
+2026.11.12 UI-42 Make Mova plans optional with a track-only onboarding path
+2026.11.12 UI-43 Add completed-workout editing from Today, Calendar, and history
+2026.11.12 UI-44 Add local running sessions with a timer and manual distance
+2026.11.12 UI-45 Add Today workout, steps, and running cards with streak badges
+2026.11.12 UI-46 Rename routines to saved workouts and add plan-day save-as
+2026.11.12 UI-47 Polish the calendar legend, week-start order, and Progress card heights
+2026.11.12 UI-48 Update onboarding units copy for walk and run distance

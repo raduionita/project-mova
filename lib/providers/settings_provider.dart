@@ -98,6 +98,15 @@ class SettingsProvider extends ChangeNotifier {
     return _save(_settings.copyWith(restTimerEnabled: enabled));
   }
 
+  Future<bool> setWeekStart(int? weekStart) {
+    if (weekStart != null && (weekStart < 1 || weekStart > 7)) {
+      _error = 'Week start must be between Monday and Sunday.';
+      notifyListeners();
+      return Future<bool>.value(false);
+    }
+    return _save(_settings.copyWith(weekStart: weekStart));
+  }
+
   Future<bool> dismissSampleFeed() {
     return _save(_settings.copyWith(sampleFeedDismissed: true));
   }

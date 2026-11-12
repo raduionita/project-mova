@@ -172,11 +172,38 @@ class _SummaryScreenState extends State<SummaryScreen> {
     );
   }
 
-  Widget _buildMetrics(WeightUnit unit) {
+  Widget _buildMetrics(WeightUnit unit, DistanceUnit distanceUnit) {
     final seconds = WorkoutCalculator.sessionDurationSeconds(
       widget.session,
       _clock.now(),
     );
+    final isActivity =
+        widget.session.source == SessionSource.run ||
+        widget.session.source == SessionSource.walk;
+    if (isActivity) {
+      final distance = widget.session.distanceMeters;
+      return Row(
+        children: <Widget>[
+          Expanded(
+            child: AppStatTile(
+              value: formatDuration(seconds),
+              label: 'Time',
+              assetIcon: AppIcons.clock,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: AppStatTile(
+              value: distance == null || distance <= 0
+                  ? '--'
+                  : _units.displayDistance(distance / 1000, distanceUnit),
+              label: 'Distance',
+              assetIcon: AppIcons.run,
+            ),
+          ),
+        ],
+      );
+    }
     final volume = WorkoutCalculator.volumeKg(widget.session.exercises);
     final sets = WorkoutCalculator.completedSetCount(widget.session.exercises);
     return Row(
@@ -216,6 +243,11 @@ class _SummaryScreenState extends State<SummaryScreen> {
         .settings
         .unitPreferences
         .weightUnit;
+    final distanceUnit = context
+        .watch<SettingsProvider>()
+        .settings
+        .unitPreferences
+        .distanceUnit;
     final records = _records;
     final topRecord = records.isEmpty ? null : records.first;
     final otherRecords = records.length > 1
@@ -237,7 +269,7 @@ class _SummaryScreenState extends State<SummaryScreen> {
                   _buildPrCard(library, topRecord, unit),
                   const SizedBox(height: AppSpacing.x2l),
                 ],
-                _buildMetrics(unit),
+                _buildMetrics(unit, distanceUnit),
                 if (otherRecords.isNotEmpty) ...<Widget>[
                   const SizedBox(height: AppSpacing.x3l),
                   Text(

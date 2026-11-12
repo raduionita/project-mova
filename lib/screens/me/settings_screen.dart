@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../models/app_settings.dart';
 import '../../models/equipment_group.dart';
 import '../../models/unit_preferences.dart';
+import '../../common/week_start_context.dart';
 import '../../navigation/routes.dart';
 import '../../providers/profile_provider.dart';
 import '../../providers/settings_provider.dart';
@@ -24,6 +25,7 @@ import '../../widgets/day_selector.dart';
 import '../../widgets/permissions_sheet.dart';
 import '../../widgets/reset_local_data_dialog.dart';
 import '../../widgets/settings_row.dart';
+import '../../widgets/week_start_sheet.dart';
 
 /// Settings route reached from Me and from the Today reminder bell.
 class SettingsScreen extends StatefulWidget {
@@ -708,6 +710,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  Widget _buildCalendarCard(AppSettings settings) {
+    return AppCard(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+      child: SettingsRow(
+        key: const Key('settings-week-start-row'),
+        assetIcon: AppIcons.calendar,
+        label: 'Week starts on',
+        value: weekStartValueLabel(
+          override: settings.weekStart,
+          effective: effectiveWeekStart(context),
+        ),
+        onTap: () => showWeekStartSheet(context),
+      ),
+    );
+  }
+
   Widget _buildVersionRow() {
     return AppCard(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
@@ -784,6 +802,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       title: 'Units',
                       subtitle: 'Applies to every weight and body measurement.',
                       child: _buildUnitsCard(settings),
+                    ),
+                    _buildSection(
+                      title: 'Calendar',
+                      subtitle: 'Used by the calendar and weekly summaries.',
+                      child: _buildCalendarCard(settings),
                     ),
                     _buildSection(
                       title: 'Workout',

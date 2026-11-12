@@ -14,6 +14,15 @@ import 'package:provider/provider.dart';
 
 final DateTime _fixedNow = DateTime.utc(2026, 11, 5, 12);
 
+class _FailingStorage extends StorageService {
+  _FailingStorage() : super.inMemory();
+
+  @override
+  Future<bool> writeObject(String key, Map<String, dynamic> value) async {
+    return false;
+  }
+}
+
 Future<OnboardingProvider> _providerWith(
   StorageService storage, {
   bool load = true,
@@ -121,6 +130,16 @@ void main() {
           .map((icon) => icon.asset),
       <String>[AppIcons.plan, AppIcons.clock, AppIcons.trendUp],
     );
+  });
+
+  test('advances even when the draft cannot be saved', () async {
+    final provider = await _providerWith(_FailingStorage());
+
+    final advanced = await provider.next();
+
+    expect(advanced, isTrue);
+    expect(provider.draft.currentStep, OnboardingStep.units);
+    expect(provider.error, 'Could not save onboarding draft.');
   });
 
   test('hasDraft tracks saved progress and reset', () async {

@@ -39,22 +39,22 @@ OnboardingDraft _draft() {
     goals: const <Goal>[Goal.buildMuscle],
     experienceLevel: ExperienceLevel.gymRat,
     daysPerWeek: 3,
-    trainingDays: const <int>[1, 3, 5],
     notificationsAsked: true,
     updatedAt: _now,
   );
 }
 
 PlanDay _day({
-  required int weekday,
+  required int order,
   required String name,
   required List<String> muscles,
   required int minutes,
   int exercises = 6,
 }) {
   return PlanDay(
-    id: 'day-$weekday',
-    weekday: weekday,
+    id: 'day-${order + 1}',
+    order: order,
+    slotKey: 'slot-$order',
     name: name,
     muscleGroups: muscles,
     estimatedMinutes: minutes,
@@ -79,24 +79,23 @@ TrainingPlan _plan({bool fallback = false}) {
     goals: const <Goal>[Goal.buildMuscle],
     experienceLevel: ExperienceLevel.gymRat,
     daysPerWeek: 3,
-    trainingDays: const <int>[1, 3, 5],
     splitName: fallback ? 'Starter plan' : 'Push pull legs',
     days: <PlanDay>[
       _day(
-        weekday: 1,
+        order: 0,
         name: 'Push Day',
         muscles: const <String>['Chest', 'Shoulders', 'Triceps'],
         minutes: 55,
       ),
       _day(
-        weekday: 3,
+        order: 1,
         name: 'Pull Day',
         muscles: const <String>['Back', 'Biceps'],
         minutes: 50,
         exercises: 5,
       ),
       _day(
-        weekday: 5,
+        order: 2,
         name: 'Leg Day',
         muscles: const <String>['Quads', 'Hamstrings', 'Glutes'],
         minutes: 60,
@@ -223,12 +222,14 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Your Week 1'), findsOneWidget);
+    expect(find.text('Your plan'), findsOneWidget);
     expect(find.text('Build muscle · 3 days · Gym rat'), findsOneWidget);
     expect(find.text('Push Day'), findsOneWidget);
     expect(find.text('Pull Day'), findsOneWidget);
     expect(find.text('Leg Day'), findsOneWidget);
-    expect(find.text('MON'), findsOneWidget);
+    expect(find.text('DAY 1'), findsOneWidget);
+    expect(find.text('DAY 2'), findsOneWidget);
+    expect(find.text('DAY 3'), findsOneWidget);
     expect(
       find.text('Chest · Shoulders · Triceps · 6 exercises · ~55 min'),
       findsOneWidget,
@@ -271,7 +272,6 @@ void main() {
 
     expect(routes, <String>[Routes.onboardingSchedule]);
     expect(setup.onboarding.draft.daysPerWeek, 3);
-    expect(setup.onboarding.draft.trainingDays, <int>[1, 3, 5]);
   });
 
   testWidgets('back returns to notifications', (tester) async {
@@ -315,12 +315,44 @@ void main() {
       expect(setup.profile.profile?.heightCm, 175);
       expect(setup.profile.profile?.goals, <Goal>[Goal.buildMuscle]);
       expect(setup.plan.plan, isNotNull);
-      expect(setup.plan.plan?.trainingDays, <int>[1, 3, 5]);
+      expect(setup.plan.plan?.trainingDays, isEmpty);
       expect(setup.settings.settings.unitPreferences.weightUnit, WeightUnit.kg);
       expect(setup.onboarding.draft.currentStep, OnboardingStep.welcome);
       expect(setup.storage.contains(kOnboardingKey), isFalse);
     },
   );
+
+  testWidgets('tracking mode skips the rotation and begins Mova', (
+    tester,
+  ) async {
+    final setup = await _setup();
+    await setup.onboarding.setPlanEnabled(false);
+    final routes = <String>[];
+    await tester.pumpWidget(
+      _wrap(
+        setup,
+        PlanPreviewScreen(
+          previewBuilder: (_) => throw StateError('plan should not generate'),
+          onRoute: routes.add,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Your Mova'), findsOneWidget);
+    expect(find.byKey(const Key('onboarding-tracking-summary')), findsOneWidget);
+    expect(find.text('Begin your Mova'), findsOneWidget);
+    expect(find.text('Start using Mova'), findsNothing);
+    expect(find.text('DAY 1'), findsNothing);
+
+    await tester.tap(find.text('Begin your Mova'));
+    await tester.pumpAndSettle();
+
+    expect(routes, <String>[Routes.today]);
+    expect(setup.profile.profile, isNotNull);
+    expect(setup.plan.plan, isNull);
+    expect(setup.onboarding.draft.currentStep, OnboardingStep.welcome);
+  });
 
   testWidgets('a generation failure shows a retry card', (tester) async {
     final setup = await _setup();

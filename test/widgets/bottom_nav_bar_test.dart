@@ -31,7 +31,7 @@ void main() {
     );
 
     expect(find.text('Today'), findsOneWidget);
-    expect(find.text('Train'), findsNothing);
+    expect(find.text('Calendar'), findsNothing);
     expect(find.text('Progress'), findsNothing);
     expect(find.text('Social'), findsNothing);
     expect(find.text('Me'), findsNothing);
@@ -54,7 +54,7 @@ void main() {
     );
 
     expect(find.text('Today'), findsOneWidget);
-    expect(find.text('Train'), findsOneWidget);
+    expect(find.text('Calendar'), findsOneWidget);
     expect(find.text('Progress'), findsOneWidget);
     expect(find.text('Social'), findsOneWidget);
     expect(find.text('Me'), findsOneWidget);
@@ -79,8 +79,8 @@ void main() {
       ),
     );
 
-    await tester.tap(find.text('Train'));
-    expect(tapped, <AppTab>[AppTab.train]);
+    await tester.tap(find.text('Calendar'));
+    expect(tapped, <AppTab>[AppTab.calendar]);
   });
 
   testWidgets('selected tab uses lime and inactive tabs use tabInactive', (
@@ -97,9 +97,9 @@ void main() {
     );
 
     final selected = tester.widget<AppIcon>(_tabIcon(AppTab.today));
-    final inactive = tester.widget<AppIcon>(_tabIcon(AppTab.train));
+    final inactive = tester.widget<AppIcon>(_tabIcon(AppTab.calendar));
     final selectedLabel = tester.widget<Text>(find.text('Today'));
-    final inactiveLabel = tester.widget<Text>(find.text('Train'));
+    final inactiveLabel = tester.widget<Text>(find.text('Calendar'));
 
     expect(selected.color, AppColors.lime);
     expect(inactive.color, AppColors.tabInactive);

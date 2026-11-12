@@ -41,7 +41,7 @@ class OnboardingDraft {
     this.goals = const <Goal>[],
     this.experienceLevel = ExperienceLevel.regular,
     this.daysPerWeek,
-    this.trainingDays = const <int>[],
+    this.planEnabled = true,
     this.availableEquipment = EquipmentGroup.values,
     this.notificationsAsked = false,
     this.reminderHour = 18,
@@ -59,7 +59,9 @@ class OnboardingDraft {
   final List<Goal> goals;
   final ExperienceLevel? experienceLevel;
   final int? daysPerWeek;
-  final List<int> trainingDays;
+
+  /// Whether Mova should build a rotation. False means tracking only.
+  final bool planEnabled;
   final List<EquipmentGroup> availableEquipment;
   final bool notificationsAsked;
   final int reminderHour;
@@ -68,7 +70,6 @@ class OnboardingDraft {
 
   factory OnboardingDraft.fromJson(Map<String, dynamic> json) {
     final rawGoals = json['goals'];
-    final rawTrainingDays = json['trainingDays'];
     return OnboardingDraft(
       schemaVersion: (json['schemaVersion'] as num?)?.toInt() ?? 1,
       currentStep: OnboardingStep.values.firstWhere(
@@ -103,12 +104,7 @@ class OnboardingDraft {
               .firstOrNull ??
           ExperienceLevel.regular,
       daysPerWeek: (json['daysPerWeek'] as num?)?.toInt(),
-      trainingDays: rawTrainingDays is List
-          ? rawTrainingDays
-                .whereType<num>()
-                .map((day) => day.toInt())
-                .toList(growable: false)
-          : const <int>[],
+      planEnabled: json['planEnabled'] as bool? ?? true,
       availableEquipment: EquipmentGroup.fromJson(json['availableEquipment']),
       notificationsAsked: json['notificationsAsked'] as bool? ?? false,
       reminderHour: ((json['reminderHour'] as num?)?.toInt() ?? 18)
@@ -135,7 +131,7 @@ class OnboardingDraft {
       'goals': goals.map((goal) => goal.name).toList(growable: false),
       'experienceLevel': experienceLevel?.name,
       'daysPerWeek': daysPerWeek,
-      'trainingDays': trainingDays,
+      'planEnabled': planEnabled,
       'availableEquipment': EquipmentGroup.toJson(availableEquipment),
       'notificationsAsked': notificationsAsked,
       'reminderHour': reminderHour,
@@ -155,7 +151,7 @@ class OnboardingDraft {
     List<Goal>? goals,
     Object? experienceLevel = _noChange,
     Object? daysPerWeek = _noChange,
-    List<int>? trainingDays,
+    bool? planEnabled,
     List<EquipmentGroup>? availableEquipment,
     bool? notificationsAsked,
     int? reminderHour,
@@ -179,7 +175,7 @@ class OnboardingDraft {
       daysPerWeek: identical(daysPerWeek, _noChange)
           ? this.daysPerWeek
           : daysPerWeek as int?,
-      trainingDays: trainingDays ?? this.trainingDays,
+      planEnabled: planEnabled ?? this.planEnabled,
       availableEquipment: availableEquipment ?? this.availableEquipment,
       notificationsAsked: notificationsAsked ?? this.notificationsAsked,
       reminderHour: reminderHour ?? this.reminderHour,

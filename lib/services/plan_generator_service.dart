@@ -6,6 +6,7 @@ import '../models/experience_level.dart';
 import '../models/goal.dart';
 import '../models/plan_day.dart';
 import '../models/plan_exercise.dart';
+import '../models/split_style.dart';
 import '../models/training_plan.dart';
 
 /// Builds the deterministic week 1 training template from DESIGN.md 7.6.
@@ -34,7 +35,8 @@ class PlanGeneratorService {
     required List<Goal> goals,
     required ExperienceLevel experienceLevel,
     required int daysPerWeek,
-    required List<int> trainingDays,
+    List<int>? trainingDays,
+    SplitStyle splitStyle = SplitStyle.auto,
     List<EquipmentGroup>? availableEquipment,
   }) {
     try {
@@ -55,15 +57,19 @@ class PlanGeneratorService {
         lastWarning = 'No goals provided, defaulting to build muscle.';
       }
       final primaryGoal = goals.isEmpty ? Goal.buildMuscle : goals.first;
-      final normalizedDays = _normalizeDays(trainingDays, daysPerWeek);
-      final split = _splitFor(normalizedDays.length);
+      final count = daysPerWeek.clamp(1, 7).toInt();
+      final legacyDays = trainingDays == null
+          ? null
+          : _normalizeDays(trainingDays, count);
+      final split = _splitFor(legacyDays?.length ?? count, splitStyle);
       return _buildPlan(
         goals: goals,
         primaryGoal: primaryGoal,
         experienceLevel: experienceLevel,
-        trainingDays: normalizedDays,
+        trainingDays: legacyDays,
         templates: split.days,
         splitName: split.name,
+        splitStyle: splitStyle,
         availableEquipment: equipment,
         isFallback: false,
       );
@@ -73,6 +79,7 @@ class PlanGeneratorService {
         experienceLevel: experienceLevel,
         daysPerWeek: daysPerWeek,
         trainingDays: trainingDays,
+        splitStyle: splitStyle,
         availableEquipment: availableEquipment,
       );
     }
@@ -83,27 +90,30 @@ class PlanGeneratorService {
     required List<Goal> goals,
     required ExperienceLevel experienceLevel,
     required int daysPerWeek,
-    required List<int> trainingDays,
+    List<int>? trainingDays,
+    SplitStyle splitStyle = SplitStyle.auto,
     List<EquipmentGroup>? availableEquipment,
   }) {
     lastWarning ??= 'Plan generation failed, using the Starter plan.';
     final equipment = availableEquipment ?? EquipmentGroup.values;
-    final normalizedDays = _normalizeDays(
-      trainingDays,
-      daysPerWeek.clamp(1, 7).toInt(),
-    );
+    final count = daysPerWeek.clamp(1, 7).toInt();
+    final legacyDays = trainingDays == null
+        ? null
+        : _normalizeDays(trainingDays, count);
+    final templateCount = legacyDays?.length ?? count;
     final primaryGoal = goals.isEmpty ? Goal.buildMuscle : goals.first;
     final templates = List<_DayTemplate>.generate(
-      normalizedDays.length,
+      templateCount,
       (_) => const _DayTemplate(name: 'Full Body', muscleGroups: _fullBody),
     );
     return _buildPlan(
       goals: goals,
       primaryGoal: primaryGoal,
       experienceLevel: experienceLevel,
-      trainingDays: normalizedDays,
+      trainingDays: legacyDays,
       templates: templates,
       splitName: 'Starter plan',
+      splitStyle: splitStyle,
       availableEquipment: equipment,
       isFallback: true,
     );
@@ -113,9 +123,10 @@ class PlanGeneratorService {
     required List<Goal> goals,
     required Goal primaryGoal,
     required ExperienceLevel experienceLevel,
-    required List<int> trainingDays,
+    required List<int>? trainingDays,
     required List<_DayTemplate> templates,
     required String splitName,
+    required SplitStyle splitStyle,
     required List<EquipmentGroup> availableEquipment,
     required bool isFallback,
   }) {
@@ -124,13 +135,16 @@ class PlanGeneratorService {
     final planId = _planId(
       goals: goals,
       experienceLevel: experienceLevel,
-      trainingDays: trainingDays,
+      daysPerWeek: templates.length,
+      splitStyle: splitStyle,
       isFallback: isFallback,
     );
     final days = <PlanDay>[];
     for (var index = 0; index < templates.length; index++) {
       final template = templates[index];
-      final weekday = trainingDays[index];
+      final weekday = trainingDays != null && index < trainingDays.length
+          ? trainingDays[index]
+          : 0;
       final exercises = template.isRecovery
           ? const <PlanExercise>[]
           : _selectExercises(
@@ -142,8 +156,15 @@ class PlanGeneratorService {
             );
       days.add(
         PlanDay(
-          id: '$planId-day-$weekday',
+          id: '$planId-day-${index + 1}',
           weekday: weekday,
+          order: index,
+          slotKey: planSlotKeyFor(
+            name: template.name,
+            order: index,
+            count: templates.length,
+            splitStyle: splitStyle,
+          ),
           name: template.name,
           muscleGroups: template.muscleGroups,
           estimatedMinutes: template.isRecovery
@@ -167,8 +188,9 @@ class PlanGeneratorService {
       goal: primaryGoal,
       goals: List<Goal>.unmodifiable(goals),
       experienceLevel: experienceLevel,
-      daysPerWeek: trainingDays.length,
-      trainingDays: List<int>.unmodifiable(trainingDays),
+      daysPerWeek: templates.length,
+      trainingDays: List<int>.unmodifiable(trainingDays ?? const <int>[]),
+      splitStyle: splitStyle,
       splitName: splitName,
       days: List<PlanDay>.unmodifiable(days),
       generatedAt: _now(),
@@ -423,14 +445,15 @@ class PlanGeneratorService {
   String _planId({
     required List<Goal> goals,
     required ExperienceLevel experienceLevel,
-    required List<int> trainingDays,
+    required int daysPerWeek,
+    required SplitStyle splitStyle,
     required bool isFallback,
   }) {
     final goalKey = goals.isEmpty
         ? Goal.buildMuscle.name
         : goals.map((goal) => goal.name).join('-');
     final prefix = isFallback ? 'starter' : 'plan';
-    return '$prefix-$goalKey-${experienceLevel.name}-${trainingDays.join('-')}';
+    return '$prefix-$goalKey-${experienceLevel.name}-$daysPerWeek-${splitStyle.name}';
   }
 
   _GoalPrescription _prescriptionFor(Goal goal) {
@@ -466,7 +489,20 @@ class PlanGeneratorService {
     }
   }
 
-  _SplitTemplate _splitFor(int days) {
+  _SplitTemplate _splitFor(int days, SplitStyle splitStyle) {
+    switch (splitStyle) {
+      case SplitStyle.auto:
+        return _autoSplit(days);
+      case SplitStyle.fullBody:
+        return _fullBodySplit(days);
+      case SplitStyle.upperLower:
+        return _upperLowerSplit(days);
+      case SplitStyle.ppl:
+        return _pplSplit(days);
+    }
+  }
+
+  _SplitTemplate _autoSplit(int days) {
     switch (days) {
       case 1:
         return const _SplitTemplate(
@@ -522,6 +558,73 @@ class PlanGeneratorService {
           ],
         );
     }
+  }
+
+  _SplitTemplate _fullBodySplit(int days) {
+    if (days <= 1) {
+      return const _SplitTemplate(
+        name: 'Full Body',
+        days: <_DayTemplate>[
+          _DayTemplate(name: 'Full Body', muscleGroups: _fullBody),
+        ],
+      );
+    }
+    final templates = <_DayTemplate>[
+      for (var index = 0; index < days; index++)
+        _DayTemplate(
+          name: 'Full Body ${String.fromCharCode(65 + index)}',
+          muscleGroups: index.isEven ? _fullBodyA : _fullBodyB,
+        ),
+    ];
+    return _SplitTemplate(name: 'Full Body', days: templates);
+  }
+
+  _SplitTemplate _upperLowerSplit(int days) {
+    if (days <= 1) {
+      return const _SplitTemplate(
+        name: 'Full Body',
+        days: <_DayTemplate>[
+          _DayTemplate(name: 'Full Body', muscleGroups: _fullBody),
+        ],
+      );
+    }
+    final templates = <_DayTemplate>[
+      for (var index = 0; index < days; index++) index.isEven ? _upper : _lower,
+    ];
+    return _SplitTemplate(name: 'Upper / Lower', days: templates);
+  }
+
+  _SplitTemplate _pplSplit(int days) {
+    if (days <= 1) {
+      return const _SplitTemplate(
+        name: 'Full Body',
+        days: <_DayTemplate>[
+          _DayTemplate(name: 'Full Body', muscleGroups: _fullBody),
+        ],
+      );
+    }
+    if (days == 2) {
+      return const _SplitTemplate(
+        name: 'Push / Pull',
+        days: <_DayTemplate>[_push, _pull],
+      );
+    }
+    final templates = <_DayTemplate>[
+      for (var index = 0; index < days; index++)
+        if (days == 7 && index == 6)
+          const _DayTemplate(
+            name: 'Active Recovery',
+            muscleGroups: <String>[],
+            isRecovery: true,
+          )
+        else
+          switch (index % 3) {
+            0 => _push,
+            1 => _pull,
+            _ => _legs,
+          },
+    ];
+    return _SplitTemplate(name: 'Push / Pull / Legs', days: templates);
   }
 }
 

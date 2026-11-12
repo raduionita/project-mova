@@ -72,7 +72,7 @@ class _RoutineDetailScreenState extends State<RoutineDetailScreen> {
             borderRadius: BorderRadius.circular(AppRadii.x2l),
           ),
           title: Text(
-            'Delete routine?',
+            'Delete saved workout?',
             style: AppTypography.h2.copyWith(color: AppColors.text),
           ),
           content: Text(
@@ -109,7 +109,7 @@ class _RoutineDetailScreenState extends State<RoutineDetailScreen> {
     }
     if (!deleted) {
       messenger.showSnackBar(
-        SnackBar(content: Text(provider.error ?? 'Could not delete routine.')),
+        SnackBar(content: Text(provider.error ?? 'Could not delete saved workout.')),
       );
       return;
     }
@@ -177,7 +177,7 @@ class _RoutineDetailScreenState extends State<RoutineDetailScreen> {
       return const AppEmptyState(
         assetIcon: AppIcons.dumbbell,
         title: 'No exercises yet',
-        message: 'Edit this routine to add exercises.',
+        message: 'Edit this saved workout to add exercises.',
       );
     }
     final ordered = <RoutineExercise>[...exercises]
@@ -231,14 +231,14 @@ class _RoutineDetailScreenState extends State<RoutineDetailScreen> {
         AppButton(label: 'Start now', onPressed: () => _startRoutine(routine)),
         const SizedBox(height: AppSpacing.sm),
         AppButton(
-          label: 'Edit routine',
+          label: 'Edit saved workout',
           variant: AppButtonVariant.ghost,
           onPressed: () =>
               Navigator.of(context).pushNamed(Routes.routineEdit(routine.id)),
         ),
         const SizedBox(height: AppSpacing.sm),
         AppButton(
-          label: 'Delete routine',
+          label: 'Delete saved workout',
           variant: AppButtonVariant.destructive,
           onPressed: () => _confirmDelete(routine),
         ),
@@ -264,7 +264,7 @@ class _RoutineDetailScreenState extends State<RoutineDetailScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              const AppBackBar(label: 'Routines'),
+              const AppBackBar(label: 'Saved workouts'),
               const SizedBox(height: AppSpacing.sm),
               Expanded(
                 child: routine == null
@@ -276,8 +276,8 @@ class _RoutineDetailScreenState extends State<RoutineDetailScreen> {
                             )
                           : const AppEmptyState(
                               assetIcon: AppIcons.search,
-                              title: 'Routine not found',
-                              message: 'This routine is no longer saved on this device.',
+                              title: 'Saved workout not found',
+                              message: 'This saved workout is no longer on this device.',
                             ))
                     : _buildContent(routine, library),
               ),

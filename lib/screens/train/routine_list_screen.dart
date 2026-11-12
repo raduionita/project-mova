@@ -45,12 +45,12 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               Text(
-                'Routines',
+                'Saved workouts',
                 style: AppTypography.h1.copyWith(color: AppColors.text),
               ),
               const SizedBox(height: AppSpacing.xs),
               Text(
-                count == 1 ? '1 saved routine' : '$count saved routines',
+                count == 1 ? '1 saved workout' : '$count saved workouts',
                 style: AppTypography.caption.copyWith(color: AppColors.muted),
               ),
             ],
@@ -65,7 +65,7 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
           child: Text(
-            'New routine',
+            'New saved workout',
             style: AppTypography.label.copyWith(color: AppColors.lime),
           ),
         ),
@@ -82,8 +82,8 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
     if (provider.error != null && provider.routines.isEmpty) {
       return AppEmptyState(
         assetIcon: AppIcons.alert,
-        title: 'Could not load routines',
-        message: 'Your saved routines could not be read.',
+        title: 'Could not load saved workouts',
+        message: 'Your saved workouts could not be read.',
         actionLabel: 'Try again',
         onAction: provider.load,
       );
@@ -91,9 +91,9 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
     if (provider.routines.isEmpty) {
       return AppEmptyState(
         assetIcon: AppIcons.repeat,
-        title: 'No routines yet',
-        message: 'Saved routines will appear here for one-tap starts.',
-        actionLabel: 'Create routine',
+        title: 'No saved workouts yet',
+        message: 'Saved workouts will appear here for one-tap starts.',
+        actionLabel: 'Create saved workout',
         onAction: () => Navigator.of(context).pushNamed(Routes.routineNew),
       );
     }

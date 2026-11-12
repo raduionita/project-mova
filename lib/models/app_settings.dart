@@ -1,11 +1,13 @@
 import 'unit_preferences.dart';
 
+const Object _noChange = Object();
+
 enum HealthProvider { none, appleHealth, healthConnect, unavailable }
 
 /// App-wide preferences persisted locally.
 class AppSettings {
   const AppSettings({
-    this.schemaVersion = 1,
+    this.schemaVersion = 2,
     this.unitPreferences = const UnitPreferences(),
     this.remindersEnabled = false,
     this.reminderWeekdays = const <int>[1, 3, 5],
@@ -15,6 +17,7 @@ class AppSettings {
     this.postWorkoutsToFeed = true,
     this.sampleFeedDismissed = false,
     this.restTimerEnabled = true,
+    this.weekStart,
   });
 
   final int schemaVersion;
@@ -27,6 +30,11 @@ class AppSettings {
   final bool postWorkoutsToFeed;
   final bool sampleFeedDismissed;
   final bool restTimerEnabled;
+
+  /// Explicit ISO week start, 1=Monday through 7=Sunday.
+  ///
+  /// `null` follows the device locale.
+  final int? weekStart;
 
   factory AppSettings.fromJson(Map<String, dynamic> json) {
     final rawUnitPreferences = json['unitPreferences'];
@@ -52,6 +60,7 @@ class AppSettings {
       postWorkoutsToFeed: json['postWorkoutsToFeed'] as bool? ?? true,
       sampleFeedDismissed: json['sampleFeedDismissed'] as bool? ?? false,
       restTimerEnabled: json['restTimerEnabled'] as bool? ?? true,
+      weekStart: (json['weekStart'] as num?)?.toInt(),
     );
   }
 
@@ -67,6 +76,7 @@ class AppSettings {
       'postWorkoutsToFeed': postWorkoutsToFeed,
       'sampleFeedDismissed': sampleFeedDismissed,
       'restTimerEnabled': restTimerEnabled,
+      'weekStart': weekStart,
     };
   }
 
@@ -81,6 +91,7 @@ class AppSettings {
     bool? postWorkoutsToFeed,
     bool? sampleFeedDismissed,
     bool? restTimerEnabled,
+    Object? weekStart = _noChange,
   }) {
     return AppSettings(
       schemaVersion: schemaVersion ?? this.schemaVersion,
@@ -93,6 +104,9 @@ class AppSettings {
       postWorkoutsToFeed: postWorkoutsToFeed ?? this.postWorkoutsToFeed,
       sampleFeedDismissed: sampleFeedDismissed ?? this.sampleFeedDismissed,
       restTimerEnabled: restTimerEnabled ?? this.restTimerEnabled,
+      weekStart: identical(weekStart, _noChange)
+          ? this.weekStart
+          : weekStart as int?,
     );
   }
 }

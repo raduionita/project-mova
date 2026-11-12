@@ -6,6 +6,7 @@ import '../models/exercise.dart';
 import '../models/experience_level.dart';
 import '../models/goal.dart';
 import '../models/plan_day.dart';
+import '../models/split_style.dart';
 import '../models/training_plan.dart';
 import '../services/clock.dart';
 import '../services/plan_generator_service.dart';
@@ -58,7 +59,8 @@ class PlanProvider extends ChangeNotifier {
     required List<Goal> goals,
     required ExperienceLevel experienceLevel,
     required int daysPerWeek,
-    required List<int> trainingDays,
+    List<int>? trainingDays,
+    SplitStyle splitStyle = SplitStyle.auto,
     List<EquipmentGroup>? availableEquipment,
   }) async {
     _isGenerating = true;
@@ -77,6 +79,7 @@ class PlanProvider extends ChangeNotifier {
         experienceLevel: experienceLevel,
         daysPerWeek: daysPerWeek,
         trainingDays: trainingDays,
+        splitStyle: splitStyle,
         availableEquipment: availableEquipment ?? _plan?.availableEquipment,
       );
       _lastWarning = generator.lastWarning;
@@ -105,7 +108,8 @@ class PlanProvider extends ChangeNotifier {
 
   Future<bool> updateSchedule({
     required int daysPerWeek,
-    required List<int> trainingDays,
+    List<int>? trainingDays,
+    SplitStyle? splitStyle,
     List<EquipmentGroup>? availableEquipment,
   }) {
     final current = _plan;
@@ -119,13 +123,15 @@ class PlanProvider extends ChangeNotifier {
       experienceLevel: current.experienceLevel,
       daysPerWeek: daysPerWeek,
       trainingDays: trainingDays,
+      splitStyle: splitStyle ?? current.splitStyle,
       availableEquipment: availableEquipment ?? current.availableEquipment,
     );
   }
 
-  Future<bool> movePlanDay({
-    required int fromWeekday,
-    required int toWeekday,
+  /// Moves a rotation session from one position to another.
+  Future<bool> reorderPlanDay({
+    required int fromIndex,
+    required int toIndex,
   }) async {
     final current = _plan;
     if (current == null) {
@@ -133,36 +139,20 @@ class PlanProvider extends ChangeNotifier {
       notifyListeners();
       return false;
     }
-    if (fromWeekday == toWeekday ||
-        fromWeekday < 1 ||
-        fromWeekday > 7 ||
-        toWeekday < 1 ||
-        toWeekday > 7) {
+    if (fromIndex < 0 ||
+        toIndex < 0 ||
+        fromIndex >= current.days.length ||
+        toIndex >= current.days.length ||
+        fromIndex == toIndex) {
       return false;
     }
-    final fromIndex = current.days.indexWhere(
-      (day) => day.weekday == fromWeekday,
-    );
-    if (fromIndex == -1) {
-      _error = 'Weekday is not a training day.';
-      notifyListeners();
-      return false;
-    }
-
     final days = <PlanDay>[...current.days];
-    final toIndex = days.indexWhere((day) => day.weekday == toWeekday);
-    if (toIndex == -1) {
-      days[fromIndex] = days[fromIndex].copyWith(weekday: toWeekday);
-    } else {
-      days[fromIndex] = days[fromIndex].copyWith(weekday: toWeekday);
-      days[toIndex] = days[toIndex].copyWith(weekday: fromWeekday);
-    }
-    days.sort((a, b) => a.weekday.compareTo(b.weekday));
-    final trainingDays = days.map((day) => day.weekday).toList(growable: false)
-      ..sort();
-
-    return replacePlan(
-      current.copyWith(days: days, trainingDays: trainingDays),
-    );
+    final moved = days.removeAt(fromIndex);
+    days.insert(toIndex, moved);
+    final reordered = <PlanDay>[
+      for (var index = 0; index < days.length; index++)
+        days[index].copyWith(order: index),
+    ];
+    return replacePlan(current.copyWith(days: reordered));
   }
 }

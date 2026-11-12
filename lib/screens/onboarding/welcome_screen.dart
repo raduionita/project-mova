@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../navigation/onboarding_flow.dart';
-import '../../navigation/routes.dart';
 import '../../providers/onboarding_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_icons.dart';
@@ -42,7 +41,15 @@ class WelcomeScreen extends StatelessWidget {
     if (!context.mounted) {
       return;
     }
-    _open(context, advanced ? OnboardingFlow.firstRoute : Routes.welcome);
+    if (!advanced) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(provider.error ?? 'Could not start onboarding.'),
+        ),
+      );
+      return;
+    }
+    _open(context, OnboardingFlow.firstRoute);
   }
 
   Widget _buildMark() {
@@ -149,6 +156,7 @@ class WelcomeScreen extends StatelessWidget {
               const Spacer(),
               AppButton(
                 label: hasDraft ? 'Continue' : 'Get started',
+                isLoading: provider.isLoading,
                 onPressed: provider.isLoading
                     ? null
                     : () => _start(context, provider),

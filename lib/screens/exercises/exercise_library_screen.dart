@@ -2,31 +2,32 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/exercise.dart';
+import '../../models/focus_area.dart';
 import '../../navigation/routes.dart';
 import '../../providers/exercise_provider.dart';
-import '../../providers/routine_provider.dart';
 import '../../providers/workout_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_icons.dart';
 import '../../theme/app_radii.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
+import '../../widgets/add_to_routine_sheet.dart';
 import '../../widgets/app_chip.dart';
 import '../../widgets/app_empty_state.dart';
 import '../../widgets/app_icon.dart';
+import '../../widgets/exercise_choice_sheet.dart';
 import '../../widgets/exercise_row.dart';
-import '../../widgets/routine_row.dart';
 
-/// Train tab exercise library. Lists the local exercise seed library, filters
-/// by name, muscle, or equipment, and adds an exercise to the active workout.
-class TrainScreen extends StatefulWidget {
-  const TrainScreen({super.key});
+/// Exercise library at `/exercises`. Search, focus filters, and per-row add
+/// actions that adapt to whether a workout is active.
+class ExerciseLibraryScreen extends StatefulWidget {
+  const ExerciseLibraryScreen({super.key});
 
   @override
-  State<TrainScreen> createState() => _TrainScreenState();
+  State<ExerciseLibraryScreen> createState() => _ExerciseLibraryScreenState();
 }
 
-class _TrainScreenState extends State<TrainScreen> {
+class _ExerciseLibraryScreenState extends State<ExerciseLibraryScreen> {
   final TextEditingController _searchController = TextEditingController();
 
   @override
@@ -46,23 +47,29 @@ class _TrainScreenState extends State<TrainScreen> {
       return;
     }
     final exercises = context.read<ExerciseProvider>();
-    final routines = context.read<RoutineProvider>();
-    await Future.wait<void>(<Future<void>>[
-      if (exercises.exercises.isEmpty && !exercises.isLoading) exercises.load(),
-      if (routines.routines.isEmpty && !routines.isLoading) routines.load(),
-    ]);
+    if (exercises.exercises.isEmpty && !exercises.isLoading) {
+      await exercises.load();
+    }
   }
 
   Future<void> _handleAdd(Exercise exercise) async {
     final workout = context.read<WorkoutProvider>();
     final messenger = ScaffoldMessenger.of(context);
     if (workout.activeSession == null) {
-      messenger.showSnackBar(
-        SnackBar(content: Text('Start a workout to add ${exercise.name}.')),
+      showExerciseChoiceSheet(
+        context,
+        exercise: exercise,
+        onStartWorkout: () => _startWithExercise(exercise),
+        onAddToRoutine: () => addExerciseToRoutine(context, exercise),
+        onViewDetails: () =>
+            Navigator.of(context).pushNamed(Routes.exerciseDetail(exercise.id)),
       );
       return;
     }
-    final added = await workout.addExercise(exercise.id);
+    final added = await workout.addExercise(
+      exercise.id,
+      exercise: exercise,
+    );
     if (!mounted) {
       return;
     }
@@ -77,11 +84,60 @@ class _TrainScreenState extends State<TrainScreen> {
     );
   }
 
+  Future<void> _startWithExercise(Exercise exercise) async {
+    final workout = context.read<WorkoutProvider>();
+    final messenger = ScaffoldMessenger.of(context);
+    final started = await workout.startEmpty();
+    if (!started) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(workout.error ?? 'Could not start workout.')),
+      );
+      return;
+    }
+    final added = await workout.addExercise(
+      exercise.id,
+      exercise: exercise,
+    );
+    if (!mounted) {
+      return;
+    }
+    if (!added) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            workout.error ?? 'Could not add ${exercise.name}.',
+          ),
+        ),
+      );
+      return;
+    }
+    Navigator.of(context).pushNamed(Routes.logger);
+  }
+
+  void _openWorkout() {
+    Navigator.of(context).pushNamed(Routes.logger);
+  }
+
+  void _clearSearch() {
+    _searchController.clear();
+    context.read<ExerciseProvider>().clearSearch();
+    setState(() {});
+  }
+
+  void _clearFilters() {
+    _searchController.clear();
+    context.read<ExerciseProvider>().clearFilters();
+    setState(() {});
+  }
+
   Widget _buildHeader(int count) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        Text('Train', style: AppTypography.h1.copyWith(color: AppColors.text)),
+        Text(
+          'Exercises',
+          style: AppTypography.h1.copyWith(color: AppColors.text),
+        ),
         const SizedBox(height: AppSpacing.xs),
         Semantics(
           liveRegion: true,
@@ -101,7 +157,10 @@ class _TrainScreenState extends State<TrainScreen> {
     );
     return TextField(
       controller: _searchController,
-      onChanged: (value) => context.read<ExerciseProvider>().search(value),
+      onChanged: (value) {
+        context.read<ExerciseProvider>().search(value);
+        setState(() {});
+      },
       textInputAction: TextInputAction.search,
       style: AppTypography.body.copyWith(color: AppColors.text),
       cursorColor: AppColors.lime,
@@ -141,113 +200,61 @@ class _TrainScreenState extends State<TrainScreen> {
     );
   }
 
-  void _clearSearch() {
-    _searchController.clear();
-    context.read<ExerciseProvider>().clearSearch();
-  }
-
-  List<String> _muscleOptions(List<Exercise> exercises) {
-    final muscles = <String>[];
-    for (final exercise in exercises) {
-      if (!muscles.contains(exercise.primaryMuscle)) {
-        muscles.add(exercise.primaryMuscle);
-      }
-    }
-    return muscles;
-  }
-
   Widget _buildFilterChips(ExerciseProvider provider) {
-    final muscles = _muscleOptions(provider.exercises);
     return SizedBox(
       height: 32,
       child: ListView.separated(
+        key: const Key('exercise-focus-chips'),
         scrollDirection: Axis.horizontal,
-        itemCount: muscles.length + 1,
+        itemCount: FocusArea.values.length,
         separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.sm),
         itemBuilder: (context, index) {
-          if (index == 0) {
-            return AppChip(
-              label: 'All',
-              selected: provider.muscleFilter == null,
-              onTap: () => provider.setMuscleFilter(null),
-            );
-          }
-          final muscle = muscles[index - 1];
+          final focus = FocusArea.values[index];
+          final selected = focus == FocusArea.all
+              ? provider.focusFilter == null
+              : provider.focusFilter == focus;
           return AppChip(
-            label: muscle,
-            selected: provider.muscleFilter == muscle,
-            onTap: () => provider.setMuscleFilter(muscle),
+            key: Key('exercise-focus-${focus.name}'),
+            label: focus.label,
+            selected: selected,
+            onTap: () => provider.setFocusFilter(
+              focus == FocusArea.all ? null : focus,
+            ),
           );
         },
       ),
     );
   }
 
-  Widget _buildRoutineSection(RoutineProvider routines) {
-    final saved = routines.routines.take(2).toList(growable: false);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: <Widget>[
-        Row(
-          children: <Widget>[
-            Text(
-              'My routines',
-              style: AppTypography.title.copyWith(color: AppColors.text),
-            ),
-            const Spacer(),
-            TextButton(
-              onPressed: () => Navigator.of(context).pushNamed(Routes.routines),
-              style: TextButton.styleFrom(
-                foregroundColor: AppColors.lime,
-                padding: EdgeInsets.zero,
-                minimumSize: const Size(0, AppSpacing.x5l),
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-              child: Text(
-                'View all',
-                style: AppTypography.label.copyWith(color: AppColors.lime),
-              ),
-            ),
-          ],
-        ),
-        if (saved.isEmpty)
-          Text(
-            'No routines yet.',
-            style: AppTypography.caption.copyWith(color: AppColors.muted),
-          )
-        else
-          for (final routine in saved) ...<Widget>[
-            const SizedBox(height: AppSpacing.sm),
-            RoutineRow(
-              routine: routine,
-              onTap: () =>
-                  Navigator.of(context)
-                      .pushNamed(Routes.routineDetail(routine.id)),
-            ),
-          ],
-      ],
-    );
-  }
-
-  Widget _buildExerciseList(List<Exercise> exercises) {
+  Widget _buildExerciseList(
+    List<Exercise> exercises,
+    WorkoutProvider workout,
+  ) {
+    final active = workout.activeSession;
+    final activeIds = active == null
+        ? const <String>{}
+        : active.exercises.map((exercise) => exercise.exerciseId).toSet();
     return ListView.separated(
       padding: const EdgeInsets.only(bottom: AppSpacing.x4l),
       itemCount: exercises.length,
       separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
       itemBuilder: (context, index) {
         final exercise = exercises[index];
+        final added = activeIds.contains(exercise.id);
         return ExerciseRow(
           exercise: exercise,
-          onTap: () =>
-              Navigator.of(context)
-                  .pushNamed(Routes.exerciseDetail(exercise.id)),
+          isAdded: added,
           onAdd: () => _handleAdd(exercise),
+          onView: added ? _openWorkout : null,
+          onTap: () => Navigator.of(
+            context,
+          ).pushNamed(Routes.exerciseDetail(exercise.id)),
         );
       },
     );
   }
 
-  Widget _buildBody(ExerciseProvider provider) {
+  Widget _buildBody(ExerciseProvider provider, WorkoutProvider workout) {
     if (provider.isLoading && provider.exercises.isEmpty) {
       return const Center(
         child: CircularProgressIndicator(color: AppColors.lime),
@@ -275,23 +282,18 @@ class _TrainScreenState extends State<TrainScreen> {
       return AppEmptyState(
         assetIcon: AppIcons.search,
         title: 'No exercises found',
-        message: 'Try a different search or muscle filter.',
+        message: 'Try a different search or focus filter.',
         actionLabel: 'Clear filters',
         onAction: _clearFilters,
       );
     }
-    return _buildExerciseList(provider.filtered);
-  }
-
-  void _clearFilters() {
-    _searchController.clear();
-    context.read<ExerciseProvider>().clearFilters();
+    return _buildExerciseList(provider.filtered, workout);
   }
 
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<ExerciseProvider>();
-    final routines = context.watch<RoutineProvider>();
+    final workout = context.watch<WorkoutProvider>();
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -309,9 +311,7 @@ class _TrainScreenState extends State<TrainScreen> {
               const SizedBox(height: AppSpacing.sm),
               if (provider.exercises.isNotEmpty) _buildFilterChips(provider),
               const SizedBox(height: AppSpacing.md),
-              _buildRoutineSection(routines),
-              const SizedBox(height: AppSpacing.x2l),
-              Expanded(child: _buildBody(provider)),
+              Expanded(child: _buildBody(provider, workout)),
             ],
           ),
         ),

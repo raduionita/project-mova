@@ -243,7 +243,7 @@ The HTML mockup uses a system sans at small sizes. Those values describe a 292 p
 - Every icon uses a 24x24 viewBox, no fill, a white 1.7 stroke, and round caps and joins. The runtime `AppIcon` widget tints them with `ColorFilter.srcMode` so one file serves every color.
 - Default size is 22 for navigation, 20 inside cards, 18 for inline metadata.
 - Default color is `muted`. Active navigation and confirmed actions use `lime`.
-- The Today tab uses the calendar glyph; Train, Progress, Social, and Me use the mock set.
+- The Today tab uses the activity glyph; Calendar uses the calendar glyph, and Progress, Social, and Me use the mock set.
 - Icons must have a semantic label unless they are decorative and accompanied by text.
 - Reference paths and asset names live in `AppIcons`.
 
@@ -397,8 +397,8 @@ Each component lives in its own file under `lib/widgets/`. No component file may
 ### 8.12 Bottom navigation
 
 - Height 56 plus safe area, background `panel`, top border `line`.
-- Five items: Today, Train, Progress, Social, Me.
-- Icons are tinted SVGs from `assets/icons/`, 22 px. Today uses a calendar glyph.
+- Five items: Today, Calendar, Progress, Social, Me.
+- Icons are tinted SVGs from `assets/icons/`, 22 px. Today uses the activity glyph and Calendar uses the calendar glyph.
 - Label `micro` at 10 px, gap 2.
 - Active: `lime` icon and label. Inactive: `tabInactive`.
 - No badges in v1 except an optional dot on Social for unseen seed content.
@@ -474,20 +474,25 @@ Main (5-tab shell)
   |     |-- Live logger (full screen, nav hidden)
   |     |     |-- Workout summary + PR
   |     |           |-- Share card
-  |     |-- Plan overview / edit plan (sheet)
+  |     |-- Plan editor (/plan)
+  |     |-- Choose session (sheet)
+  |     |-- Focus drawer for empty workouts
   |     |-- Manual steps (sheet)
   |     |-- Quick actions: empty workout, walk, routine
-  |-- Train
-  |     |-- Exercise library
-  |     |-- Exercise details
-  |     |-- Routine list
-  |     |-- Routine details
-  |     |-- Routine builder
+  |-- Calendar
+  |     |-- Day detail (sheet)
+  |     |-- Plan editor (/plan)
+  |     |-- Exercise library (/exercises)
+  |     |     |-- Exercise details
+  |     |     |-- Routine list
+  |     |     |-- Routine details
+  |     |     |-- Routine builder
   |-- Progress
   |     |-- Workout history
   |     |-- Workout detail
   |     |-- Body weight log
   |     |-- Body weight (sheet)
+  |     |-- Progress photos
   |-- Social
   |     |-- Feed
   |     |-- PR share card preview
@@ -496,6 +501,7 @@ Main (5-tab shell)
         |-- Profile edit
         |-- Settings
               |-- Units
+              |-- Week starts on
               |-- Equipment
               |-- Reminders
               |-- Integrations
@@ -505,7 +511,7 @@ Main (5-tab shell)
               |-- Reset local data
 ```
 
-`MOCK.html` is the canonical visual storyboard. It shows Splash, all 12 onboarding screens (Welcome plus the eleven steps), and the five-tab core screens: Today, Live logger, Summary and PR, Progress, Train, Social, and Me. Sub-routes such as profile edit, settings, history detail, routine detail, legal, and licenses reuse the same components and are listed in the route table below.
+`MOCK.html` is the canonical visual storyboard. It shows Splash, all 12 onboarding screens (Welcome plus the eleven steps), and the five-tab core screens: Today, Live logger, Summary and PR, Progress, Calendar, Social, and Me. Sub-routes such as profile edit, settings, history detail, plan, exercise library, routine detail, legal, and licenses reuse the same components and are listed in the route table below.
 
 ### 9.2 Route names
 
@@ -525,7 +531,11 @@ Main (5-tab shell)
 | `/onboarding/notifications` | Notification permission | No |
 | `/onboarding/plan` | Plan preview | No |
 | `/today` | Today | Yes |
-| `/train` | Train | Yes |
+| `/calendar` | Calendar | Yes |
+| `/train` | Calendar alias | Yes |
+| `/plan` | Plan editor | No |
+| `/exercises` | Exercise library | Yes |
+| `/train/exercises` | Exercise library alias | Yes |
 | `/train/exercises/:id` | Exercise details | Yes |
 | `/train/routines` | Routine list | Yes |
 | `/train/routines/new` | Routine builder, new | No |
@@ -534,6 +544,8 @@ Main (5-tab shell)
 | `/progress` | Progress | Yes |
 | `/progress/history` | Workout history | Yes |
 | `/progress/history/:id` | Workout detail | Yes |
+| `/progress/weight` | Body weight log | Yes |
+| `/progress/photos` | Progress photos | Yes |
 | `/social` | Social feed | Yes |
 | `/me` | Me | Yes |
 | `/me/edit` | Profile edit | No |
@@ -580,7 +592,7 @@ All screens use `background`, 16 px horizontal padding, and the `body` type as t
 
 - **Purpose:** Capture the measurements that personalise the plan and profile.
 - **Screens:** `/onboarding/units`, `/onboarding/gender`, `/onboarding/birth-date`, `/onboarding/weight`, `/onboarding/height`.
-- **Units:** Three segmented rows for weight (kg or lb), distance (km or mi), and body size (cm or in). Defaults are kg, km, and cm. All three persist before Continue. Distance is stored for future cardio tracking; no distance entry ships in v1.
+- **Units:** Three segmented rows for weight (kg or lb), distance (km or mi), and body size (cm or in). Defaults are kg, km, and cm. All three persist before Continue. Distance is used for walks and runs.
 - **Gender:** Three full-width `AppChoiceCard` buttons with an SVG icon and text for male, female, and other. Other uses the combined male-female sign. Selection is required.
 - **Birth date:** Three vertical wheels for month, day, and year. Default is 25 years before today. The date must make the user at least 13 and no more than 120 years old. Leap years are handled.
 - **Weight:** Horizontal ruler slider, 30 to 250 kg in 0.5 kg steps. The displayed value uses the weight unit. The stored value is kg. Skip stores 0.
@@ -595,7 +607,7 @@ All screens use `background`, 16 px horizontal padding, and the `body` type as t
 - **Screens:** `/onboarding/goals`, `/onboarding/experience`, `/onboarding/schedule`, `/onboarding/equipment`, `/onboarding/notifications`.
 - **Goals:** Multi-select cards for build muscle, get stronger, lose weight, and stay healthy, each with a one-line description, a 40 px icon box, and 16 px inner padding. The cards match the experience step. At least one is required. The first selected goal is primary and is labelled as such.
 - **Experience:** Single-select cards for beginner, regular, gym rat, and veteran, each with a one-line description, a 40 px icon box, and 16 px inner padding. Regular is selected by default and one level is always active.
-- **Schedule:** Days per week from 1 to 7 and the training weekdays. Default is 3 days on Monday, Wednesday, and Friday. At least one weekday is required and the count must match the selected days per week.
+- **Schedule:** First choose `Plan with Mova` or `Track on my own`. Planning shows average days per week from 1 to 7, with no weekday selector, and builds an ordered rotation. Tracking hides the frequency and keeps the app useful without a plan; a rotation can be added later from `/plan`. Default is 3 days. Copy explains that the frequency is an average target, that any day can start the rotation, and that unlogged days are rest days without blocking training.
 - **Equipment:** Multi-select cards for bodyweight, dumbbells, barbell and EZ bar, machines, cable station, kettlebells, and accessories. Each group has its own glyph: a push-up, hex dumbbell, loaded barbell, pinned weight stack, cable pulley with a lat bar, kettlebell, and paneled medicine ball. Every group is selected by default so a new user keeps a full-gym plan. At least one group is required. The selection is stored on the profile and every generated plan. A Quick start preset bar above the cards applies a common setup (Bodyweight only, Home gym, Full gym) in one tap, then the cards can be fine-tuned.
 - **Notifications:** Explain workout reminders. Enable asks for system permission. Deny, Not now, or unavailable continues with reminders off. The choice is stored and can be changed later in Settings.
 - **Components:** `AppMultiSelect`, `AppChoiceCard`, stepper, day selector, equipment cards, step progress, primary Continue.
@@ -604,27 +616,27 @@ All screens use `background`, 16 px horizontal padding, and the `body` type as t
 
 ### 10.5 Plan preview
 
-- **Purpose:** Show the generated week before committing.
-- **Layout:** `h1` "Your Week 1", subtitle with goal and frequency, list of training-day cards, primary "Start using Mova", ghost "Edit schedule".
+- **Purpose:** Show the generated rotation before committing.
+- **Layout:** `h1` "Your plan", subtitle with goal, average frequency, and experience, list of `Day 1..N` session cards, primary "Start using Mova", ghost "Edit schedule".
 - **Components:** Plan day card with day label, workout name, muscle groups, exercise count, estimated duration.
-- **Behavior:** Confirm persists the profile, settings, and plan through `AppCoordinator`, clears the draft, and routes to `/today`. Edit returns to `/onboarding/schedule` with selections preserved. When the selected equipment leaves a muscle group without options, the preview shows a warning that names the skipped muscles and still produces a plan.
-- **States:** Generated plan, editing, generation in progress under 500 ms, skipped-muscle warning. If generation fails, show a retry card and a fallback full-body plan labelled "Starter plan".
+- **Behavior:** Confirm persists the profile, settings, and plan through `AppCoordinator`, clears the draft, and routes to `/today`. When tracking without a plan, the preview shows a `Your Mova` summary and `Begin your Mova` instead, skips plan generation, and leaves the user free to log any workout. Edit returns to `/onboarding/schedule` with frequency preserved. The footer explains the rotation and that unlogged days are rest days. When the selected equipment leaves a muscle group without options, the preview shows a warning that names the skipped muscles and still produces a plan.
+- **States:** Generated rotation, tracking without a plan, editing, generation in progress under 500 ms, skipped-muscle warning. If generation fails, show a retry card and a fallback full-body plan labelled "Starter plan".
 
 ### 10.6 Today
 
 - **Purpose:** Answer "What should I do today?" and make starting a workout one tap away.
-- **Layout:** Calendar action on the left, centered week label, notification icon on the right, featured planned workout card with the streak tag, steps stat duo, quick action row, flexible spacer.
-- **Components:** Planned workout card (`cardElevated`) with the gold streak tag next to the status tag, primary "Start workout", two stat tiles, three quick actions.
-- **Content:** Workout name, muscle groups, exercise count, estimated duration, status tag, current streak.
-- **Actions:** Start planned workout, empty workout, walk, start saved routine, open plan overview.
+- **Layout:** Calendar/date header with `Edit plan`, training card, steps card, running card, streak badges, and plan stats when a rotation exists.
+- **Components:** Training card with next-up, active, or completed states; completed rows with title, source, duration, and volume or distance plus Edit; Steps card with `Start walk` and `Edit steps`; Running card with `Start run`, `Continue run`, or `Run again`; horizontal `Streak badges`.
+- **Content:** The next rotation session after the last completed plan session, every completed session from today, the latest manual or health step count, and today's completed run.
+- **Actions:** Start the suggested session, choose another rotation session or saved workout, start an empty workout, start a walk, start or continue a run, edit steps, edit a completed workout, open the rotation planner.
 - **States:**
-  - Planned: card plus Start, gold streak tag beside the Planned tag.
-  - Rest day: "Rest day" card with "Start empty workout" as the primary action and the streak tag beside the Recovery tag.
-  - No plan: empty state with "Build a plan".
-  - Active session at startup: the app opens `/logger`.
-  - Paused session: Today shows a "Resume workout" card with elapsed time and a discard action.
+  - Next up: session card plus Start workout and Choose another session.
+  - Completed today: one row per completed session, optional Edit, then one Train again and Choose another session.
+  - Active or paused session: Continue workout takes priority over the rotation; runs open the run timer.
+  - No plan: positive `Track your training` card with Start workout and Choose saved workout.
   - Steps unavailable: show "Add steps" and open a manual entry sheet.
-- **Rules:** Only one primary button. Quick actions are dashed ghost chips, not buttons. In Phase 1 the screen is read-only; Start, Resume, steps, and reminders appear in their later phases.
+  - Badges: earned day tiers 3, 7, 14, 30; earned week tiers 1, 4, 12; locked tiers stay faint and show progress.
+- **Rules:** Rest days never block training. Suggestion copy is brief, can cite the last trained session or a neglected muscle, and recovery is a warning rather than a block. Editing a completed workout keeps its original date and source, then recalculates PRs, streaks, volume, and calendar markers.
 
 ### 10.7 Live logger
 
@@ -656,22 +668,46 @@ All screens use `background`, 16 px horizontal padding, and the `body` type as t
 - **States:** New PR, no PR, empty workout, partial workout.
 - **Rules:** If multiple PRs exist, show the highest estimated 1RM first and list the rest under "Also new". Never show a PR for an uncompleted set.
 
-### 10.9 Train
+### 10.9 Calendar
 
-- **Purpose:** Find exercises and start or edit routines.
-- **Layout:** `h1` Train, search field, horizontal muscle filter chips, exercise result list, My routines section.
-- **Components:** Search input, filter chips, exercise row (equipment glyph, name, muscle and equipment, add button), routine row (name, exercise count, chevron).
-- **Actions:** Search, filter, open exercise details, add exercise to the active session, open a routine, create a routine.
-- **States:** Default list, search results, no results, empty routines, active session add mode.
+- **Purpose:** Show when and what was trained, mark today, and preview the next suggested rotation sessions.
+- **Layout:** `h1` Calendar with Plan and Exercises header actions, month bar with previous/next, weekday labels in the effective week order, month grid, legend, and day cells.
+- **Components:** Day cell with date circle, source markers, today ring and label, check badge, dashed suggestion circle. Day detail sheet with session rows or rest/suggestion copy.
+- **Behavior:**
+  - Past logged workouts show plan, routine, walk, or empty-workout icons. Two or more sessions stack markers and add a count.
+  - Today gets an accent ring and `Today` label, plus a check when trained.
+  - The next three suggested sessions get dashed circles and a small plan icon.
+  - Suggested days are never counted as logged or rest.
+  - Tapping a past logged day lists sessions with title, source, time, duration, volume, and opens history detail.
+  - Tapping a past empty day shows `Rest day` with no workout logged.
+  - Tapping today adds `Start workout`.
+  - Tapping a suggested future day shows `Suggested: [session]`, `View session`, and `Start now`.
+  - Header actions open the rotation planner and exercise library.
+- **States:** Empty month, logged day, multiple sessions, today trained, today untrained, suggested day, month away from today.
+- **Rules:** Week start follows the Me setting with locale-aware automatic default. No 14-day projection.
+
+### 10.9.1 Exercise library
+
+- **Route:** `/exercises`, also reachable through `/train/exercises`.
+- **Purpose:** Find an exercise and act on it immediately.
+- **Layout:** `h1` Exercises, search field, focus chips with `All`, result list with equipment glyph, name, primary muscle, and equipment.
+- **Components:** Search input, focus chips, exercise row with add action.
+- **Actions:**
+  - Active workout and exercise not added: the row add button adds it directly with default sets and shows `Added` plus `View`.
+  - No active workout: the add button opens a choice sheet with `Start workout with this`, `Add to routine`, and `View details`.
+  - Tapping the row opens exercise details.
+- **States:** Default list, search results, no results, focus filtered, active-session add mode, already added.
 - **Rules:** Search matches name, muscle group, and equipment. Result count is announced to screen readers.
 
 ### 10.10 Exercise details
 
-- **Purpose:** Explain the movement and show previous performance.
-- **Layout:** Back bar, equipment hero with a large glyph and the exercise name, muscle and equipment caption, previous performance card, instructions section, primary "Add to workout", ghost "Add to routine".
-- **Components:** Equipment hero, tag row, performance card with best set and last session, numbered instruction list, buttons.
-- **States:** No history shows "First time? Log a set to start tracking." Add is disabled if there is no active session and no routine draft.
-- **Rules:** Instructions are stored locally as short text. No video in v1.
+- **Purpose:** Explain the movement, show previous performance, and always offer a useful next action.
+- **Layout:** Back bar, equipment hero with a large glyph and the exercise name, muscle and equipment caption, previous performance card, instructions section, primary action, and secondary `Add to routine` and `View history` actions.
+- **Components:** Equipment hero, tag row, performance card with best set and last session, numbered instruction list, always-enabled primary button, filtered history sheet.
+- **Primary action states:** No active workout -> `Start workout with this exercise`. Active workout and exercise absent -> `Add to current workout`. Active workout and exercise present -> `Already in workout` tag plus `View in workout`.
+- **Secondary actions:** `Add to routine` opens a routine picker with a New routine route. `View history` opens a filtered sheet of recent sets, weights, reps, and dates.
+- **States:** No history shows "First time? Log a set to start tracking.", already in workout, no active workout.
+- **Rules:** The primary action is never disabled. Instructions are stored locally as short text. No video in v1.
 
 ### 10.11 Routine details and builder
 
@@ -684,14 +720,22 @@ All screens use `background`, 16 px horizontal padding, and the `body` type as t
 
 ### 10.12 Progress
 
-- **Purpose:** Answer "Am I improving?" with honest local metrics.
-- **Layout:** `h1` Progress, lifetime totals trio (workouts, total volume, day streak), strength score card with ring, body weight card with a quick add action, weekly volume card with bars, PR list, workout history shortcut.
-- **Components:** Stat tiles, progress ring, weight chart, volume bars, PR rows, history link, "What counts" info action.
-- **Metrics:** Total workouts, total volume, current streak, weekly volume, best estimated 1RM per tracked lift, current body weight and its recent trend. The info action opens a plain-language sheet that defines every metric, so no number is a mystery.
-- **Body weight:** One entry per local day, newest first, stored only on the device. The card shows the latest value and a trend line once two entries exist. The plus action opens the weight sheet, and tapping the card opens the full log. No workouts are required to use it. The weight sheet uses the shared calculator keypad, so a value can be typed or worked out with an expression and the field shows a live `= value` preview.
-- **Strength score:** Display with a "Beta" tag and a tap-through explanation. Do not show a gym or global ranking in v1. The mock's gym ranking line is intentionally omitted because there is no comparative dataset.
-- **States:** No workouts shows the body weight card above an empty state with "Start your first workout". Fewer than three sessions hides the score and shows the raw metrics instead.
-- **Rules:** Every chart has a text summary. No chart is the only way to read a value.
+- **Purpose:** Answer "Am I improving?" with honest local metrics and a clear next action.
+- **Layout:** `h1` Progress with a Lifetime marker and "What counts" info action, then three sections:
+  - **Training:** 2x2 totals for workouts, lifetime volume, day streak, and week streak; strength score card; weekly consistency; weekly volume; 28-day muscle balance; personal records; workout history shortcut.
+  - **Body:** Body weight card, measurements, and progress photos in a 2-column grid.
+  - **Wellness:** Nutrition, sleep, and resting heart rate in a 2-column grid.
+- **Components:** Stat tiles, progress ring, weight chart, volume bars, consistency bar, muscle bars and neglect tags, PR rows, compact metric cards, faded `ProgressPlaceholderCard` cards, progress photo grid, "What counts" sheet. Compact Body and Wellness cards share one fixed height in a two-column grid, regardless of copy length.
+- **Metrics:** Total workouts, total volume, current day streak, current week streak, sessions this week versus the plan target, current calendar-week volume, 28-day muscle balance, best estimated 1RM per tracked lift, body weight and trend, measurements, nutrition, sleep, and resting heart rate. The info action defines every metric in plain language.
+- **Consistency and streaks:** The current week never ends a week streak while it is still in progress. A week joins the streak once the target is met. Week boundaries follow the effective week start.
+- **Muscle balance:** Volume over the last 28 days. Primary muscles receive full volume and secondary muscles half. Muscles with no volume are tagged as neglected.
+- **Placeholders:** Empty or future metrics use `Opacity 0.72` inside `DashedBorder`, keep labels and actions fully readable, and sit in a 2-column grid. Quick add actions are `Start workout` for training metrics, `Add body weight` for the strength score, the weight sheet for body weight, numeric sheets for measurements, nutrition, sleep, and resting heart rate, and a local picker for photos. No card repeats a large Start workout button.
+- **Body weight:** One entry per local day, newest first, stored only on the device. The card shows the latest value and a trend line once two entries exist. The plus action opens the weight sheet, and tapping the card opens the full log. The weight sheet uses the shared calculator keypad.
+- **Wellness:** Nutrition records calories and protein, sleep records hours and minutes, resting heart rate records bpm, and measurements record waist in cm. Entries are one row per local day, stored only on the device, and are trend notes rather than medical advice.
+- **Progress photos:** Up to 12 photos, stored locally and downsized before saving. The grid shows thumbnails and dates with delete confirmation. Camera and gallery sources are offered on mobile; web uses the gallery picker. Permissions are requested at the moment of use.
+- **Strength score:** Display with a "Beta" tag and a tap-through explanation. Do not show a gym or global ranking in v1.
+- **States:** Empty metrics show placeholders rather than a blocking empty screen. Fewer than three sessions hides the numeric score and keeps the explanation.
+- **Rules:** Every chart has a text summary. No chart is the only way to read a value. Photos never leave the device.
 
 ### 10.12.1 Body weight log
 
@@ -704,11 +748,20 @@ All screens use `background`, 16 px horizontal padding, and the `body` type as t
 ### 10.13 Workout history and detail
 
 - **Purpose:** Let the user review and trust their data.
-- **Layout:** History list grouped by month, each row with date, workout name, duration, volume, PR count. Detail screen shows exercises, sets, and notes.
-- **Components:** Month header, history row, detail set table.
-- **Actions:** Open detail, delete workout with confirmation.
-- **States:** Empty history, no results for a filter, deleted workout confirmation.
-- **Rules:** Deleting a workout recalculates PRs and streaks.
+- **Layout:** History list grouped by month, each row with date, workout name, duration, volume or distance, PR count. Detail screen shows exercises, sets, and notes. Run and walk details replace volume and sets with time and distance.
+- **Components:** Month header, history row, detail set table, `Edit workout` action.
+- **Actions:** Open detail, edit a completed workout, delete workout with confirmation.
+- **States:** Empty history, no results for a filter, edit drawer, deleted workout confirmation.
+- **Rules:** Editing keeps the original date and source, then recalculates PRs and streaks. Deleting a workout recalculates PRs and streaks.
+
+### 10.13.1 Running
+
+- **Purpose:** Log a run without GPS, accounts, or network access.
+- **Route:** `/run`, opened from Today.
+- **Layout:** Start card when idle; timer card with Pause/Resume and Finish when active; distance card.
+- **Actions:** Start, pause, resume, finish, and enter an optional distance manually.
+- **States:** Ready, running, paused, finishing, completed today.
+- **Rules:** Distance is optional and stored in meters. Runs count toward day streak, week streak, and weekly consistency, but add no lifting volume or PRs. No location permission is requested.
 
 ### 10.14 Social feed
 
@@ -729,7 +782,7 @@ All screens use `background`, 16 px horizontal padding, and the `body` type as t
 - **Purpose:** Identity, lifetime totals, and settings entry.
 - **Layout:** Profile header with avatar, name, experience tag, three stat tiles, settings list, app version.
 - **Components:** Avatar showing the experience icon in `limeInk` on `lime`, name, tag, stat trio, setting rows with icon, label, value, chevron.
-- **Entries:** Edit profile, Body weight, Units, Workout reminders, Integrations, Equipment, Privacy and social, Help and support, Reset local data, App version. Body weight opens `/progress/weight`. Privacy policy, Terms of service, and Open-source licenses open from Settings.
+- **Entries:** Edit profile, Body weight, Units, Week starts on, Workout reminders, Integrations, Equipment, Privacy and social, Help and support, Reset local data, App version. Body weight opens `/progress/weight`. Week starts on shows `Automatic (Monday)` or the manual day and opens the same week-start sheet as Settings. Privacy policy, Terms of service, and Open-source licenses open from Settings.
 - **States:** Default profile, edited name, no PRs.
 - **Rules:** There is no account, sign-in, or log out in v1. Reset local data requires a confirmation and explains what is removed. Legal and license screens live under Settings, not as separate Me rows.
 
@@ -737,7 +790,8 @@ All screens use `background`, 16 px horizontal padding, and the `body` type as t
 
 - **Profile:** Edit name, experience, goals, gender, birth date, height, and body weight on `/me/edit`.
 - **Units:** Weight, distance, and body units. Converts display only. Canonical storage stays kg, km, and cm.
-- **Equipment:** Opens `/me/equipment`. Shows the number of selected groups and reuses the onboarding equipment cards with the Quick start preset bar. Saving offers "Save only" or "Save and regenerate". Regeneration rebuilds the current week with the new equipment and keeps history and personal records.
+- **Week starts on:** Automatic by locale or a manual Monday through Sunday. Automatic resolves through the device locale and falls back to Monday. One setting drives Calendar, weekly consistency, weekly volume, and week streak.
+- **Equipment:** Opens `/me/equipment`. Shows the number of selected groups and reuses the onboarding equipment cards with the Quick start preset bar. Saving offers "Save only" or "Save and regenerate". Regeneration resets the rotation to Day 1 with a notice and keeps history and personal records.
 - **Reminders:** Toggle plus weekday and time picker. Requires notification permission at the moment of enabling.
 - **Integrations:** Apple Health or Health Connect row. Shows connected, not connected, or unavailable. Manual steps fallback is always available.
 - **Privacy and social:** Local-only explanation. Toggle for showing own workouts in the feed.
@@ -747,11 +801,13 @@ All screens use `background`, 16 px horizontal padding, and the `body` type as t
 
 ### 10.17 Plan overview and edit
 
-- **Purpose:** Review and change the weekly schedule without redoing onboarding.
-- **Layout:** Bottom sheet or full screen with seven day rows, current workout per day, and "Edit schedule".
-- **Actions:** Move a whole split day to another weekday, swap two occupied days, choose training days per week for the next regeneration, regenerate the week.
-- **States:** Rest day, edited week, regeneration confirmation, skipped-muscle warning.
-- **Rules:** Editing the plan never deletes completed history. Regeneration reports that history and PRs are unchanged and appends any equipment warning. Per-exercise editing is not part of v1.
+- **Purpose:** Review and change the ordered rotation without redoing onboarding.
+- **Route:** `/plan`, opened from Today and Calendar.
+- **Layout:** Full screen with `Your rotation`, frequency 1-7, split style, ordered `Day 1..N` session cards with expandable exercise previews, `Save as saved workout`, `Saved workouts`, and a staged `Regenerate` action. Without a plan, the same frequency and split controls create a first rotation.
+- **Actions:** Change average frequency, choose a split style, reorder sessions with Move earlier/later, start a session, save a plan day as a saved workout, create or start saved workouts, and create or regenerate the rotation.
+- **Behavior:** A plan is the ordered rotation that drives what comes next. A saved workout is a reusable template that can start any day without changing the rotation. `Save as saved workout` copies exercises, sets, reps, and rest one way; later edits do not sync. Frequency and split changes are staged and nothing changes until Regenerate. Regeneration confirms, resets the rotation to Day 1 with a notice, and appends any equipment warning. Move earlier/later stays within bounds.
+- **States:** Empty plan, staged changes, regeneration confirmation, skipped-muscle warning, no saved workouts.
+- **Rules:** Editing the plan never deletes completed history. History and PRs are unchanged by regeneration. Per-exercise editing is not part of v1.
 
 ### 10.18 Permissions
 
@@ -1034,6 +1090,12 @@ mova.v1.onboarding
 | 2026-11-02 | Strength score is beta and unranked | A local-only app cannot compute "Top X% at your gym" honestly |
 | 2026-11-02 | Health sync has a manual fallback | Prevents Today from depending on a platform permission |
 | 2026-11-02 | Nutrition and GPS are post-MVP | They do not support the core loop |
+| 2026-11-12 | Replace the Train tab with Calendar and an exercise library | Users need to see when and what they trained. Exercises are reachable from Calendar and Today |
+| 2026-11-12 | Plans are ordered rotations, not weekday schedules | Schedules that do not line up with weekdays still work. Any unlogged day is rest without blocking training |
+| 2026-11-12 | Week start is automatic by locale with a manual override | Calendar, consistency, volume, and week streaks must agree while allowing a user preference |
+| 2026-11-12 | Plans are optional and saved workouts are templates | Users can track without a rotation; plan-day copies are one-way and never auto-sync |
+| 2026-11-12 | Completed workouts are editable | Users forget a set or exercise; saving recalculates PRs, streaks, volume, and calendar markers |
+| 2026-11-12 | Running is local and distance is manual | No GPS or location permission in v1; timer and distance still count as activity |
 
 ---
 

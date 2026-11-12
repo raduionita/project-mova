@@ -97,13 +97,12 @@ class OnboardingProvider extends ChangeNotifier {
     return _update(_draft.copyWith(experienceLevel: level));
   }
 
-  Future<bool> setSchedule({
-    required int daysPerWeek,
-    required List<int> trainingDays,
-  }) {
-    return _update(
-      _draft.copyWith(daysPerWeek: daysPerWeek, trainingDays: trainingDays),
-    );
+  Future<bool> setSchedule({required int daysPerWeek}) {
+    return _update(_draft.copyWith(daysPerWeek: daysPerWeek));
+  }
+
+  Future<bool> setPlanEnabled(bool enabled) {
+    return _update(_draft.copyWith(planEnabled: enabled));
   }
 
   Future<bool> setEquipment(List<EquipmentGroup> equipment) {
@@ -138,11 +137,13 @@ class OnboardingProvider extends ChangeNotifier {
       case OnboardingStep.equipment:
         return _draft.availableEquipment.isNotEmpty;
       case OnboardingStep.schedule:
+        if (!_draft.planEnabled) {
+          return true;
+        }
         final daysPerWeek = _draft.daysPerWeek;
         return daysPerWeek != null &&
             daysPerWeek >= kMinTrainingDays &&
-            daysPerWeek <= kMaxTrainingDays &&
-            _draft.trainingDays.length == daysPerWeek;
+            daysPerWeek <= kMaxTrainingDays;
     }
   }
 
@@ -207,15 +208,18 @@ class OnboardingProvider extends ChangeNotifier {
   Future<bool> _update(OnboardingDraft next) async {
     _error = null;
     final stamped = next.copyWith(updatedAt: _clock.now());
+    _draft = stamped;
+    _hasDraft = stamped.currentStep != OnboardingStep.welcome;
+    notifyListeners();
     final saved = await _storage.writeObject(kOnboardingKey, stamped.toJson());
     if (!saved) {
       _error = 'Could not save onboarding draft.';
       notifyListeners();
-      return false;
+      // Keep the in-memory step so the flow can continue even when the local
+      // store is temporarily unavailable. The next successful write persists
+      // the latest draft.
+      return true;
     }
-    _draft = stamped;
-    _hasDraft = stamped.currentStep != OnboardingStep.welcome;
-    notifyListeners();
     return true;
   }
 }

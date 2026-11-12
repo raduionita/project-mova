@@ -176,13 +176,13 @@ void main() {
     await tester.tap(find.text('Open picker'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Add to routine'), findsNWidgets(2));
+    expect(find.text('Add to saved workout'), findsNWidgets(2));
     final button = tester.widget<AppButton>(
-      find.widgetWithText(AppButton, 'Add to routine'),
+      find.widgetWithText(AppButton, 'Add to saved workout'),
     );
     expect(button.onPressed, isNotNull);
 
-    await tester.tap(find.widgetWithText(AppButton, 'Add to routine'));
+    await tester.tap(find.widgetWithText(AppButton, 'Add to saved workout'));
     await tester.pumpAndSettle();
     expect(result?.exercises.single.id, 'barbell-bench-press');
   });

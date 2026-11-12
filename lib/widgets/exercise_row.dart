@@ -8,6 +8,7 @@ import '../theme/app_radii.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
 import 'app_icon.dart';
+import 'app_tag.dart';
 
 /// Exercise library row from DESIGN.md section 10.9.
 ///
@@ -19,11 +20,15 @@ class ExerciseRow extends StatelessWidget {
     required this.exercise,
     this.onTap,
     this.onAdd,
+    this.onView,
+    this.isAdded = false,
   });
 
   final Exercise exercise;
   final VoidCallback? onTap;
   final VoidCallback? onAdd;
+  final VoidCallback? onView;
+  final bool isAdded;
 
   Widget _buildAddButton() {
     return Semantics(
@@ -33,6 +38,7 @@ class ExerciseRow extends StatelessWidget {
       child: Tooltip(
         message: 'Add ${exercise.name}',
         child: InkResponse(
+          key: Key('exercise-add-${exercise.id}'),
           onTap: onAdd,
           radius: AppSpacing.x4l,
           child: Container(
@@ -50,6 +56,34 @@ class ExerciseRow extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildAdded() {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        AppTag(
+          key: Key('exercise-added-${exercise.id}'),
+          label: 'Added',
+          variant: AppTagVariant.lime,
+        ),
+        const SizedBox(width: AppSpacing.xs),
+        TextButton(
+          key: Key('exercise-view-${exercise.id}'),
+          onPressed: onView,
+          style: TextButton.styleFrom(
+            foregroundColor: AppColors.lime,
+            padding: EdgeInsets.zero,
+            minimumSize: const Size(0, AppSpacing.x5l),
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          child: Text(
+            'View',
+            style: AppTypography.label.copyWith(color: AppColors.lime),
+          ),
+        ),
+      ],
     );
   }
 
@@ -112,7 +146,7 @@ class ExerciseRow extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: AppSpacing.md),
-              _buildAddButton(),
+              isAdded ? _buildAdded() : _buildAddButton(),
             ],
           ),
         ),
